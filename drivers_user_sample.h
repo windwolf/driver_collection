@@ -1,19 +1,21 @@
 #ifndef __drivers_user_h__
-#define __drivers_user_h__ 
+#define __drivers_user_h__
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-#define DRIVERS_BSP_STM32H750
+#define DRIVERS_ENABLE_I2C
+#define DRIVERS_ENABLE_SPI
+#define DRIVERS_ENABLE_UART
+#define DRIVERS_ENABLE_CAN
 
-#define DRIVERS_ENABLE_ST7789
-
-
-
+#define DRIVERS_EANBLE_W35QXX
+#define DRIVERS_ENABLE_ST77XX
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif	// __drivers_user_h__
+#endif // __drivers_user_h__

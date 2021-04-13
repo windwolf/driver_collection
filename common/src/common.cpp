@@ -1,6 +1,6 @@
 #include "common.hpp"
 
-using namespace Driver::Core;
+using namespace Windwolf::Driver::Core;
 
 DeviceBase::DeviceBase(DeviceDriverBase *pDriver)
     : _pDriver(pDriver){
@@ -40,4 +40,9 @@ DEVICE_STATUS DeviceBase::ReConfig(void *pConfig)
         return DEVICE_STATUS::ARGUMENT_ERROR;
     }
     return this->_pDriver->Config(this->_pConfig, &(this->_pInstance));
+}
+
+DeviceBase::~DeviceBase()
+{
+    DeInit();
 }

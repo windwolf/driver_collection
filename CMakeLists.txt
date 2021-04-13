@@ -5,9 +5,13 @@ project(drivers
     VERSION 6.0.0 
     LANGUAGES C CXX ASM
 )
+set(CMAKE_CXX_STANDARD 17)
 
 if(NOT DEFINED DRIVERS_BSP)
     message(FATAL_ERROR "Error: DRIVERS_BSP not defined")
+endif()
+if(NOT DEFINED DRIVERS_OS)
+    message(FATAL_ERROR "Error: DRIVERS_OS not defined")
 endif()
 
 add_library(${PROJECT_NAME})
@@ -17,20 +21,9 @@ add_library("windwolf::${PROJECT_NAME}" ALIAS ${PROJECT_NAME})
 set(CUSTOM_INC_DIR ${CMAKE_CURRENT_BINARY_DIR}/custom_inc)
 
 
-# BSP源文件和头文件
-list_source_files(${CMAKE_CURRENT_LIST_DIR}/bsp/${DRIVERS_BSP} BSP_SOURCE_FILES)
-set(BSP_INCLUDE_PATH ${CMAKE_CURRENT_LIST_DIR}/bsp/${DRIVERS_BSP}/inc)
-target_sources(${PROJECT_NAME} 
-    PRIVATE 
-    ${BSP_SOURCE_FILES}
-)
-target_include_directories(${PROJECT_NAME} 
-    PRIVATE 
-    ${BSP_INCLUDE_PATH}
-)
 
 # common
-list_source_files(${CMAKE_CURRENT_LIST_DIR}/common COMMON_SROUCE_FILES)
+list_source_files(${CMAKE_CURRENT_LIST_DIR}/common/src COMMON_SROUCE_FILES)
 target_sources(${PROJECT_NAME}
     PRIVATE
 	${COMMON_SROUCE_FILES}
@@ -43,6 +36,7 @@ target_include_directories(${PROJECT_NAME}
 
 # 驱动内容
 list_source_directories(${CMAKE_CURRENT_LIST_DIR} DRIVER_COMPONENTS)
+list(REMOVE_ITEM DRIVER_COMPONENTS "common" "bsp" "os")
 foreach(DRIVER_COMPONENT ${DRIVER_COMPONENTS})
     list_source_files(${CMAKE_CURRENT_LIST_DIR}/${DRIVER_COMPONENT} DRIVER_COMPONENT_SOURCE_FILES)
     target_sources(${PROJECT_NAME}
@@ -54,8 +48,6 @@ foreach(DRIVER_COMPONENT ${DRIVER_COMPONENTS})
         ${CMAKE_CURRENT_LIST_DIR}/${DRIVER_COMPONENT}/inc
     )
 endforeach()
-
-
 
 # 如果使用方没有提供自定义, 那么使用默认, 否则将自定义复制到custom_inc下
 if (NOT DRIVERS_USER_FILE)

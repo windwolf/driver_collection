@@ -1,30 +1,16 @@
-#ifndef __spi_h__
-#define __spi_h__
+//
+// Created by windwolf on 2021/4/10.
+//
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+#ifndef STARTUP_SPI_H
+#define STARTUP_SPI_H
 
-    typedef struct SPI_CONFIG_STRUCT
-    {
 
-    } SPI_CONFIG;
-    typedef struct SPI_INSTANCE_STRUCT
-    {
 
-    } SPI_INSTANCE;
+class spi {
 
-    void SPI_Init();
+};
 
-    void SPI_Config();
 
-    void SPI_Read();
 
-    void SPI_Write();
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif // __spi_h__
+#endif //STARTUP_SPI_H

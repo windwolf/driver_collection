@@ -23,7 +23,7 @@ set(CUSTOM_INC_DIR ${CMAKE_CURRENT_BINARY_DIR}/custom_inc)
 
 
 # common
-list_source_files(${CMAKE_CURRENT_LIST_DIR}/common/src COMMON_SROUCE_FILES)
+list_source_files(${CMAKE_CURRENT_LIST_DIR}/common COMMON_SROUCE_FILES)
 target_sources(${PROJECT_NAME}
     PRIVATE
 	${COMMON_SROUCE_FILES}

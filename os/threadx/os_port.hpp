@@ -1,8 +1,7 @@
-#include "os_port.hpp"
-
+#include "common/os_port.hpp"
 #include "tx_api.h"
 
-namespace Windwolf::Common
+namespace Windwolf::Drivers::OsPort
 {
     class ThreadxOsSync : public OsSync
     {

@@ -1,4 +1,4 @@
-#include "wait_handle.hpp"
+#include "common/shared.hpp"
 
 using namespace Windwolf::Common;
 
@@ -11,12 +11,12 @@ void WaitHandle::Wait(){
 };
 void WaitHandle::Finish()
 {
-    this->_status = WaitHandle::WAIT_STATUS::DONE;
+    this->_status = WAIT_STATUS::DONE;
     this->_sync->Set();
 }
 void WaitHandle::Cancel()
 {
-    _status = WaitHandle::WAIT_STATUS::CANCELED;
+    _status = WAIT_STATUS::CANCELED;
     this->_sync->Set();
 };
 void *WaitHandle::GetPayload()
@@ -27,7 +27,7 @@ void WaitHandle::SetPayload(void *payload)
 {
     _payload = payload;
 };
-WaitHandle::WAIT_STATUS WaitHandle::GetStatus()
+WAIT_STATUS WaitHandle::GetStatus()
 {
     return _status;
 };

@@ -1,5 +1,5 @@
 #include "stdint.h"
-#include "ring_buffer.hpp"
+#include "common/ring_buffer.hpp"
 #include "stdlib.h"
 #include "string.h"
 
@@ -7,7 +7,7 @@ using namespace Windwolf::Common;
 
 #define POINTER_ADD(base, offset) ((base) + (offset))
 
-template<typename T>
+template <typename T>
 RingBuffer<T>::RingBuffer(T *data, uint32_t capacity)
 {
     _size = capacity;
@@ -17,42 +17,42 @@ RingBuffer<T>::RingBuffer(T *data, uint32_t capacity)
     _count = 0;
     _tail = 0;
 }
-template<typename T>
+template <typename T>
 void RingBuffer<T>::RegisterOperationNotify(RingBuffer::OperationNotifyCallback callback)
 {
     this->_callback = callback;
 }
-template<typename T>
+template <typename T>
 inline bool RingBuffer<T>::IsFull()
 {
     return _count == _size;
 }
-template<typename T>
+template <typename T>
 inline bool RingBuffer<T>::IsEmpty()
 {
     return _count == 0;
 }
-template<typename T>
+template <typename T>
 inline bool RingBuffer<T>::HasEnoughSpace(uint32_t length)
 {
     return (_size - _count) >= length;
 }
-template<typename T>
+template <typename T>
 inline uint32_t RingBuffer<T>::GetDataLength()
 {
     return _count;
 }
-template<typename T>
+template <typename T>
 inline T *RingBuffer<T>::GetHeadPointer()
 {
     return POINTER_ADD(_data, _head);
 }
-template<typename T>
+template <typename T>
 inline T *RingBuffer<T>::GetTailPointer()
 {
     return POINTER_ADD(_data, _tail);
 }
-template<typename T>
+template <typename T>
 bool RingBuffer<T>::SyncHead(uint32_t newHead)
 {
     //uint32_t tail = _tail;
@@ -81,7 +81,7 @@ bool RingBuffer<T>::SyncHead(uint32_t newHead)
     }
     return true;
 }
-template<typename T>
+template <typename T>
 bool RingBuffer<T>::SyncTail(uint32_t newTail)
 {
     uint32_t tail = _tail;
@@ -103,7 +103,7 @@ bool RingBuffer<T>::SyncTail(uint32_t newTail)
     }
     return true;
 }
-template<typename T>
+template <typename T>
 int32_t RingBuffer<T>::Enqueue(T *data, uint32_t length, bool allowCoverTail)
 {
     uint32_t head = _head;
@@ -167,7 +167,7 @@ int32_t RingBuffer<T>::Enqueue(T *data, uint32_t length, bool allowCoverTail)
     }
     return rtnLength;
 }
-template<typename T>
+template <typename T>
 int32_t RingBuffer<T>::Dequeue(T *buffer, uint32_t length)
 {
     uint32_t tail = _tail;
@@ -205,7 +205,7 @@ int32_t RingBuffer<T>::Dequeue(T *buffer, uint32_t length)
     }
     return length;
 }
-template<typename T>
+template <typename T>
 bool RingBuffer<T>::PeekToEnd(T **buffer, uint32_t *length)
 {
     uint32_t tail = _tail;

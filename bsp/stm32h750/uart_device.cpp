@@ -3,25 +3,55 @@
 using namespace Windwolf::Drivers::Bsp;
 using namespace Windwolf::Drivers;
 
-void STM32H7xxUartDeviceHandle_Init(STM32H7xxUartDeviceHandle *handle, void *device) {
-    handle->device = device;
+static STM32H7xxUartDevice *INSTANCES__[(uint32_t) (UartIndex::UART_COUNT)];
+
+static inline UartIndex GetInstanceIndex(UART_HandleTypeDef *huart) {
+    auto ins = (uint32_t) (huart->Instance);
+
+    switch (ins) {
+        case UART4_BASE:
+            return UartIndex::UART4_INDEX;
+        case UART5_BASE:
+            return UartIndex::UART5_INDEX;
+        case UART7_BASE:
+            return UartIndex::UART7_INDEX;
+        case UART8_BASE:
+            return UartIndex::UART8_INDEX;
+        default:
+            return Windwolf::Drivers::Bsp::UartIndex::UART_COUNT;
+    }
 }
+
+static inline void RegisterDevice(STM32H7xxUartDevice *device, UART_HandleTypeDef *huart) {
+    auto index = GetInstanceIndex(huart);
+    INSTANCES__[(uint32_t) index] = device;
+
+}
+
+static inline STM32H7xxUartDevice *GetDevice(UART_HandleTypeDef *huart) {
+    auto index = GetInstanceIndex(huart);
+    return INSTANCES__[(uint32_t) index];
+}
+
+//void STM32H7xxUartDeviceHandle_Init(STM32H7xxUartDeviceHandle *handle, void *device) {
+//    handle->device = device;
+//}
 
 extern "C" void Uart_TxCpltCallback__(UART_HandleTypeDef *huart) {
-
-    STM32H7xxUartDeviceHandle *handle = (STM32H7xxUartDeviceHandle *) huart;
-    ((STM32H7xxUartDevice *) handle->device)->TxNotify();
+    auto device = GetDevice(huart);
+    device->TxNotify();
 }
 extern "C" void Uart_RxCpltCallback__(UART_HandleTypeDef *huart) {
-
-    STM32H7xxUartDeviceHandle *handle = (STM32H7xxUartDeviceHandle *) huart;
-    ((STM32H7xxUartDevice *) handle->device)->RxNotify();
+    auto device = GetDevice(huart);
+    device->RxNotify();
 }
 
-STM32H7xxUartDevice::STM32H7xxUartDevice(STM32H7xxUartDeviceHandle *handle) {
-    _handle = (UART_HandleTypeDef *) (handle);
+STM32H7xxUartDevice::STM32H7xxUartDevice(UART_HandleTypeDef *handle)
+        : _handle(handle) {
+
     _handle->TxCpltCallback = Uart_TxCpltCallback__;
     _handle->RxCpltCallback = Uart_RxCpltCallback__;
+    RegisterDevice(this, handle);
 }
 
 

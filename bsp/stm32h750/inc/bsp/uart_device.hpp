@@ -11,6 +11,13 @@
 
 namespace Windwolf::Drivers::Bsp {
     using namespace Windwolf::Drivers;
+    enum class UartIndex {
+        UART4_INDEX = 0,
+        UART5_INDEX,
+        UART7_INDEX,
+        UART8_INDEX,
+        UART_COUNT,
+    };
 
     class STM32H7xxUartDevice : public IoDevice {
     private:
@@ -21,11 +28,12 @@ namespace Windwolf::Drivers::Bsp {
 //            usart,
 //        };
 //        Mode _mode;
-        WaitHandle *_txSync;
-        WaitHandle *_rxSync;
-
+        WaitHandle *_txSync{};
+        WaitHandle *_rxSync{};
     public:
-        STM32H7xxUartDevice(STM32H7xxUartDeviceHandle *handle);
+
+
+        STM32H7xxUartDevice(UART_HandleTypeDef *handle);
 
 //        STM32H7xxUartDevice(USART_HandleTypeDef *handle);
 //        ~STM32H7xxUartDevice();

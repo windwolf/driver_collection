@@ -3,11 +3,9 @@
 
 #include "stdint.h"
 
-namespace Windwolf::Common
-{
-    template <typename T>
-    class RingBuffer
-    {
+namespace Windwolf::Common {
+    template<typename T>
+    class RingBuffer {
     public:
         // enum UNIT_SIZE
         // {
@@ -16,24 +14,30 @@ namespace Windwolf::Common
         //     UNIT_SIZE_4 = 2,
         //     UNIT_SIZE_8 = 3,
         // };
-        enum OP_TYPE
-        {
+        enum OP_TYPE {
             OP_TYPE_ENQUEUE,
             OP_TYPE_DEQUEUE,
             OP_TYPE_SYNC_HEAD,
             OP_TYPE_SYNC_TAIL,
             OP_TYPE_PEEK_TO_END,
         };
+
         typedef void (*OperationNotifyCallback)(const RingBuffer *const &buffer, OP_TYPE type);
 
         RingBuffer(T *data, uint32_t capacity);
+
         bool IsFull();
+
         bool IsEmpty();
+
         bool HasEnoughSpace(uint32_t length);
+
         uint32_t GetDataLength();
+
         T *GetHeadPointer();
+
         T *GetTailPointer();
-        
+
         /**
          * @brief Update the quenes's head. 
          * Used by hardware driver after Rx DMA operation.
@@ -42,6 +46,7 @@ namespace Windwolf::Common
          * @return Whether operation success.
          */
         bool SyncHead(uint32_t newHead);
+
         /**
          * @brief Update the tail index of the quene. 
          * Used by hardware driver after Tx DMA operation.
@@ -50,6 +55,7 @@ namespace Windwolf::Common
          * @return Whether operation success.
          */
         bool SyncTail(uint32_t newTail);
+
         /**
          * @brief Add data to the buffer's head. 
          * If buffer has not enough room for the income data, 
@@ -65,7 +71,7 @@ namespace Windwolf::Common
          * Note that actual length maybe larger than buffer capacity, if allowCoverTail is true. 
          */
         int32_t Enqueue(T *data, uint32_t length, bool allowCoverTail);
-        
+
         /**
          * @brief Fetch data from the end of the buffer. 
          * The room of the fetched data will be mark as emtpy for the next incoming data.
@@ -93,20 +99,22 @@ namespace Windwolf::Common
          */
         void RegisterOperationNotify(OperationNotifyCallback callback);
 
+        T *GetBuffer();
+
+        uint32_t GetBufferSize();
+
     private:
         T *_data;
         uint32_t _head; // 指向当前最新的数据
         uint32_t _tail;
         uint32_t _size;
         uint32_t _count;
-        union
-        {
+        union {
             uint8_t _allStatus;
-            struct
-            {
+            struct {
                 // Indicate wether buffer overflow happened.
                 // If overflow, the tail of the buffer data will be covered by new data.
-                uint8_t overflowed : 1;
+                uint8_t overflowed: 1;
             } _statusBits;
         };
 
@@ -114,9 +122,14 @@ namespace Windwolf::Common
     };
 
 
-    template class RingBuffer<uint8_t>;
-    template class RingBuffer<uint16_t>;
-    template class RingBuffer<uint32_t>;
+    template
+    class RingBuffer<uint8_t>;
+
+    template
+    class RingBuffer<uint16_t>;
+
+    template
+    class RingBuffer<uint32_t>;
 
 } // namespace Windwolf::Common
 

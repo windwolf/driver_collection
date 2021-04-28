@@ -6,7 +6,6 @@
 #include "common\device.hpp"
 
 #include "stm32h7xx_hal.h"
-#include "bsp/uart_device_handle.h"
 
 
 namespace Windwolf::Drivers::Bsp {
@@ -19,7 +18,7 @@ namespace Windwolf::Drivers::Bsp {
         UART_COUNT,
     };
 
-    class STM32H7xxUartDevice : public IoDevice {
+    class STM32H7xxUartDevice /* : public IoDevice */ {
     private:
         UART_HandleTypeDef *_handle;
 //        USART_HandleTypeDef *_usart;
@@ -28,8 +27,9 @@ namespace Windwolf::Drivers::Bsp {
 //            usart,
 //        };
 //        Mode _mode;
-        WaitHandle *_txSync{};
-        WaitHandle *_rxSync{};
+        WaitHandle *_txCallback;
+        WaitHandle *_rxCallback;
+        bool _rxForever;
     public:
 
 
@@ -38,13 +38,75 @@ namespace Windwolf::Drivers::Bsp {
 //        STM32H7xxUartDevice(USART_HandleTypeDef *handle);
 //        ~STM32H7xxUartDevice();
 
-        virtual DEVICE_STATUS TxAsync(uint8_t *writeData, uint32_t dataSize, WaitHandle *txSync);
+        virtual DEVICE_STATUS Tx(uint8_t *writeData, uint32_t dataSize);
 
-        virtual DEVICE_STATUS RxAsync(uint8_t *readBuffer, uint32_t bufferSize, WaitHandle *rxSync);
+        virtual DEVICE_STATUS Rx(uint8_t *readBuffer, uint32_t bufferSize, uint32_t *count);
 
-        virtual DEVICE_STATUS TxNotify();
+        /**
+         * Send data async, return immediately.
+         * callback function will be called, when sending process done.
+         * @param writeData
+         * @param dataSize
+         * @param callback
+         * @return
+         */
+        virtual DEVICE_STATUS TxAsync(uint8_t *writeData, uint32_t dataSize, WaitHandle *callback);
 
-        virtual DEVICE_STATUS RxNotify();
+
+        /**
+         * receive data async, return immediately.
+         * Callback function will be called, when receive buffer full or rx line idle.
+         * @param readBuffer
+         * @param bufferSize
+         * @param callback
+         * @return
+         */
+        virtual DEVICE_STATUS RxAsync(uint8_t *readBuffer, uint32_t bufferSize, WaitHandle *callback);
+
+        /**
+         * receive data async and circlly, return immediately.
+         * Callback function will be called, when receive buffer reach the end of the buffer or rx line idle.
+         * @param readBuffer
+         * @param bufferSize
+         * @param callback
+         * @return
+         */
+        virtual DEVICE_STATUS RxAsyncForever(uint8_t *readBuffer, uint32_t bufferSize, WaitHandle *callback);
+
+        /**
+         * Start rx process with on read buffer, return immediately.
+         * Nothing will happen when receive data is available. User code should get the data head position and mentain the buffer.
+         * @param readBuffer
+         * @param bufferSize
+         * @return
+         */
+        virtual DEVICE_STATUS RxAsyncForeverSilently(uint8_t *readBuffer, uint32_t bufferSize);
+
+        /**
+         * Stop the rx process.
+         * @return
+         */
+        virtual DEVICE_STATUS StopRx();
+
+        /**
+         * Get the rx data head position.
+         * @return
+         */
+        virtual uint32_t GetRxDataPosition();
+
+        /**
+         * Call by tx interept handle, to notify the tx event.
+         * @return
+         */
+        virtual void TxNotify();
+
+        /**
+         * Call by rx interept handle, to notify the rx event.
+         * @return
+         */
+        virtual void RxNotify(uint32_t pos);
+
+        virtual void ErrorNotify();
     };
 
 

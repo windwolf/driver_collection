@@ -2,29 +2,24 @@
 
 using namespace Windwolf::Common;
 
-WaitHandle::WaitHandle(OsSync &sync) : _sync(sync), _status(WAIT_STATUS::INIT) {
+WaitHandle::WaitHandle(OsEvent &sync) : _sync(sync) {
 }
 
-void WaitHandle::Start() {
-    this->_status = WAIT_STATUS::WAITING;
-};
-
 void WaitHandle::Wait() {
-    this->_sync.Wait(-1);
+    this->_sync.Get(-1);
 };
 
 void WaitHandle::Finish() {
-    this->_status = WAIT_STATUS::DONE;
     this->_sync.Set();
 };
 
 void WaitHandle::Cancel() {
-    _status = WAIT_STATUS::CANCELED;
+    //TODO:
     this->_sync.Set();
 };
 
 void WaitHandle::Error() {
-    _status = WAIT_STATUS::ERROR;
+    //TODO:
     this->_sync.Set();
 };
 
@@ -37,6 +32,11 @@ void WaitHandle::SetPayload(void *payload) {
     _payload = payload;
 };
 
-WAIT_STATUS WaitHandle::GetStatus() {
-    return _status;
+WaitHandle::WAIT_STATUS WaitHandle::GetStatus() {
+    if (_sync.Peek()) {
+        return WAIT_STATUS::SET;
+    } else {
+        return WAIT_STATUS::RESET;
+    }
 };
+

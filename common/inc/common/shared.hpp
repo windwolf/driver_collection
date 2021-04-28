@@ -20,6 +20,7 @@
 namespace Windwolf::Common {
 
     enum class DEVICE_STATUS {
+
         HARDWARE_ERROR = -3,
         ARGUMENT_ERROR = -2,
         GENERAL_ERROR = -1,
@@ -28,7 +29,7 @@ namespace Windwolf::Common {
         NOT_NECESSARY = 1,
         NOT_READY = 2,
         BUSY = 3,
-
+        NOT_SUPPORT = 4,
     };
 
     template<typename T>
@@ -39,32 +40,18 @@ namespace Windwolf::Common {
 
     public:
         using iterator = T *;
-        using
-        const_iterator =
-        const T *;
+        using const_iterator = const T *;
 
-        Buffer(T *begin, size_t
-        length) : _begin(begin), _end(begin + length) {}
+        Buffer(T *begin, size_t length) : _begin(begin), _end(begin + length) {}
 
         Buffer(T *begin, T *end) : _begin(begin), _end(end) {}
 
         Buffer() : _begin(nullptr), _end(nullptr) {}
 
-        template<size_t
-        I>
+        template<size_t I>
         Buffer(T(&begin)[I]) : Buffer(begin, I) {}
 
-        // Buffer(std::vector<typename std::remove_const<T>::type> &vector)
-        //     : generic_bufptr_t(vector.data(), vector.size()) {}
-
-        // Buffer(const std::vector<typename std::remove_const<T>::type> &vector)
-        //     : generic_bufptr_t(vector.data(), vector.size()) {}
-
-        // Buffer(const generic_bufptr_t<typename std::remove_const<T>::type> &other)
-        //     : generic_bufptr_t(other._begin, other._end) {}
-
-        Buffer &operator+=(size_t
-                           num) {
+        Buffer &operator+=(size_t num) {
             if (!soft_assert(num <= size())) {
                 num = size();
             }
@@ -72,21 +59,15 @@ namespace Windwolf::Common {
             return *this;
         }
 
-        Buffer
-        operator++(
-                int) {
+        Buffer operator++(int) {
             Buffer result = *this;
             *this += 1;
             return result;
         }
 
-        T &operator*() {
-            return *_begin;
-        }
+        T &operator*() { return *_begin; }
 
-        Buffer
-        take(size_t
-             num) const {
+        Buffer take(size_t num) const {
             if (!soft_assert(num <= size())) {
                 num = size();
             }
@@ -94,9 +75,7 @@ namespace Windwolf::Common {
             return result;
         }
 
-        Buffer
-        skip(size_t
-             num, size_t *processed_bytes = nullptr) const {
+        Buffer skip(size_t num, size_t *processed_bytes = nullptr) const {
             if (!soft_assert(num <= size())) {
                 num = size();
             }
@@ -105,13 +84,9 @@ namespace Windwolf::Common {
             return {_begin + num, _end};
         }
 
-        size_t size() const {
-            return _end - _begin;
-        }
+        size_t size() const { return _end - _begin; }
 
-        bool empty() const {
-            return size() == 0;
-        }
+        bool empty() const { return size() == 0; }
 
         T *&begin() { return _begin; }
 
@@ -125,59 +100,58 @@ namespace Windwolf::Common {
 
         T &back() const { return *(end() - 1); }
 
-        T &operator[](size_t
-                      idx) { return *(begin() + idx); }
+        T &operator[](size_t idx) { return *(begin() + idx); }
     };
 
-    using BufferCU8 = Buffer<const uint8_t>;
-    using BufferU8 = Buffer<uint8_t>;
+    template<typename T>
+    struct Buffer2 {
+        T *begin;
+        uint32_t size;
+        uint32_t count;
 
-//    template<typename TRet, typename... TArgs>
-//    class Callback {
-//    private:
-//        void *_context;
-//
-//        TRet (*_callback)(void *, TArgs...);
-//
-//    public:
-//        Callback() : _context(nullptr), _callback(nullptr) {};
-//
-//        Callback(TRet (*callback)(void *, TArgs...), void *context)
-//                : _callback(callback), _context(context) {
-//        }
-//
-//        void SetContext(void *context) {
-//            _context = context;
-//        }
-//
-//        void SetFuncPtr(TRet (*callback)(void *, TArgs...)) {
-//            _callback = callback;
-//        }
-//
-//        TRet Invoke(TArgs... args) {
-//            return _callback(_context, args...);
-//        }
-//    };
+        Buffer2(T *begin, uint32_t size) : Buffer2(begin, size, 0) {
 
-    enum class WAIT_STATUS {
-        INIT,
-        WAITING,
-        DONE,
-        CANCELED,
-        ERROR,
+        };
+
+        Buffer2(T *begin, uint32_t size, uint32_t count) : begin(begin), size(size), count(count) {
+
+        };
+
+        Buffer2(Buffer2 &value) {
+            begin = value.begin;
+            size = value.size;
+            count = value.count;
+        };
+
+        Buffer2(Buffer2 &&value) noexcept {
+            begin = value;
+            size = value.size;
+            count = value.count;
+            value.begin = nullptr;
+            value.size = 0;
+            value.count = 0;
+        };
     };
 
+    /**
+     *      reset =[wait]
+     *      reset =[finish]=> set
+     *      reset =[cancel]=> canceled
+     *      reset =[error]=> error
+     */
     class WaitHandle {
+        enum class WAIT_STATUS {
+            RESET,
+            SET,
+            CANCELED,
+            ERROR,
+        };
 
     private:
         void *_payload;
-        WAIT_STATUS _status;
-        OsSync &_sync;
-
+        OsEvent &_sync;
     public:
-        WaitHandle(OsSync &sync);
-
-        void Start();
+        WaitHandle(OsEvent &sync);
 
         void Wait();
 
@@ -192,6 +166,20 @@ namespace Windwolf::Common {
         void SetPayload(void *payload);
 
         WAIT_STATUS GetStatus();
+    };
+
+    template<typename TRet, typename ...TArgs>
+    class Callback {
+    private:
+        TRet (*_function)(void *context, TArgs...);
+
+        void *_context;
+    public:
+        Callback(TRet (*function)(TArgs...), void *context) : _function(function), _context(context) {};
+
+        TRet invoke(TArgs... args) {
+            return (*_function)(_context, args...);
+        };
     };
 
 } // namespace Windwolf::Common

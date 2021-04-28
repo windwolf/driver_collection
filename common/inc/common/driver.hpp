@@ -21,12 +21,13 @@ namespace Windwolf::Drivers {
     private:
         IoDevice &_device;
         //RingBuffer<uint8_t> _txBuffer;
-        //RingBuffer<uint8_t> _rxBuffer;
+        RingBuffer<uint8_t> _rxBuffer;
         Status _status;
+        //WaitHandle *_rxWaitHandle;
 
     public:
-        StreamDriver(IoDevice &device)
-                : _device(device), _status(Status::initial) {
+        StreamDriver(IoDevice &device, Buffer2<uint8_t> buffer)
+                : _device(device), _rxBuffer(buffer.begin, buffer.size), _status(Status::initial) {
 
         };
 
@@ -38,15 +39,13 @@ namespace Windwolf::Drivers {
          *
          * @return DEVICE_STATUS
          */
-//        DEVICE_STATUS Open(const Buffer<uint8_t> &buffer) {
-//            _device.RegisterTxCompleteNotification(_rxCallback);
-//            return _device->StartRxLoop(buffer);
-//        };
-//
-//        DEVICE_STATUS Close() {
-//            _device.RegisterTxCompleteNotification(nullptr);
-//            return _device->StopRxLoop(buffer);
-//        }
+        DEVICE_STATUS Open() {
+            return _device.RxAsyncForever(_rxBuffer.GetBuffer(), _rxBuffer.GetBufferSize(), nullptr);
+        };
+
+        DEVICE_STATUS Close() {
+            return _device.StopRx();
+        }
 
         virtual DEVICE_STATUS Write(Buffer<uint8_t> data, WaitHandle waitHandle);
 

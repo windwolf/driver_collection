@@ -8,28 +8,27 @@
 #include "common/device.hpp"
 #include "common/ring_buffer.hpp"
 
-namespace Windwolf::Drivers {
-    using namespace Windwolf::Common;
+namespace windwolf::drivers {
+    using namespace windwolf::common;
+#define STREAM_DRIVER_SERVER_STACK_SIZE 2048
 
-    class StreamDriver {
+    struct StreamDriver {
         enum class Status {
             initial,
             opened,
             closed,
         };
 
-    private:
         IoDevice &_device;
-        //RingBuffer<uint8_t> _txBuffer;
-        RingBuffer<uint8_t> _rxBuffer;
         Status _status;
-        //WaitHandle *_rxWaitHandle;
+        RingBuffer<uint8_t> _txBuffer;
+        RingBuffer<uint8_t> _rxBuffer;
+        WaitHandle<void *> _txWaitHandle;
+        WaitHandle<Buffer2<uint8_t>> _rxWaitHandle;
+        OsThread &_worker;
+        bool _markAsStop;
 
-    public:
-        StreamDriver(IoDevice &device, Buffer2<uint8_t> buffer)
-                : _device(device), _rxBuffer(buffer.begin, buffer.size), _status(Status::initial) {
-
-        };
+        StreamDriver(IoDevice &device, OsThread &worker, Buffer2<uint8_t> txBuf, Buffer2<uint8_t> rxBuf, OsEvent &txEvent, OsEvent &rxEvent);
 
         /**
          * @brief Start the device to get ready for transmition or receiving.
@@ -37,19 +36,15 @@ namespace Windwolf::Drivers {
          * For device support DMA or IT, it register a callback to device to monitor the tx buffer empty or rx buffer full event.
          * For device not support polling, it start loop routine, in that hardware fills the rx ringbuffer.
          *
-         * @return DEVICE_STATUS
+         * @return bool
          */
-        DEVICE_STATUS Open() {
-            return _device.RxAsyncForever(_rxBuffer.GetBuffer(), _rxBuffer.GetBufferSize(), nullptr);
-        };
+        bool Open();
 
-        DEVICE_STATUS Close() {
-            return _device.StopRx();
-        }
+        bool Close();
 
-        virtual DEVICE_STATUS Write(Buffer<uint8_t> data, WaitHandle waitHandle);
+        DEVICE_STATUS Write(Buffer2<uint8_t> data);
 
-        virtual DEVICE_STATUS Read(Buffer<uint8_t> data, WaitHandle waitHandle);
+        DEVICE_STATUS Read(Buffer2<uint8_t> data);
 
         /**
          * @brief Notify driver that rxbuffer is not empty, when new data received.
@@ -58,9 +53,9 @@ namespace Windwolf::Drivers {
          *
          * @return DEVICE_STATUS
          */
-        virtual DEVICE_STATUS NotifyRxReady();
+        DEVICE_STATUS NotifyRxReady();
     };
 
-} // namespace Windwolf::Driver
+} // namespace windwolf::Driver
 
 #endif //STM32_THREADX_STARTUP_DRIVER_H

@@ -3,7 +3,7 @@
 #include "stdlib.h"
 #include "string.h"
 
-using namespace Windwolf::Common;
+using namespace windwolf::common;
 
 #define POINTER_ADD(base, offset) ((base) + (offset))
 
@@ -210,4 +210,9 @@ uint32_t RingBuffer<T>::GetBufferSize() {
 template<typename T>
 T *RingBuffer<T>::GetBuffer() {
     return _data;
+}
+
+template<typename T>
+RingBuffer<T>::RingBuffer(Buffer2<T> buf) : RingBuffer(buf.begin, buf.size) {
+
 }

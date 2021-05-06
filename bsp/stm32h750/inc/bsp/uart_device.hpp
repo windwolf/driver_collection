@@ -8,8 +8,8 @@
 #include "stm32h7xx_hal.h"
 
 
-namespace Windwolf::Drivers::Bsp {
-    using namespace Windwolf::Drivers;
+namespace windwolf::drivers::Bsp {
+    using namespace windwolf::drivers;
     enum class UartIndex {
         UART4_INDEX = 0,
         UART5_INDEX,
@@ -27,9 +27,10 @@ namespace Windwolf::Drivers::Bsp {
 //            usart,
 //        };
 //        Mode _mode;
-        WaitHandle *_txCallback;
-        WaitHandle *_rxCallback;
+        WaitHandle<void *> *_txCallback;
+        WaitHandle<Buffer2<uint8_t>> *_rxCallback;
         bool _rxForever;
+        uint32_t _lastRxPos;
     public:
 
 
@@ -50,7 +51,7 @@ namespace Windwolf::Drivers::Bsp {
          * @param callback
          * @return
          */
-        virtual DEVICE_STATUS TxAsync(uint8_t *writeData, uint32_t dataSize, WaitHandle *callback);
+        virtual DEVICE_STATUS TxAsync(uint8_t *writeData, uint32_t dataSize, WaitHandle<void *> *callback);
 
 
         /**
@@ -61,7 +62,7 @@ namespace Windwolf::Drivers::Bsp {
          * @param callback
          * @return
          */
-        virtual DEVICE_STATUS RxAsync(uint8_t *readBuffer, uint32_t bufferSize, WaitHandle *callback);
+        virtual DEVICE_STATUS RxAsync(uint8_t *readBuffer, uint32_t bufferSize, WaitHandle<Buffer2<uint8_t>> *callback);
 
         /**
          * receive data async and circlly, return immediately.
@@ -71,7 +72,7 @@ namespace Windwolf::Drivers::Bsp {
          * @param callback
          * @return
          */
-        virtual DEVICE_STATUS RxAsyncForever(uint8_t *readBuffer, uint32_t bufferSize, WaitHandle *callback);
+        virtual DEVICE_STATUS RxAsyncForever(uint8_t *readBuffer, uint32_t bufferSize, WaitHandle<Buffer2<uint8_t>> *callback);
 
         /**
          * Start rx process with on read buffer, return immediately.

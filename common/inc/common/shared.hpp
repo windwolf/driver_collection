@@ -4,20 +4,14 @@
 #define __common_hpp__
 
 #include "stdint.h"
-#include "common\os.hpp"
 
 #define size_t uint32_t
-
-
-#define CONVERT_REFERENCE(var, type) (*((type*)&var))
 
 //static inline bool soft_assert(bool expr) {
 //    return expr;
 //}; // TODO: implement
 
-
-
-namespace Windwolf::Common {
+namespace windwolf::common {
 
     enum class DEVICE_STATUS {
 
@@ -49,7 +43,7 @@ namespace Windwolf::Common {
         Buffer() : _begin(nullptr), _end(nullptr) {}
 
         template<size_t I>
-        Buffer(T(&begin)[I]) : Buffer(begin, I) {}
+        Buffer(T (&begin)[I]) : Buffer(begin, I) {}
 
         Buffer &operator+=(size_t num) {
             if (!soft_assert(num <= size())) {
@@ -109,6 +103,10 @@ namespace Windwolf::Common {
         uint32_t size;
         uint32_t count;
 
+        Buffer2() : Buffer2(nullptr, 0, 0) {
+
+        };
+
         Buffer2(T *begin, uint32_t size) : Buffer2(begin, size, 0) {
 
         };
@@ -117,63 +115,37 @@ namespace Windwolf::Common {
 
         };
 
-        Buffer2(Buffer2 &value) {
+        Buffer2(const Buffer2 &value) {
             begin = value.begin;
             size = value.size;
             count = value.count;
         };
 
-        Buffer2(Buffer2 &&value) noexcept {
-            begin = value;
+        Buffer2(const Buffer2 &&value) noexcept {
+            begin = value.begin;
             size = value.size;
             count = value.count;
             value.begin = nullptr;
             value.size = 0;
             value.count = 0;
         };
+
+        Buffer2<T> &operator=(const Buffer2<T> &value) {
+            begin = value.begin;
+            size = value.size;
+            count = value.count;
+            return *this;
+        }
+
     };
 
-    /**
-     *      reset =[wait]
-     *      reset =[finish]=> set
-     *      reset =[cancel]=> canceled
-     *      reset =[error]=> error
-     */
-    class WaitHandle {
-        enum class WAIT_STATUS {
-            RESET,
-            SET,
-            CANCELED,
-            ERROR,
-        };
-
-    private:
-        void *_payload;
-        OsEvent &_sync;
-    public:
-        WaitHandle(OsEvent &sync);
-
-        void Wait();
-
-        void Finish();
-
-        void Cancel();
-
-        void Error();
-
-        void *GetPayload();
-
-        void SetPayload(void *payload);
-
-        WAIT_STATUS GetStatus();
-    };
-
-    template<typename TRet, typename ...TArgs>
+    template<typename TRet, typename... TArgs>
     class Callback {
     private:
         TRet (*_function)(void *context, TArgs...);
 
         void *_context;
+
     public:
         Callback(TRet (*function)(TArgs...), void *context) : _function(function), _context(context) {};
 
@@ -182,6 +154,6 @@ namespace Windwolf::Common {
         };
     };
 
-} // namespace Windwolf::Common
+} // namespace windwolf::common
 
 #endif // __common_hpp__

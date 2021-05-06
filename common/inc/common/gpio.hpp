@@ -4,10 +4,10 @@
 // #include "stdint.h"
 // #include "common.hpp"
 
-// namespace Windwolf::Drivers
+// namespace windwolf::drivers
 // {
 
-//     using namespace Windwolf::Drivers::Common;
+//     using namespace windwolf::drivers::Common;
 
 //     struct GpioConfig
 //     {

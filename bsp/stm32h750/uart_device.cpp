@@ -1,8 +1,8 @@
 #include "bsp/uart_device.hpp"
 #include "stm32h7xx_ll_usart.h"
 
-using namespace Windwolf::Drivers::Bsp;
-using namespace Windwolf::Drivers;
+using namespace windwolf::drivers::Bsp;
+using namespace windwolf::drivers;
 
 static STM32H7xxUartDevice *INSTANCES__[(uint32_t) (UartIndex::UART_COUNT)];
 
@@ -19,7 +19,7 @@ static inline UartIndex GetInstanceIndex(UART_HandleTypeDef *huart) {
         case UART8_BASE:
             return UartIndex::UART8_INDEX;
         default:
-            return Windwolf::Drivers::Bsp::UartIndex::UART_COUNT;
+            return windwolf::drivers::Bsp::UartIndex::UART_COUNT;
     }
 }
 
@@ -28,6 +28,7 @@ static inline void RegisterDevice(STM32H7xxUartDevice *device, UART_HandleTypeDe
     INSTANCES__[(uint32_t) index] = device;
 
 }
+
 
 static inline STM32H7xxUartDevice *GetDevice(UART_HandleTypeDef *huart) {
     auto index = GetInstanceIndex(huart);
@@ -64,21 +65,21 @@ STM32H7xxUartDevice::STM32H7xxUartDevice(UART_HandleTypeDef *handle)
 }
 
 
-DEVICE_STATUS STM32H7xxUartDevice::TxAsync(uint8_t *writeData, uint32_t dataSize, WaitHandle *callback) {
+DEVICE_STATUS STM32H7xxUartDevice::TxAsync(uint8_t *writeData, uint32_t dataSize, WaitHandle<void *> *callback) {
 
     if ((HAL_UART_GetState(_handle) & HAL_UART_STATE_BUSY_TX) == HAL_UART_STATE_BUSY_TX) {
         return DEVICE_STATUS::BUSY;
     }
     _txCallback = callback;
     if (HAL_UART_Transmit_DMA(_handle, writeData, dataSize) != HAL_OK) {
-        callback->Error();
+        callback->setError();
         return DEVICE_STATUS::HARDWARE_ERROR;
     }
 
     return DEVICE_STATUS::OK;
 }
 
-DEVICE_STATUS STM32H7xxUartDevice::RxAsync(uint8_t *readBuffer, uint32_t bufferSize, WaitHandle *callback) {
+DEVICE_STATUS STM32H7xxUartDevice::RxAsync(uint8_t *readBuffer, uint32_t bufferSize, WaitHandle<Buffer2<uint8_t>> *callback) {
     if (_handle->hdmarx->Init.Mode != DMA_NORMAL) {
         return DEVICE_STATUS::NOT_SUPPORT;
     }
@@ -88,13 +89,13 @@ DEVICE_STATUS STM32H7xxUartDevice::RxAsync(uint8_t *readBuffer, uint32_t bufferS
     _rxCallback = callback;
     //TODO: enable it DMA_RXs
     if (HAL_UARTEx_ReceiveToIdle_DMA(_handle, readBuffer, bufferSize) != HAL_OK) {
-        callback->Error();
+        callback->setError();
         return DEVICE_STATUS::HARDWARE_ERROR;
     }
     return DEVICE_STATUS::OK;
 }
 
-DEVICE_STATUS STM32H7xxUartDevice::RxAsyncForever(uint8_t *readBuffer, uint32_t bufferSize, WaitHandle *callback) {
+DEVICE_STATUS STM32H7xxUartDevice::RxAsyncForever(uint8_t *readBuffer, uint32_t bufferSize, WaitHandle<Buffer2<uint8_t>> *callback) {
     if (_handle->hdmarx->Init.Mode != DMA_CIRCULAR) {
         return DEVICE_STATUS::NOT_SUPPORT;
     }
@@ -104,7 +105,7 @@ DEVICE_STATUS STM32H7xxUartDevice::RxAsyncForever(uint8_t *readBuffer, uint32_t 
     _rxCallback = callback;
     //TODO: enable it DMA_RXs
     if (HAL_UART_Receive_DMA(_handle, readBuffer, bufferSize) != HAL_OK) {
-        callback->Error();
+        callback->setError();
         return DEVICE_STATUS::HARDWARE_ERROR;
     }
     return DEVICE_STATUS::OK;
@@ -145,16 +146,24 @@ void STM32H7xxUartDevice::TxNotify() {
     if (_txCallback) {
         auto sync = _txCallback;
         _txCallback = nullptr;
-        sync->Finish();
+        sync->setDone(nullptr);
     }
 };
 
 void STM32H7xxUartDevice::RxNotify(uint32_t pos) {
     if (_rxCallback) {
-        _rxCallback->SetPayload(reinterpret_cast<void *>(pos));
         auto sync = _rxCallback;
         _rxCallback = nullptr;
-        sync->Finish();
+        if (pos > _lastRxPos) {
+            sync->setDone(Buffer2<uint8_t>(_handle->pRxBuffPtr + _lastRxPos, pos - _lastRxPos));
+        } else if (pos < _lastRxPos) {
+            sync->setDone(Buffer2<uint8_t>(_handle->pRxBuffPtr + _lastRxPos, _handle->RxXferSize - _lastRxPos));
+            sync->setDone(Buffer2<uint8_t>(_handle->pRxBuffPtr, pos));
+        } else {
+            // _lastRxPos == pos. Because half and full buffer pos will gen rx event, so lastrxpos equals pos when
+            // and only no validate data received.
+        }
+        _lastRxPos = pos == _handle->RxXferSize ? 0 : pos;
     }
 }
 
@@ -163,13 +172,13 @@ void STM32H7xxUartDevice::ErrorNotify() {
     if (_txCallback) {
         auto sync = _txCallback;
         _txCallback = nullptr;
-        sync->Error();
+        sync->setError();
 
     }
     if (_rxCallback) {
         auto sync = _rxCallback;
         _rxCallback = nullptr;
-        sync->Error();
+        sync->setError();
 
     }
 }

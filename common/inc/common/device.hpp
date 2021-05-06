@@ -6,10 +6,11 @@
 #define STM32_THREADX_STARTUP_DEVICE_H
 
 #include "stdint.h"
+#include "common/wait_handle.hpp"
 #include "common/shared.hpp"
 
-namespace Windwolf::Drivers {
-    using namespace Windwolf::Common;
+namespace windwolf::drivers {
+    using namespace windwolf::common;
 
     class IoDevice {
         struct MODE {
@@ -34,7 +35,7 @@ namespace Windwolf::Drivers {
          * @param callback
          * @return
          */
-        virtual DEVICE_STATUS TxAsync(uint8_t *writeData, uint32_t dataSize, WaitHandle *waitHandle) = 0;
+        virtual DEVICE_STATUS TxAsync(uint8_t *writeData, uint32_t dataSize, WaitHandle<void *> *waitHandle) = 0;
 
 
         /**
@@ -45,7 +46,7 @@ namespace Windwolf::Drivers {
          * @param callback
          * @return
          */
-        virtual DEVICE_STATUS RxAsync(uint8_t *readBuffer, uint32_t bufferSize, WaitHandle *callback) = 0;
+        virtual DEVICE_STATUS RxAsync(uint8_t *readBuffer, uint32_t bufferSize, WaitHandle<Buffer2<uint8_t>> *callback) = 0;
 
         /**
          * receive data async and circlly, return immediately.
@@ -55,7 +56,7 @@ namespace Windwolf::Drivers {
          * @param callback
          * @return
          */
-        virtual DEVICE_STATUS RxAsyncForever(uint8_t *readBuffer, uint32_t bufferSize, WaitHandle *callback) = 0;
+        virtual DEVICE_STATUS RxAsyncForever(uint8_t *readBuffer, uint32_t bufferSize, WaitHandle<Buffer2<uint8_t>> *callback) = 0;
 
         /**
          * Start rx process with on read buffer, return immediately.
@@ -93,6 +94,6 @@ namespace Windwolf::Drivers {
         virtual void ErrorNotify() = 0;
     };
 
-} // namespace Windwolf::Driver
+} // namespace windwolf::Driver
 
 #endif //STM32_THREADX_STARTUP_DEVICE_H

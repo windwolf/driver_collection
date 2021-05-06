@@ -4,8 +4,8 @@
 
 // #include "spi.hpp"
 
-// using namespace Windwolf::Driver;
-// using namespace Windwolf::Driver::Common;
+// using namespace windwolf::Driver;
+// using namespace windwolf::Driver::common;
 
 // SPI_Device::SPI_Device(SPI_DeviceDriver *pDriver)
 //     : DeviceBase(pDriver){

@@ -11,11 +11,11 @@
 // #include "os_port.hpp"
 // #include "wait_handle.hpp"
 
-// namespace Windwolf::Driver
+// namespace windwolf::Driver
 // {
-//     using namespace Windwolf::Driver::Common;
+//     using namespace windwolf::Driver::Common;
 
-    
+
 //     class SPI_DeviceDriver : public DeviceDriverBase
 //     {
 //     public:

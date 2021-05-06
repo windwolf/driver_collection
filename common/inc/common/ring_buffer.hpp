@@ -2,8 +2,9 @@
 #define __RING_BUFFER_H_
 
 #include "stdint.h"
+#include "common/shared.hpp"
 
-namespace Windwolf::Common {
+namespace windwolf::common {
     template<typename T>
     class RingBuffer {
     public:
@@ -25,6 +26,8 @@ namespace Windwolf::Common {
         typedef void (*OperationNotifyCallback)(const RingBuffer *const &buffer, OP_TYPE type);
 
         RingBuffer(T *data, uint32_t capacity);
+
+        RingBuffer(Buffer2 <T> buf);
 
         bool IsFull();
 
@@ -131,6 +134,6 @@ namespace Windwolf::Common {
     template
     class RingBuffer<uint32_t>;
 
-} // namespace Windwolf::Common
+} // namespace windwolf::common
 
 #endif //__RING_BUFFER_H_

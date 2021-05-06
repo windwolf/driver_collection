@@ -6,10 +6,10 @@
 //#include "common/shared.hpp"
 //#include "common/driver.hpp"
 //
-//namespace Windwolf::Drivers
+//namespace windwolf::drivers
 //{
-//    using namespace Windwolf::Drivers;
-//    using namespace Windwolf::Common;
+//    using namespace windwolf::drivers;
+//    using namespace windwolf::common;
 //
 //    struct UartConfig
 //    {
@@ -69,6 +69,6 @@
 //        }
 //    };
 //
-//} // namespace Windwolf::Driver
+//} // namespace windwolf::Driver
 //
 //#endif // __UART_HPP__

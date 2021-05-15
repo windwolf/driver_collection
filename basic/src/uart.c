@@ -2,6 +2,9 @@
 #include "stm32h7xx_ll_usart.h"
 #include "stm32h7xx_ll_dma.h"
 
+#define UART_DEVICE_EVENT_RX_READY 0x01
+#define UART_DEVICE_EVENT_TX_COMPLETE 0x02
+
 static UartDevice *UART_INSTANCES[(uint32_t)(UART_COUNT)];
 
 static inline UART_INDEX UartDevice_instance_index_get(UART_HandleTypeDef *huart)
@@ -41,15 +44,18 @@ static inline void UartDevice_DoTxComplete(UartDevice *device)
     {
         device->onTxComplete(device);
     }
+    tx_event_flags_set(&(device->events), UART_DEVICE_EVENT_TX_COMPLETE, TX_OR);
 }
 
 static inline void UartDevice_DoRxReady(UartDevice *device, uint16_t pos)
 {
     RingBuffer8_SyncWrite(device->rxBuffer, pos);
+
     if (device->onRxReady)
     {
         device->onRxReady(device);
     }
+    tx_event_flags_set(&(device->events), UART_DEVICE_EVENT_RX_READY, TX_OR);
 }
 
 static inline void UartDevice_DoError(UartDevice *device)
@@ -78,17 +84,20 @@ static inline void Uart_ErrCpltCallback__(UART_HandleTypeDef *huart)
     UartDevice_DoError(device);
 }
 
-void UartDevice_init(UartDevice *device)
+DEVICE_STATUS UartDevice_Init(UartDevice *device, UART_HandleTypeDef *handle, RingBuffer8 *rxBuffer)
 {
-    assert_param(device->handle != NULL);
-    assert_param(device->rxBuffer != NULL);
+    assert_param(handle != NULL);
+    assert_param(rxBuffer != NULL);
 
-    UART_HandleTypeDef *huart = device->handle;
+    device->handle = handle;
+    device->rxBuffer = rxBuffer;
+    tx_event_flags_create(&(device->events), "uart_dev");
     UartDevice_register((Device *)device);
-    HAL_UART_RegisterCallback(huart, HAL_UART_TX_COMPLETE_CB_ID, Uart_TxCpltCallback__);
+    HAL_UART_RegisterCallback(handle, HAL_UART_TX_COMPLETE_CB_ID, Uart_TxCpltCallback__);
     //HAL_UART_RegisterCallback(_handle, HAL_UART_RX_COMPLETE_CB_ID, Uart_RxCpltCallback__);
-    HAL_UART_RegisterCallback(huart, HAL_UART_ERROR_CB_ID, Uart_ErrCpltCallback__);
-    HAL_UART_RegisterRxEventCallback(huart, Uart_RxEventCpltCallback__);
+    HAL_UART_RegisterCallback(handle, HAL_UART_ERROR_CB_ID, Uart_ErrCpltCallback__);
+    HAL_UART_RegisterRxEventCallback(handle, Uart_RxEventCpltCallback__);
+    return DEVICE_STATUS_OK;
 }
 
 DEVICE_STATUS UartDevice_StartServer(UartDevice *device)
@@ -103,7 +112,7 @@ DEVICE_STATUS UartDevice_StartServer(UartDevice *device)
         return DEVICE_STATUS_BUSY;
     }
 
-    if (HAL_UARTEx_ReceiveToIdle_DMA(huart, device->rxBuffer->data, RingBuffer8_GetCount(device->rxBuffer)) != HAL_OK)
+    if (HAL_UARTEx_ReceiveToIdle_DMA(huart, device->rxBuffer->data, RingBuffer8_GetMemorySize(device->rxBuffer)) != HAL_OK)
     {
         UartDevice_DoError(device);
         return DEVICE_STATUS_HARDWARE_ERROR;
@@ -125,18 +134,36 @@ DEVICE_STATUS UartDevice_StopServer(UartDevice *device)
     return DEVICE_STATUS_OK;
 }
 
-DEVICE_STATUS UartDevice_TxAsync(UartDevice *device, uint8_t *data, uint32_t dataSize)
+DEVICE_STATUS UartDevice_Tx(UartDevice *device, uint8_t *data, uint32_t size)
 {
     UART_HandleTypeDef *huart = device->handle;
     if ((HAL_UART_GetState(huart) & HAL_UART_STATE_BUSY_TX) == HAL_UART_STATE_BUSY_TX)
     {
         return DEVICE_STATUS_BUSY;
     }
-    if (HAL_UART_Transmit_DMA(huart, data, dataSize) != HAL_OK)
+    if (HAL_UART_Transmit_DMA(huart, data, size) != HAL_OK)
     {
         UartDevice_DoError(device);
         return DEVICE_STATUS_HARDWARE_ERROR;
     }
 
     return DEVICE_STATUS_OK;
+}
+
+UINT UartDevice_WaitForTxComplete(UartDevice *device, ULONG timeout)
+{
+    ULONG actualFlags;
+    return tx_event_flags_get(&device->events, UART_DEVICE_EVENT_TX_COMPLETE, TX_AND_CLEAR, &actualFlags, timeout);
+}
+/**
+     * @brief 阻塞等待rx准备数据.
+     * 
+     * @param device 
+     * @param timeout 
+     * @return DEVICE_STATUS 
+     */
+UINT UartDevice_WaitForRxReady(UartDevice *device, ULONG timeout)
+{
+    ULONG actualFlags;
+    return tx_event_flags_get(&device->events, UART_DEVICE_EVENT_RX_READY, TX_AND_CLEAR, &actualFlags, timeout);
 }

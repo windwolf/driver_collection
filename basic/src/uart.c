@@ -2,9 +2,9 @@
 #include "stm32h7xx_ll_usart.h"
 #include "stm32h7xx_ll_dma.h"
 
-#define UART_DEVICE_EVENT_RX_READY 0x01
-#define UART_DEVICE_EVENT_TX_COMPLETE 0x02
-
+#define UART_DEVICE_EVENT_RX_READY 0b0001
+#define UART_DEVICE_EVENT_TX_COMPLETE 0b0010
+#define UART_DEVICE_EVENT_TX_READY 0b0100
 static UartDevice *UART_INSTANCES[(uint32_t)(UART_COUNT)];
 
 static inline UART_INDEX UartDevice_instance_index_get(UART_HandleTypeDef *huart)
@@ -44,7 +44,7 @@ static inline void UartDevice_DoTxComplete(UartDevice *device)
     {
         device->onTxComplete(device);
     }
-    tx_event_flags_set(&(device->events), UART_DEVICE_EVENT_TX_COMPLETE, TX_OR);
+    tx_event_flags_set(&(device->events), UART_DEVICE_EVENT_TX_COMPLETE | UART_DEVICE_EVENT_TX_READY, TX_OR);
 }
 
 static inline void UartDevice_DoRxReady(UartDevice *device, uint16_t pos)
@@ -92,6 +92,7 @@ DEVICE_STATUS UartDevice_Init(UartDevice *device, UART_HandleTypeDef *handle, Ri
     device->handle = handle;
     device->rxBuffer = rxBuffer;
     tx_event_flags_create(&(device->events), "uart_dev");
+    tx_event_flags_set(&(device->events), UART_DEVICE_EVENT_TX_READY, TX_OR);
     UartDevice_register((Device *)device);
     HAL_UART_RegisterCallback(handle, HAL_UART_TX_COMPLETE_CB_ID, Uart_TxCpltCallback__);
     //HAL_UART_RegisterCallback(_handle, HAL_UART_RX_COMPLETE_CB_ID, Uart_RxCpltCallback__);

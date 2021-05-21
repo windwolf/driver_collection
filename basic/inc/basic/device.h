@@ -5,6 +5,7 @@
 extern "C"
 {
 #endif
+#include "stdint.h"
 
     typedef enum DEVICE_STATUS
     {
@@ -20,21 +21,21 @@ extern "C"
         DEVICE_STATUS_NOT_SUPPORT = 4,
     } DEVICE_STATUS;
 
-    typedef struct P2pDevice
-    {
-        DEVICE_STATUS (*tx)(void);
-    } P2pDevice;
+    // typedef struct P2pDevice
+    // {
+    //     DEVICE_STATUS (*tx)(void);
+    // } P2pDevice;
 
-    typedef struct BusDevice
-    {
-        
-    } BusDevice;
+    // typedef struct BusDevice
+    // {
 
-    typedef struct Device
-    {
-        void *instance;
-        void (*device_register)(struct Device *device);
-    } Device;
+    // } BusDevice;
+
+    // typedef struct Device
+    // {
+    //     void *instance;
+    //     void (*device_register)(struct Device *device);
+    // } Device;
 
 #ifdef __cplusplus
 }

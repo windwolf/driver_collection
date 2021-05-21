@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/bsp_osport.cmake)
+
 if (NOT DEFINED DRIVERS_BSP)
     message(FATAL_ERROR "Error: DRIVERS_BSP not defined")
 endif ()
@@ -8,20 +10,10 @@ if (NOT DEFINED DRIVERS_OS)
     message(FATAL_ERROR "Error: DRIVERS_OS not defined")
 endif ()
 
-# 临时放自定义配置文件的目录
-set(CUSTOM_INC_DIR ${CMAKE_CURRENT_BINARY_DIR}/custom_inc)
 
-# # common
-# list_source_files(${CMAKE_CURRENT_LIST_DIR}/common COMMON_SROUCE_FILES)
-# target_sources(${PROJECT_NAME}
-#         PRIVATE
-#         ${COMMON_SROUCE_FILES}
-#         )
-# target_include_directories(${PROJECT_NAME}
-#         PUBLIC
-#         ${CMAKE_CURRENT_LIST_DIR}/common/inc
 
-#         )
+# BSP
+drivers_bsp_osport(${CMAKE_CURRENT_LIST_DIR})
 
 # 驱动内容
 list_source_directories(${CMAKE_CURRENT_LIST_DIR} DRIVER_COMPONENTS)
@@ -40,6 +32,9 @@ foreach (DRIVER_COMPONENT ${DRIVER_COMPONENTS})
 endforeach ()
 
 # 如果使用方没有提供自定义, 那么使用默认, 否则将自定义复制到custom_inc下
+
+# 临时放自定义配置文件的目录
+set(CUSTOM_INC_DIR ${CMAKE_CURRENT_BINARY_DIR}/custom_inc)
 if (NOT DRIVERS_USER_FILE)
     message(STATUS "Using default drivers_user.h file")
     set(DRIVERS_USER_FILE ${CMAKE_CURRENT_LIST_DIR}/drivers_user_sample.h)

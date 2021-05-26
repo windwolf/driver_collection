@@ -42,14 +42,23 @@ extern "C"
         void *instance;
         COMMAND_DEVICE_OP_MODE opMode;
         void (*Init)(struct CommandMasterDevice *device);
-        DEVICE_STATUS(*TxN)
+        DEVICE_STATUS(*TxN8)
         (struct CommandMasterDevice *device, uint8_t *data, uint32_t size);
-        DEVICE_STATUS(*RxN)
+        DEVICE_STATUS(*RxN8)
         (struct CommandMasterDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount);
-        DEVICE_STATUS(*TxNAsync)
+        DEVICE_STATUS(*TxN8Async)
         (struct CommandMasterDevice *device, uint8_t *data, uint32_t size);
-        DEVICE_STATUS(*RxNAsync)
+        DEVICE_STATUS(*RxN8Async)
         (struct CommandMasterDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount);
+
+        DEVICE_STATUS(*TxN16)
+        (struct CommandMasterDevice *device, uint16_t *data, uint32_t size);
+        DEVICE_STATUS(*RxN16)
+        (struct CommandMasterDevice *device, uint16_t *buffer, uint32_t size, uint8_t dummyCycleCount);
+        DEVICE_STATUS(*TxN16Async)
+        (struct CommandMasterDevice *device, uint16_t *data, uint32_t size);
+        DEVICE_STATUS(*RxN16Async)
+        (struct CommandMasterDevice *device, uint16_t *buffer, uint32_t size, uint8_t dummyCycleCount);
     } CommandMasterDevice;
 
     typedef struct CommandFrame
@@ -62,6 +71,7 @@ extern "C"
                 uint8_t isWrite : 1;
                 uint8_t isCmd : 1;
                 uint8_t csNotBreak : 1;
+                uint8_t is16Bits : 1;
                 uint8_t dummyCycles : 4;
             } statusBits;
         };
@@ -95,6 +105,7 @@ extern "C"
         //  */
         // void (*onRxComplete)(struct CommandMaster *commandMaster);
         void (*onError)(struct CommandMaster *commandMaster);
+
     } CommandMaster;
 
     DEVICE_STATUS CommandMaster_Init(CommandMaster *commandMaster);

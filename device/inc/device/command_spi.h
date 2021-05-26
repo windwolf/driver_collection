@@ -9,8 +9,6 @@ extern "C"
 #include "basic/command.h"
 #include "bsp.h"
 
-
-
     void Spi_CommandDevice_Create(CommandMasterDevice *device, SPI_HandleTypeDef *instance);
 
 #ifdef __cplusplus

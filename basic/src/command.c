@@ -1,4 +1,5 @@
 #include "basic/command.h"
+#include "basic/shared.h"
 
 #define COMMAND_MASTER_EVENT_TX_BUSY 0x01
 #define COMMAND_MASTER_EVENT_TX_COMPLETE 0x02
@@ -11,20 +12,16 @@
 
 #define COMMAND_MASTER_CS_ENABLE(cm) \
     if (cm->csPin != NULL)           \
-    Pin_Set(cm->csPin, cm->csPinCfg)
+    Pin_Set(cm->csPin, !cm->csPinCfg)
 #define COMMAND_MASTER_CS_DISABLE(cm) \
     if (cm->csPin != NULL)            \
-    Pin_Set(cm->csPin, !cm->csPinCfg)
+    Pin_Set(cm->csPin, cm->csPinCfg)
 #define COMMAND_MASTER_DC_SET(cm, isCmd) \
     if (cm->dcPin != NULL)               \
     Pin_Set(cm->dcPin, (isCmd) ^ (cm->dcPinCfg))
 #define COMMAND_MASTER_RW_SET(cm, isWrite) \
     if (cm->rwPin != NULL)                 \
     Pin_Set(cm->rwPin, (isWrite) ^ (cm->rwPinCfg))
-
-#define COMMAND_MASTER_CLEAR_FLAGS(cm) (tx_event_flags_set(&cm->events, 0, TX_AND))
-#define COMMAND_MASTER_SET_FLAGS(cm, flags) (tx_event_flags_set(&cm->events, flags, TX_OR))
-#define COMMAND_MASTER_RESET_FLAGS(cm, flags) (tx_event_flags_set(&cm->events, ~flags, TX_AND))
 
 static inline int CommandMaster_IsBusy(CommandMaster *commandMaster)
 {
@@ -40,11 +37,25 @@ static void CommandMaster_SendFrameSync(CommandMaster *commandMaster, CommandFra
 
     if (frame.statusBits.isWrite)
     {
-        commandMaster->device.TxN(&(commandMaster->device), frame.buffer.data, frame.buffer.size);
+        if (frame.statusBits.is16Bits)
+        {
+            commandMaster->device.TxN16(&(commandMaster->device), frame.buffer.data, frame.buffer.size);
+        }
+        else
+        {
+            commandMaster->device.TxN8(&(commandMaster->device), frame.buffer.data, frame.buffer.size);
+        }
     }
     else
     {
-        commandMaster->device.RxN(&(commandMaster->device), frame.buffer.data, frame.buffer.size, frame.statusBits.dummyCycles);
+        if (frame.statusBits.is16Bits)
+        {
+            commandMaster->device.RxN16(&(commandMaster->device), frame.buffer.data, frame.buffer.size, frame.statusBits.dummyCycles);
+        }
+        else
+        {
+            commandMaster->device.RxN8(&(commandMaster->device), frame.buffer.data, frame.buffer.size, frame.statusBits.dummyCycles);
+        }
     }
     if (!frame.statusBits.csNotBreak)
     {
@@ -92,17 +103,17 @@ DEVICE_STATUS CommandMaster_SendCommandSync(CommandMaster *commandMaster, Comman
         return DEVICE_STATUS_BUSY;
     }
 
-    COMMAND_MASTER_CLEAR_FLAGS(commandMaster);
+    EVENTS_CLEAR_FLAGS(commandMaster->events);
 
-    COMMAND_MASTER_SET_FLAGS(commandMaster, COMMAND_MASTER_EVENT_CMD_BUSY);
+    EVENTS_SET_FLAGS(commandMaster->events, COMMAND_MASTER_EVENT_CMD_BUSY);
 
     for (size_t i = 0; i < size; i++)
     {
         CommandMaster_SendFrameSync(commandMaster, command[i]);
     }
     commandMaster->hasError = 0;
-    COMMAND_MASTER_SET_FLAGS(commandMaster, COMMAND_MASTER_EVENT_CMD_COMPLETE);
-    COMMAND_MASTER_RESET_FLAGS(commandMaster, COMMAND_MASTER_EVENT_CMD_BUSY);
+    EVENTS_SET_FLAGS(commandMaster->events, COMMAND_MASTER_EVENT_CMD_COMPLETE);
+    EVENTS_RESET_FLAGS(commandMaster->events, COMMAND_MASTER_EVENT_CMD_BUSY);
     return DEVICE_STATUS_OK;
 };
 
@@ -118,19 +129,42 @@ static void CommandMaster_SendFrameAsync(CommandMaster *commandMaster)
 
         if (frame.statusBits.isWrite)
         {
-            commandMaster->device.TxNAsync(&(commandMaster->device), frame.buffer.data, frame.buffer.size);
+            if (frame.statusBits.is16Bits)
+            {
+                LOG("CMD-SF-A-W:st %lu", commandMaster->_curCommandFrameIndex)
+                commandMaster->device.TxN16Async(&(commandMaster->device), frame.buffer.data, frame.buffer.size);
+                LOG("CMD-SF-A-W:ed %lu", commandMaster->_curCommandFrameIndex)
+            }
+            else
+            {
+                LOG("CMD-SF-A-W:st %lu", commandMaster->_curCommandFrameIndex)
+                commandMaster->device.TxN8Async(&(commandMaster->device), frame.buffer.data, frame.buffer.size);
+                LOG("CMD-SF-A-W:ed %lu", commandMaster->_curCommandFrameIndex)
+            }
         }
         else
         {
-            commandMaster->device.RxNAsync(&(commandMaster->device), frame.buffer.data, frame.buffer.size, frame.statusBits.dummyCycles);
+            if (frame.statusBits.is16Bits)
+            {
+                LOG("CMD-SF-A-R:st %lu", commandMaster->_curCommandFrameIndex)
+                commandMaster->device.RxN16Async(&(commandMaster->device), frame.buffer.data, frame.buffer.size, frame.statusBits.dummyCycles);
+                LOG("CMD-SF-A-R:ed %lu", commandMaster->_curCommandFrameIndex)
+            }
+            else
+            {
+                LOG("CMD-SF-A-R:st %lu", commandMaster->_curCommandFrameIndex)
+                commandMaster->device.RxN8Async(&(commandMaster->device), frame.buffer.data, frame.buffer.size, frame.statusBits.dummyCycles);
+                LOG("CMD-SF-A-R:ed %lu", commandMaster->_curCommandFrameIndex)
+            }
         }
     }
     else
     {
+        LOG("CMD-SF-E:")
         COMMAND_MASTER_CS_DISABLE(commandMaster);
         commandMaster->hasError = 0;
-        COMMAND_MASTER_SET_FLAGS(commandMaster, COMMAND_MASTER_EVENT_CMD_COMPLETE);
-        COMMAND_MASTER_RESET_FLAGS(commandMaster, COMMAND_MASTER_EVENT_CMD_BUSY);
+        EVENTS_SET_FLAGS(commandMaster->events, COMMAND_MASTER_EVENT_CMD_COMPLETE);
+        EVENTS_RESET_FLAGS(commandMaster->events, COMMAND_MASTER_EVENT_CMD_BUSY);
     }
 };
 
@@ -150,10 +184,10 @@ DEVICE_STATUS CommandMaster_SendCommandAsync(CommandMaster *commandMaster, Comma
     commandMaster->_curCommandFrameIndex = 0;
     commandMaster->_curCommandFrameSize = size;
 
-    COMMAND_MASTER_CLEAR_FLAGS(commandMaster);
+    EVENTS_CLEAR_FLAGS(commandMaster->events);
 
-    COMMAND_MASTER_SET_FLAGS(commandMaster, COMMAND_MASTER_EVENT_CMD_BUSY);
-
+    EVENTS_SET_FLAGS(commandMaster->events, COMMAND_MASTER_EVENT_CMD_BUSY);
+    LOG("CMD-SND-CMD")
     CommandMaster_SendFrameAsync(commandMaster);
 
     return DEVICE_STATUS_OK;
@@ -166,7 +200,7 @@ DEVICE_STATUS CommandMaster_WaitForComplete(CommandMaster *commandMaster, ULONG 
     return commandMaster->hasError ? DEVICE_STATUS_GENERAL_ERROR : DEVICE_STATUS_OK;
 };
 
-static inline CommandMaster_DoTxRxCplt(CommandMaster *commandMaster)
+static inline void CommandMaster_DoTxRxCplt(CommandMaster *commandMaster)
 {
     // if (!commandMaster->_curCommand[commandMaster->_curCommandFrameIndex].statusBits.csNotBreak)
     // {
@@ -183,6 +217,7 @@ void CommandMaster_DoTxComplete_(CommandMaster *commandMaster)
 
 void CommandMaster_DoRxComplete_(CommandMaster *commandMaster)
 {
+
     CommandMaster_DoTxRxCplt(commandMaster);
 };
 
@@ -191,8 +226,8 @@ void CommandMaster_DoError_(CommandMaster *commandMaster)
     commandMaster->hasError = 1;
     if (CommandMaster_IsBusy(commandMaster))
     {
-        COMMAND_MASTER_RESET_FLAGS(commandMaster, COMMAND_MASTER_EVENT_CMD_BUSY);
-        COMMAND_MASTER_SET_FLAGS(commandMaster, COMMAND_MASTER_EVENT_CMD_COMPLETE);
+        EVENTS_RESET_FLAGS(commandMaster->events, COMMAND_MASTER_EVENT_CMD_BUSY);
+        EVENTS_SET_FLAGS(commandMaster->events, COMMAND_MASTER_EVENT_CMD_COMPLETE);
     }
 
     if (commandMaster->onError)

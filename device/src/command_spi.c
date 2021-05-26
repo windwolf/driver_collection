@@ -71,33 +71,114 @@ static void Init(CommandMasterDevice *device)
     HAL_SPI_RegisterCallback(device->instance, HAL_SPI_ERROR_CB_ID, Spi_ErrCallback__);
 }
 
-static DEVICE_STATUS TxN(CommandMasterDevice *device, uint8_t *data, uint32_t size)
+static void SwitchTo8Bits(CommandMasterDevice *device)
 {
+    SPI_HandleTypeDef *handle = (SPI_HandleTypeDef *)(device->instance);
+    handle->Init.DataSize = SPI_DATASIZE_8BIT;
+    LL_SPI_SetDataWidth(handle->Instance, LL_SPI_DATAWIDTH_8BIT);
+    handle->hdmatx->Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    handle->hdmarx->Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    handle->hdmatx->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    handle->hdmarx->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    LL_DMA_SetMemorySize(DMA1, LL_DMA_STREAM_3, LL_DMA_MDATAALIGN_BYTE);
+    LL_DMA_SetMemorySize(DMA1, LL_DMA_STREAM_5, LL_DMA_MDATAALIGN_BYTE);
+    LL_DMA_SetPeriphSize(DMA1, LL_DMA_STREAM_3, LL_DMA_PDATAALIGN_BYTE);
+    LL_DMA_SetPeriphSize(DMA1, LL_DMA_STREAM_5, LL_DMA_PDATAALIGN_BYTE);
+    // LL_DMA_SetMemorySize(handle->hdmatx->StreamBaseAddress, handle->hdmatx->StreamIndex, LL_DMA_MDATAALIGN_BYTE);
+    // LL_DMA_SetMemorySize(handle->hdmarx->StreamBaseAddress, handle->hdmarx->StreamIndex, LL_DMA_MDATAALIGN_BYTE);
+    // LL_DMA_SetPeriphSize(handle->hdmatx->StreamBaseAddress, handle->hdmatx->StreamIndex, LL_DMA_PDATAALIGN_BYTE);
+    // LL_DMA_SetPeriphSize(handle->hdmarx->StreamBaseAddress, handle->hdmarx->StreamIndex, LL_DMA_PDATAALIGN_BYTE);
+}
+static void SwitchTo16Bits(CommandMasterDevice *device)
+{
+
+    SPI_HandleTypeDef *handle = (SPI_HandleTypeDef *)(device->instance);
+    handle->Init.DataSize = SPI_DATASIZE_16BIT;
+    LL_SPI_SetDataWidth(handle->Instance, LL_SPI_DATAWIDTH_16BIT);
+    handle->hdmatx->Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+    handle->hdmarx->Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+    handle->hdmatx->Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+    handle->hdmarx->Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+    LL_DMA_SetMemorySize(DMA1, LL_DMA_STREAM_3, LL_DMA_MDATAALIGN_HALFWORD);
+    LL_DMA_SetMemorySize(DMA1, LL_DMA_STREAM_5, LL_DMA_MDATAALIGN_HALFWORD);
+    LL_DMA_SetPeriphSize(DMA1, LL_DMA_STREAM_3, LL_DMA_PDATAALIGN_HALFWORD);
+    LL_DMA_SetPeriphSize(DMA1, LL_DMA_STREAM_5, LL_DMA_PDATAALIGN_HALFWORD);
+    // LL_DMA_SetMemorySize(handle->hdmatx->StreamBaseAddress, handle->hdmatx->StreamIndex, LL_DMA_MDATAALIGN_HALFWORD);
+    // LL_DMA_SetMemorySize(handle->hdmarx->StreamBaseAddress, handle->hdmarx->StreamIndex, LL_DMA_MDATAALIGN_HALFWORD);
+    // LL_DMA_SetPeriphSize(handle->hdmatx->StreamBaseAddress, handle->hdmatx->StreamIndex, LL_DMA_PDATAALIGN_HALFWORD);
+    // LL_DMA_SetPeriphSize(handle->hdmarx->StreamBaseAddress, handle->hdmarx->StreamIndex, LL_DMA_PDATAALIGN_HALFWORD);
+}
+
+static DEVICE_STATUS TxN8(CommandMasterDevice *device, uint8_t *data, uint32_t size)
+{
+    SwitchTo8Bits(device);
+
     if (HAL_SPI_Transmit(device->instance, data, size, HAL_MAX_DELAY) == HAL_OK)
     {
         return DEVICE_STATUS_OK;
     }
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
-static DEVICE_STATUS RxN(struct CommandMasterDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount)
+static DEVICE_STATUS RxN8(struct CommandMasterDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount)
 {
+    SwitchTo8Bits(device);
     if (HAL_SPI_Receive(device->instance, buffer, size, HAL_MAX_DELAY) == HAL_OK)
     {
         return DEVICE_STATUS_OK;
     }
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
-static DEVICE_STATUS TxNAsync(struct CommandMasterDevice *device, uint8_t *data, uint32_t size)
+
+static DEVICE_STATUS TxN16(CommandMasterDevice *device, uint16_t *data, uint32_t size)
 {
+    SwitchTo16Bits(device);
+    if (HAL_SPI_Transmit(device->instance, (uint8_t *)data, size, HAL_MAX_DELAY) == HAL_OK)
+    {
+        return DEVICE_STATUS_OK;
+    }
+    return DEVICE_STATUS_HARDWARE_ERROR;
+};
+static DEVICE_STATUS RxN16(struct CommandMasterDevice *device, uint16_t *buffer, uint32_t size, uint8_t dummyCycleCount)
+{
+    SwitchTo16Bits(device);
+    if (HAL_SPI_Receive(device->instance, (uint8_t *)buffer, size, HAL_MAX_DELAY) == HAL_OK)
+    {
+        return DEVICE_STATUS_OK;
+    }
+    return DEVICE_STATUS_HARDWARE_ERROR;
+};
+
+static DEVICE_STATUS TxN8Async(struct CommandMasterDevice *device, uint8_t *data, uint32_t size)
+{
+    SwitchTo8Bits(device);
     if (HAL_SPI_Transmit_DMA(device->instance, data, size) == HAL_OK)
     {
         return DEVICE_STATUS_OK;
     }
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
-static DEVICE_STATUS RxNAsync(struct CommandMasterDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount)
+static DEVICE_STATUS RxN8Async(struct CommandMasterDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount)
 {
-    if (HAL_SPI_Receive_DMA(device->instance, buffer, size) == HAL_OK)
+    SwitchTo8Bits(device);
+    if (HAL_SPI_Receive_DMA(device->instance, (uint8_t *)buffer, size) == HAL_OK)
+    {
+        return DEVICE_STATUS_OK;
+    }
+    return DEVICE_STATUS_HARDWARE_ERROR;
+};
+static DEVICE_STATUS TxN16Async(struct CommandMasterDevice *device, uint16_t *data, uint32_t size)
+{
+    SwitchTo16Bits(device);
+    if (HAL_SPI_Transmit_DMA(device->instance, (uint8_t *)data, size) == HAL_OK)
+    {
+        return DEVICE_STATUS_OK;
+    }
+    return DEVICE_STATUS_HARDWARE_ERROR;
+};
+static DEVICE_STATUS RxN16Async(struct CommandMasterDevice *device, uint16_t *buffer, uint32_t size, uint8_t dummyCycleCount)
+{
+    SwitchTo16Bits(device);
+    if (HAL_SPI_Receive_DMA(device->instance, (uint8_t *)buffer, size) == HAL_OK)
     {
         return DEVICE_STATUS_OK;
     }
@@ -108,9 +189,13 @@ void Spi_CommandDevice_Create(CommandMasterDevice *device, SPI_HandleTypeDef *ha
 {
     device->instance = handle;
     device->Init = &Init;
-    device->TxN = &TxN;
-    device->TxNAsync = &TxNAsync;
-    device->RxN = &RxN;
-    device->RxNAsync = &RxNAsync;
+    device->TxN8 = &TxN8;
+    device->TxN8Async = &TxN8Async;
+    device->RxN8 = &RxN8;
+    device->RxN8Async = &RxN8Async;
+    device->TxN16 = &TxN16;
+    device->TxN16Async = &TxN16Async;
+    device->RxN16 = &RxN16;
+    device->RxN16Async = &RxN16Async;
     device->opMode = COMMAND_DEVICE_OP_MODE_SYNC | COMMAND_DEVICE_OP_MODE_ASYNC;
 };

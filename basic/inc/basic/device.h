@@ -6,20 +6,19 @@ extern "C"
 {
 #endif
 #include "stdint.h"
+#include "basic/shared.h"
 
-    typedef enum DEVICE_STATUS
-    {
+#define DEVICE_STATUS uint32_t
 
-        DEVICE_STATUS_HARDWARE_ERROR = -3,
-        DEVICE_STATUS_ARGUMENT_ERROR = -2,
-        DEVICE_STATUS_GENERAL_ERROR = -1,
+#define DEVICE_STATUS_HARDWARE_ERROR -3
+#define DEVICE_STATUS_ARGUMENT_ERROR -2
+#define DEVICE_STATUS_GENERAL_ERROR -1
 
-        DEVICE_STATUS_OK = 0,
-        DEVICE_STATUS_NOT_NECESSARY = 1,
-        DEVICE_STATUS_NOT_READY = 2,
-        DEVICE_STATUS_BUSY = 3,
-        DEVICE_STATUS_NOT_SUPPORT = 4,
-    } DEVICE_STATUS;
+#define DEVICE_STATUS_OK 0
+#define DEVICE_STATUS_NOT_NECESSARY 1
+#define DEVICE_STATUS_NOT_READY 2
+#define DEVICE_STATUS_BUSY 3
+#define DEVICE_STATUS_NOT_SUPPORT 4
 
     // typedef struct P2pDevice
     // {
@@ -33,8 +32,7 @@ extern "C"
 
     // typedef struct Device
     // {
-    //     void *instance;
-    //     void (*device_register)(struct Device *device);
+
     // } Device;
 
 #ifdef __cplusplus

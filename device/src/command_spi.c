@@ -10,9 +10,9 @@ typedef enum SPI_INDEX
     SPI_COUNT,
 } SPI_INDEX;
 
-static CommandMaster *SPI_STREAM_INSTANCES[(uint32_t)(SPI_COUNT)];
+static PacketIoDevice *SPI_INSTANCE_[(uint32_t)(SPI_COUNT)];
 
-static inline SPI_INDEX CommandMaster_instance_index_get(SPI_HandleTypeDef *handle)
+static inline SPI_INDEX PacketIoDevice_Instance_Index_Get(SPI_HandleTypeDef *handle)
 {
     uint32_t ins = (uint32_t)(handle->Instance);
 
@@ -33,83 +33,85 @@ static inline SPI_INDEX CommandMaster_instance_index_get(SPI_HandleTypeDef *hand
     }
 }
 
-static inline void CommandMaster_register(CommandMasterDevice *commandMaster)
+static inline void PacketIoDevice_Register(PacketIoDevice *device)
 {
-    SPI_INDEX index = CommandMaster_instance_index_get((SPI_HandleTypeDef *)(commandMaster->instance));
-    SPI_STREAM_INSTANCES[(uint32_t)index] = (CommandMaster *)commandMaster;
+    SPI_INDEX index = PacketIoDevice_Instance_Index_Get((SPI_HandleTypeDef *)(device->instance));
+    SPI_INSTANCE_[(uint32_t)index] = device;
 }
 
-static inline CommandMaster *CommandMaster_find(SPI_HandleTypeDef *huart)
+static inline PacketIoDevice *PacketIoDevice_Find(SPI_HandleTypeDef *huart)
 {
-    SPI_INDEX index = CommandMaster_instance_index_get(huart);
-    return SPI_STREAM_INSTANCES[(uint32_t)index];
+    SPI_INDEX index = PacketIoDevice_Instance_Index_Get(huart);
+    return SPI_INSTANCE_[(uint32_t)index];
 }
 
 static void Spi_TxCpltCallback__(SPI_HandleTypeDef *handle)
 {
-    CommandMaster *cmdMst = CommandMaster_find(handle);
-    CommandMaster_DoTxComplete_(cmdMst);
+    PacketIoDevice *device = PacketIoDevice_Find(handle);
+    device->DoTxCompleteCallback(device);
 }
 
 static void Spi_RxCpltCallback__(SPI_HandleTypeDef *handle)
 {
-    CommandMaster *cmdMst = CommandMaster_find(handle);
-    CommandMaster_DoRxComplete_(cmdMst);
+    PacketIoDevice *device = PacketIoDevice_Find(handle);
+    device->DoRxCompleteCallback(device);
 }
 
 static void Spi_ErrCallback__(SPI_HandleTypeDef *handle)
 {
-    CommandMaster *cmdMst = CommandMaster_find(handle);
-    CommandMaster_DoError_(cmdMst);
+    PacketIoDevice *device = PacketIoDevice_Find(handle);
+    device->DoErrorCallback(device);
 }
 
-static void Init(CommandMasterDevice *device)
+static void Init(PacketIoDevice *device)
 {
-    CommandMaster_register(device);
+    PacketIoDevice_Register(device);
     HAL_SPI_RegisterCallback(device->instance, HAL_SPI_TX_COMPLETE_CB_ID, Spi_TxCpltCallback__);
     HAL_SPI_RegisterCallback(device->instance, HAL_SPI_RX_COMPLETE_CB_ID, Spi_RxCpltCallback__);
     HAL_SPI_RegisterCallback(device->instance, HAL_SPI_ERROR_CB_ID, Spi_ErrCallback__);
 }
 
-static void SwitchTo8Bits(CommandMasterDevice *device)
+static void SwitchTo8Bits(PacketIoDevice *device)
 {
     SPI_HandleTypeDef *handle = (SPI_HandleTypeDef *)(device->instance);
+    uint32_t stream_number_tx = (((uint32_t)((uint32_t *)handle->hdmatx->Instance) & 0xFFU) - 0x010UL) / 0x018UL;
+    uint32_t dma_base_tx = (uint32_t)((uint32_t *)handle->hdmatx->Instance) - stream_number_tx * 0x018UL - 0x010UL;
+    uint32_t stream_number_rx = (((uint32_t)((uint32_t *)handle->hdmarx->Instance) & 0xFFU) - 0x010UL) / 0x018UL;
+    uint32_t dma_base_rx = (uint32_t)((uint32_t *)handle->hdmarx->Instance) - stream_number_rx * 0x018UL - 0x010UL;
+
     handle->Init.DataSize = SPI_DATASIZE_8BIT;
     LL_SPI_SetDataWidth(handle->Instance, LL_SPI_DATAWIDTH_8BIT);
     handle->hdmatx->Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     handle->hdmarx->Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     handle->hdmatx->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     handle->hdmarx->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    LL_DMA_SetMemorySize(DMA1, LL_DMA_STREAM_3, LL_DMA_MDATAALIGN_BYTE);
-    LL_DMA_SetMemorySize(DMA1, LL_DMA_STREAM_5, LL_DMA_MDATAALIGN_BYTE);
-    LL_DMA_SetPeriphSize(DMA1, LL_DMA_STREAM_3, LL_DMA_PDATAALIGN_BYTE);
-    LL_DMA_SetPeriphSize(DMA1, LL_DMA_STREAM_5, LL_DMA_PDATAALIGN_BYTE);
-    // LL_DMA_SetMemorySize(handle->hdmatx->StreamBaseAddress, handle->hdmatx->StreamIndex, LL_DMA_MDATAALIGN_BYTE);
-    // LL_DMA_SetMemorySize(handle->hdmarx->StreamBaseAddress, handle->hdmarx->StreamIndex, LL_DMA_MDATAALIGN_BYTE);
-    // LL_DMA_SetPeriphSize(handle->hdmatx->StreamBaseAddress, handle->hdmatx->StreamIndex, LL_DMA_PDATAALIGN_BYTE);
-    // LL_DMA_SetPeriphSize(handle->hdmarx->StreamBaseAddress, handle->hdmarx->StreamIndex, LL_DMA_PDATAALIGN_BYTE);
+    LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_MDATAALIGN_BYTE);
+    LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_MDATAALIGN_BYTE);
+    LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_PDATAALIGN_BYTE);
+    LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_PDATAALIGN_BYTE);
 }
-static void SwitchTo16Bits(CommandMasterDevice *device)
-{
 
+static void SwitchTo16Bits(PacketIoDevice *device)
+{
     SPI_HandleTypeDef *handle = (SPI_HandleTypeDef *)(device->instance);
+    uint32_t stream_number_tx = (((uint32_t)((uint32_t *)handle->hdmatx->Instance) & 0xFFU) - 0x010UL) / 0x018UL;
+    uint32_t dma_base_tx = (uint32_t)((uint32_t *)handle->hdmatx->Instance) - stream_number_tx * 0x018UL - 0x010UL;
+    uint32_t stream_number_rx = (((uint32_t)((uint32_t *)handle->hdmarx->Instance) & 0xFFU) - 0x010UL) / 0x018UL;
+    uint32_t dma_base_rx = (uint32_t)((uint32_t *)handle->hdmarx->Instance) - stream_number_rx * 0x018UL - 0x010UL;
+
     handle->Init.DataSize = SPI_DATASIZE_16BIT;
     LL_SPI_SetDataWidth(handle->Instance, LL_SPI_DATAWIDTH_16BIT);
     handle->hdmatx->Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
     handle->hdmarx->Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
     handle->hdmatx->Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
     handle->hdmarx->Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-    LL_DMA_SetMemorySize(DMA1, LL_DMA_STREAM_3, LL_DMA_MDATAALIGN_HALFWORD);
-    LL_DMA_SetMemorySize(DMA1, LL_DMA_STREAM_5, LL_DMA_MDATAALIGN_HALFWORD);
-    LL_DMA_SetPeriphSize(DMA1, LL_DMA_STREAM_3, LL_DMA_PDATAALIGN_HALFWORD);
-    LL_DMA_SetPeriphSize(DMA1, LL_DMA_STREAM_5, LL_DMA_PDATAALIGN_HALFWORD);
-    // LL_DMA_SetMemorySize(handle->hdmatx->StreamBaseAddress, handle->hdmatx->StreamIndex, LL_DMA_MDATAALIGN_HALFWORD);
-    // LL_DMA_SetMemorySize(handle->hdmarx->StreamBaseAddress, handle->hdmarx->StreamIndex, LL_DMA_MDATAALIGN_HALFWORD);
-    // LL_DMA_SetPeriphSize(handle->hdmatx->StreamBaseAddress, handle->hdmatx->StreamIndex, LL_DMA_PDATAALIGN_HALFWORD);
-    // LL_DMA_SetPeriphSize(handle->hdmarx->StreamBaseAddress, handle->hdmarx->StreamIndex, LL_DMA_PDATAALIGN_HALFWORD);
+    LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_MDATAALIGN_HALFWORD);
+    LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_MDATAALIGN_HALFWORD);
+    LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_PDATAALIGN_HALFWORD);
+    LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_PDATAALIGN_HALFWORD);
 }
 
-static DEVICE_STATUS TxN8(CommandMasterDevice *device, uint8_t *data, uint32_t size)
+static DEVICE_STATUS TxN8(PacketIoDevice *device, uint8_t *data, uint32_t size)
 {
     SwitchTo8Bits(device);
 
@@ -119,7 +121,7 @@ static DEVICE_STATUS TxN8(CommandMasterDevice *device, uint8_t *data, uint32_t s
     }
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
-static DEVICE_STATUS RxN8(struct CommandMasterDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount)
+static DEVICE_STATUS RxN8(PacketIoDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount)
 {
     SwitchTo8Bits(device);
     if (HAL_SPI_Receive(device->instance, buffer, size, HAL_MAX_DELAY) == HAL_OK)
@@ -129,7 +131,7 @@ static DEVICE_STATUS RxN8(struct CommandMasterDevice *device, uint8_t *buffer, u
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
 
-static DEVICE_STATUS TxN16(CommandMasterDevice *device, uint16_t *data, uint32_t size)
+static DEVICE_STATUS TxN16(PacketIoDevice *device, uint16_t *data, uint32_t size)
 {
     SwitchTo16Bits(device);
     if (HAL_SPI_Transmit(device->instance, (uint8_t *)data, size, HAL_MAX_DELAY) == HAL_OK)
@@ -138,7 +140,7 @@ static DEVICE_STATUS TxN16(CommandMasterDevice *device, uint16_t *data, uint32_t
     }
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
-static DEVICE_STATUS RxN16(struct CommandMasterDevice *device, uint16_t *buffer, uint32_t size, uint8_t dummyCycleCount)
+static DEVICE_STATUS RxN16(PacketIoDevice *device, uint16_t *buffer, uint32_t size, uint8_t dummyCycleCount)
 {
     SwitchTo16Bits(device);
     if (HAL_SPI_Receive(device->instance, (uint8_t *)buffer, size, HAL_MAX_DELAY) == HAL_OK)
@@ -148,7 +150,7 @@ static DEVICE_STATUS RxN16(struct CommandMasterDevice *device, uint16_t *buffer,
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
 
-static DEVICE_STATUS TxN8Async(struct CommandMasterDevice *device, uint8_t *data, uint32_t size)
+static DEVICE_STATUS TxN8Async(PacketIoDevice *device, uint8_t *data, uint32_t size)
 {
     SwitchTo8Bits(device);
     if (HAL_SPI_Transmit_DMA(device->instance, data, size) == HAL_OK)
@@ -157,7 +159,7 @@ static DEVICE_STATUS TxN8Async(struct CommandMasterDevice *device, uint8_t *data
     }
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
-static DEVICE_STATUS RxN8Async(struct CommandMasterDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount)
+static DEVICE_STATUS RxN8Async(struct PacketIoDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount)
 {
     SwitchTo8Bits(device);
     if (HAL_SPI_Receive_DMA(device->instance, (uint8_t *)buffer, size) == HAL_OK)
@@ -166,7 +168,7 @@ static DEVICE_STATUS RxN8Async(struct CommandMasterDevice *device, uint8_t *buff
     }
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
-static DEVICE_STATUS TxN16Async(struct CommandMasterDevice *device, uint16_t *data, uint32_t size)
+static DEVICE_STATUS TxN16Async(struct PacketIoDevice *device, uint16_t *data, uint32_t size)
 {
     SwitchTo16Bits(device);
     if (HAL_SPI_Transmit_DMA(device->instance, (uint8_t *)data, size) == HAL_OK)
@@ -175,7 +177,7 @@ static DEVICE_STATUS TxN16Async(struct CommandMasterDevice *device, uint16_t *da
     }
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
-static DEVICE_STATUS RxN16Async(struct CommandMasterDevice *device, uint16_t *buffer, uint32_t size, uint8_t dummyCycleCount)
+static DEVICE_STATUS RxN16Async(struct PacketIoDevice *device, uint16_t *buffer, uint32_t size, uint8_t dummyCycleCount)
 {
     SwitchTo16Bits(device);
     if (HAL_SPI_Receive_DMA(device->instance, (uint8_t *)buffer, size) == HAL_OK)
@@ -185,7 +187,7 @@ static DEVICE_STATUS RxN16Async(struct CommandMasterDevice *device, uint16_t *bu
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
 
-void Spi_CommandDevice_Create(CommandMasterDevice *device, SPI_HandleTypeDef *handle)
+void Spi_PacketIoDevice_Create(PacketIoDevice *device, SPI_HandleTypeDef *handle)
 {
     device->instance = handle;
     device->Init = &Init;
@@ -197,5 +199,5 @@ void Spi_CommandDevice_Create(CommandMasterDevice *device, SPI_HandleTypeDef *ha
     device->TxN16Async = &TxN16Async;
     device->RxN16 = &RxN16;
     device->RxN16Async = &RxN16Async;
-    device->opMode = COMMAND_DEVICE_OP_MODE_SYNC | COMMAND_DEVICE_OP_MODE_ASYNC;
+    device->opMode = PACKET_IO_DEVICE_OP_MODE_SYNC | PACKET_IO_DEVICE_OP_MODE_ASYNC;
 };

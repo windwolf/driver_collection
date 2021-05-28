@@ -6,10 +6,40 @@ extern "C"
 {
 #endif
 #include "basic/device.h"
+#include "basic/packet_io_device.h"
 #include "basic/ring_buffer8.h"
 #include "tx_api.h"
 #include "basic/buffer.h"
 #include "basic/pin.h"
+
+#define COMMAND_BASE_EVENT_TX_BUSY 0x01
+#define COMMAND_BASE_EVENT_TX_COMPLETE 0x02
+
+#define COMMAND_BASE_EVENT_RX_BUSY 0x04
+#define COMMAND_BASE_EVENT_RX_COMPLETE 0x08
+
+#define COMMAND_BASE_EVENT_CMD_BUSY 0x10
+#define COMMAND_BASE_EVENT_CMD_COMPLETE 0x20
+
+#define COMMAND_BASE_CS_ENABLE(cm) \
+    if (cm.csPin != NULL)          \
+    Pin_Set(cm.csPin, !cm.csPinCfg)
+#define COMMAND_BASE_CS_DISABLE(cm) \
+    if (cm.csPin != NULL)           \
+    Pin_Set(cm.csPin, cm.csPinCfg)
+#define COMMAND_BASE_DC_SET(cm, isCmd) \
+    if (cm.dcPin != NULL)              \
+    Pin_Set(cm.dcPin, (isCmd) ^ (cm.dcPinCfg))
+#define COMMAND_BASE_RW_SET(cm, isWrite) \
+    if (cm.rwPin != NULL)                \
+    Pin_Set(cm.rwPin, (isWrite) ^ (cm.rwPinCfg))
+
+#define COMMAND_BASE_RETURN_IF_BUSY(command)                                                                             \
+    ULONG actualFlags;                                                                                                   \
+    if (tx_event_flags_get(&command.events, COMMAND_BASE_EVENT_CMD_BUSY, TX_OR, &actualFlags, TX_NO_WAIT) == TX_SUCCESS) \
+    {                                                                                                                    \
+        return DEVICE_STATUS_BUSY;                                                                                       \
+    }
 
     typedef enum COMMAND_SELECT_PIN_MODE
     {
@@ -31,38 +61,24 @@ extern "C"
 
     } COMMAND_READWRITE_PIN_MODE;
 
-    typedef enum COMMAND_DEVICE_OP_MODE
+    typedef struct CommandBase
     {
-        COMMAND_DEVICE_OP_MODE_SYNC = 0x1,
-        COMMAND_DEVICE_OP_MODE_ASYNC = 0x2,
-    } COMMAND_DEVICE_OP_MODE;
+        PacketIoDevice device;
 
-    typedef struct CommandMasterDevice
-    {
-        void *instance;
-        COMMAND_DEVICE_OP_MODE opMode;
-        void (*Init)(struct CommandMasterDevice *device);
-        DEVICE_STATUS(*TxN8)
-        (struct CommandMasterDevice *device, uint8_t *data, uint32_t size);
-        DEVICE_STATUS(*RxN8)
-        (struct CommandMasterDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount);
-        DEVICE_STATUS(*TxN8Async)
-        (struct CommandMasterDevice *device, uint8_t *data, uint32_t size);
-        DEVICE_STATUS(*RxN8Async)
-        (struct CommandMasterDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount);
-
-        DEVICE_STATUS(*TxN16)
-        (struct CommandMasterDevice *device, uint16_t *data, uint32_t size);
-        DEVICE_STATUS(*RxN16)
-        (struct CommandMasterDevice *device, uint16_t *buffer, uint32_t size, uint8_t dummyCycleCount);
-        DEVICE_STATUS(*TxN16Async)
-        (struct CommandMasterDevice *device, uint16_t *data, uint32_t size);
-        DEVICE_STATUS(*RxN16Async)
-        (struct CommandMasterDevice *device, uint16_t *buffer, uint32_t size, uint8_t dummyCycleCount);
-    } CommandMasterDevice;
+        Pin *csPin;
+        Pin *rwPin;
+        Pin *dcPin;
+        COMMAND_SELECT_PIN_MODE csPinCfg; //high represent to cfg's value
+        COMMAND_READWRITE_PIN_MODE rwPinCfg;
+        COMMAND_DATACMD_PIN_MODE dcPinCfg;
+        TX_EVENT_FLAGS_GROUP events;
+        uint32_t hasError;
+        void (*onError)(struct CommandBase *commandMaster);
+    } CommandBase;
 
     typedef struct CommandFrame
     {
+        Buffer buffer;
         union
         {
             uint8_t flags;
@@ -75,57 +91,64 @@ extern "C"
                 uint8_t dummyCycles : 4;
             } statusBits;
         };
-        Buffer buffer;
+
     } CommandFrame;
 
     typedef struct CommandMaster
     {
-        CommandMasterDevice device;
-        Pin *csPin;
-        Pin *rwPin;
-        Pin *dcPin;
-        COMMAND_SELECT_PIN_MODE csPinCfg; //high represent to cfg's value
-        COMMAND_READWRITE_PIN_MODE rwPinCfg;
-        COMMAND_DATACMD_PIN_MODE dcPinCfg;
-
-        TX_EVENT_FLAGS_GROUP events;
+        CommandBase base;
 
         CommandFrame *_curCommand;
         uint32_t _curCommandFrameSize;
         uint32_t _curCommandFrameIndex;
-        uint32_t hasError;
-        // /**
-        //  * @brief tx完成后的回调. @note 回调运行在中断上下文中, 注意控制时间.
-        //  *
-        //  */
-        // void (*onTxComplete)(struct CommandMaster *commandMaster);
-        // /**
-        //  * @brief rx有值时的回调. @note 回调运行在中断上下文中, 注意控制时间.
-        //  *
-        //  */
-        // void (*onRxComplete)(struct CommandMaster *commandMaster);
-        void (*onError)(struct CommandMaster *commandMaster);
 
     } CommandMaster;
 
+    typedef struct SimpleCommand
+    {
+        CommandBase base;
+        void *data;
+        uint16_t dataSize;
+        uint8_t commandId;
+        union
+        {
+            uint8_t flags;
+            struct
+            {
+                uint8_t isWrite : 1;
+                uint8_t is16Bits : 1;
+                uint8_t dummyCycles : 4;
+            } flagBits;
+        };
+        uint8_t phase; // 0 = init, 1 = cmd, 2 = data
+
+    } SimpleCommand;
+
+    DEVICE_STATUS CommandBase_Init(CommandBase *commandBase);
+
+    uint8_t CommandBase_IsBusy(CommandBase *commandBase);
+
+    DEVICE_STATUS CommandBase_WaitForComplete(CommandBase *commandBase, ULONG timeout);
+
+    DEVICE_STATUS CommandBase_ConfigCs(CommandBase *commandBase, Pin *csPin, COMMAND_SELECT_PIN_MODE config);
+
+    DEVICE_STATUS CommandBase_ConfigRw(CommandBase *commandBase, Pin *rwPin, COMMAND_READWRITE_PIN_MODE config);
+
+    DEVICE_STATUS CommandBase_ConfigDc(CommandBase *commandBase, Pin *dcPin, COMMAND_DATACMD_PIN_MODE config);
+
     DEVICE_STATUS CommandMaster_Init(CommandMaster *commandMaster);
 
-    DEVICE_STATUS CommandMaster_ConfigCs(CommandMaster *commandMaster, Pin *csPin, COMMAND_SELECT_PIN_MODE config);
-
-    DEVICE_STATUS CommandMaster_ConfigRw(CommandMaster *commandMaster, Pin *rwPin, COMMAND_READWRITE_PIN_MODE config);
-
-    DEVICE_STATUS CommandMaster_ConfigDc(CommandMaster *commandMaster, Pin *dcPin, COMMAND_DATACMD_PIN_MODE config);
-
     DEVICE_STATUS CommandMaster_SendCommandSync(CommandMaster *commandMaster, CommandFrame *command, uint32_t size);
+
     DEVICE_STATUS CommandMaster_SendCommandAsync(CommandMaster *commandMaster, CommandFrame *command, uint32_t size);
 
     DEVICE_STATUS CommandMaster_WaitForComplete(CommandMaster *commandMaster, ULONG timeout);
 
-    void CommandMaster_DoTxComplete_(CommandMaster *commandMaster);
+    DEVICE_STATUS SimpleCommand_Init(SimpleCommand *simpleCommand);
 
-    void CommandMaster_DoRxComplete_(CommandMaster *commandMaster);
+    DEVICE_STATUS SimpleCommand_SendCommandSync(SimpleCommand *simpleCommand);
 
-    void CommandMaster_DoError_(CommandMaster *commandMaster);
+    DEVICE_STATUS SimpleCommand_SendCommandAsync(SimpleCommand *simpleCommand);
 
 #ifdef __cplusplus
 }

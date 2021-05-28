@@ -21,16 +21,14 @@ extern "C"
 
     typedef struct ST77XX
     {
-        CommandMaster commandMaster;
+        SimpleCommand command;
         TX_EVENT_FLAGS_GROUP events;
-
-        CommandFrame command[2];
 
         uint8_t cmdData[16];
 
         uint8_t pvGamma[16];
         uint8_t nvGamma[16];
-        uint8_t cmdId;
+ 
         uint16_t xOffset;
         uint16_t width;
         uint16_t yOffset;
@@ -47,8 +45,8 @@ extern "C"
     void ST77XX_Unlock(ST77XX *instance);
 
     void ST77XX_Command(ST77XX *instance, uint8_t cmdId);
-    void ST77XX_Command_Write8xN(ST77XX *instance, uint8_t cmdId, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4, uint8_t data5, uint8_t data6, uint8_t size);
-    void ST77XX_Command_Write16xN(ST77XX *instance, uint8_t cmdId, uint16_t data1, uint16_t data2, uint8_t size);
+    // void ST77XX_Command_Write8xN(ST77XX *instance, uint8_t cmdId, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4, uint8_t data5, uint8_t data6, uint8_t size);
+    // void ST77XX_Command_Write16xN(ST77XX *instance, uint8_t cmdId, uint16_t data1, uint16_t data2, uint8_t size);
     void ST77XX_Command_WriteData8(ST77XX *instance, uint8_t cmdId, uint8_t *data, uint16_t size);
     void ST77XX_Command_WriteData16(ST77XX *instance, uint8_t cmdId, uint16_t *data, uint16_t size);
     void ST77XX_Command_ReadData8(ST77XX *instance, uint8_t cmdId, uint16_t size);

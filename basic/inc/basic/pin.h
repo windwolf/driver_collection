@@ -7,24 +7,13 @@ extern "C"
 #endif
 
 #include "basic/device.h"
+#include "basic/pin_device.h"
 
     typedef enum PIN_STATUS
     {
         PIN_STATUS_RESET = 0U,
         PIN_STATUS_SET
     } PIN_STATUS;
-
-    typedef struct PinDevice
-    {
-        void *instance;
-        void (*Init)(struct PinDevice *device);
-        DEVICE_STATUS(*Write)
-        (struct PinDevice *device, uint16_t pinMask, uint8_t value);
-        DEVICE_STATUS(*Read)
-        (struct PinDevice *device, uint16_t pinMask, uint16_t *value);
-        DEVICE_STATUS(*Toggle)
-        (struct PinDevice *device, uint16_t pinMask);
-    } PinDevice;
 
     typedef struct Pin
     {

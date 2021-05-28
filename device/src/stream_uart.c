@@ -9,7 +9,7 @@ typedef enum UART_INDEX
     UART_COUNT,
 } UART_INDEX;
 
-static Stream *UART_STREAM_INSTANCES[(uint32_t)(UART_COUNT)];
+static StreamDevice *UART_INSTANCES_[(uint32_t)(UART_COUNT)];
 
 static inline UART_INDEX Stream_instance_index_get(UART_HandleTypeDef *huart)
 {
@@ -30,39 +30,39 @@ static inline UART_INDEX Stream_instance_index_get(UART_HandleTypeDef *huart)
     }
 }
 
-static inline void Stream_register(StreamDevice *stream)
+static inline void StreamDevice_Register(StreamDevice *stream)
 {
     UART_INDEX index = Stream_instance_index_get((UART_HandleTypeDef *)(stream->instance));
-    UART_STREAM_INSTANCES[(uint32_t)index] = (Stream *)stream;
+    UART_INSTANCES_[(uint32_t)index] = stream;
 }
 
-static inline Stream *Stream_find(UART_HandleTypeDef *huart)
+static inline StreamDevice *StreamDevice_Find(UART_HandleTypeDef *huart)
 {
     UART_INDEX index = Stream_instance_index_get(huart);
-    return UART_STREAM_INSTANCES[(uint32_t)index];
+    return UART_INSTANCES_[(uint32_t)index];
 }
 
 static inline void Uart_TxCpltCallback__(UART_HandleTypeDef *huart)
 {
-    Stream *stream = Stream_find(huart);
-    Stream_DoTxComplete_(stream);
+    StreamDevice *device = StreamDevice_Find(huart);
+    device->onTxCompleteCallback(device);
 }
 
 static inline void Uart_RxEventCpltCallback__(UART_HandleTypeDef *huart, uint16_t pos)
 {
-    Stream *stream = Stream_find(huart);
-    Stream_DoRxReady_(stream, pos);
+    StreamDevice *device = StreamDevice_Find(huart);
+    device->onRxReadyCallback(device, pos);
 }
 
 static inline void Uart_ErrCpltCallback__(UART_HandleTypeDef *huart)
 {
-    Stream *stream = Stream_find(huart);
-    Stream_DoError_(stream);
+    StreamDevice *device = StreamDevice_Find(huart);
+    device->onErrorCallback(device);
 }
 
 static void Init(StreamDevice *device)
 {
-    Stream_register(device);
+    StreamDevice_Register(device);
     HAL_UART_RegisterCallback(device->instance, HAL_UART_TX_COMPLETE_CB_ID, Uart_TxCpltCallback__);
     //HAL_UART_RegisterCallback(_handle, HAL_UART_RX_COMPLETE_CB_ID, Uart_RxCpltCallback__);
     HAL_UART_RegisterCallback(device->instance, HAL_UART_ERROR_CB_ID, Uart_ErrCpltCallback__);

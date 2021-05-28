@@ -30,10 +30,11 @@ extern "C"
 
     // } BusDevice;
 
-    // typedef struct Device
-    // {
-
-    // } Device;
+    typedef struct DeviceBase
+    {
+        void *host;
+    } DeviceBase;
+    
 
 #ifdef __cplusplus
 }

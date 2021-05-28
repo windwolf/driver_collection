@@ -6,7 +6,7 @@ extern "C"
 {
 #endif
 
-#include "basic/command.h"
+#include "basic/packet_io_device.h"
 #include "bsp.h"
 
     typedef enum SOFTSPI_CLOCK_POLARITY
@@ -41,7 +41,7 @@ extern "C"
         uint16_t misoPin;
     } SoftSpi;
 
-    void SoftSpi_CommandDevice_Create(CommandMasterDevice *device, SoftSpi *instance);
+    void SoftSpi_CommandDevice_Create(PocketIoDevice *device, SoftSpi *instance);
 
 #ifdef __cplusplus
 }

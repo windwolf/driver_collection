@@ -1,6 +1,7 @@
 #include "st77xx/st7735.h"
 #include "basic/shared.h"
 #include "stdio.h"
+#include "mem_layout.h"
 
 #define ST7735_EVENT_BUSY 0x01
 
@@ -13,15 +14,6 @@ static inline int ST7735_IsBusy(ST77XX *instance)
 DEVICE_STATUS ST7735_Init(ST77XX *instance)
 {
     tx_event_flags_create(&instance->events, "st7735");
-    instance->command[0].statusBits.isCmd = 1;
-    instance->command[0].statusBits.isWrite = 1;
-    instance->command[0].buffer.data = &instance->cmdId;
-    instance->command[0].buffer.size = 1;
-
-    instance->command[1].statusBits.isCmd = 0;
-    instance->command[1].statusBits.isWrite = 1;
-    instance->command[1].buffer.data = instance->cmdData;
-    instance->command[1].buffer.size = 0;
 
     instance->pvGamma[0] = 0x02U;
     instance->pvGamma[1] = 0x1CU;
@@ -76,43 +68,53 @@ DEVICE_STATUS ST7735_Reset(ST77XX *instance)
     LOG("ST7735:SLPOUT e")
 
     LOG("ST7735:RBGIC s")
-    ST77XX_Command_Write8xN(instance, ST7735_CMD_FRAME_RATE_CTRL1, 0x01U, 0x2CU, 0x2DU, 0, 0, 0, 3);
+    DMA1_BUFFER static uint8_t frctl1[3] = {0x01U, 0x2CU, 0x2DU};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_FRAME_RATE_CTRL1, frctl1, 3);
     LOG("ST7735:RBGIC e")
 
     LOG("ST7735:PROCH s")
-    ST77XX_Command_Write8xN(instance, ST7735_CMD_FRAME_RATE_CTRL2, 0x01U, 0x2CU, 0x2DU, 0, 0, 0, 3);
+    DMA1_BUFFER static uint8_t frctl2[3] = {0x01U, 0x2CU, 0x2DU};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_FRAME_RATE_CTRL2, frctl2, 3);
     LOG("ST7735:PROCH e")
 
     LOG("ST7735:FRMRCTL s")
-    ST77XX_Command_Write8xN(instance, ST7735_CMD_FRAME_RATE_CTRL3, 0x01U, 0x2CU, 0x2DU, 0x01U, 0x2CU, 0x2DU, 6);
+    DMA1_BUFFER static uint8_t frctl3[6] = {0x01U, 0x2CU, 0x2DU, 0x01U, 0x2CU, 0x2DU};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_FRAME_RATE_CTRL3, frctl3, 6);
     LOG("ST7735:FRMRCTL e")
 
     LOG("ST7735:FRMICTL s")
-    ST77XX_Command_Write8xN(instance, ST7735_CMD_FRAME_INVERSION_CTRL, 0x07U, 0, 0, 0, 0, 0, 1);
+    DMA1_BUFFER static uint8_t fictl[1] = {0x07U};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_FRAME_INVERSION_CTRL, fictl, 1);
     LOG("ST7735:FRMICTL e")
 
     LOG("ST7735:PWRCTL1 s")
-    ST77XX_Command_Write8xN(instance, ST7735_CMD_PWR_CTRL1, 0xA2U, 0x02U, 0x84U, 0, 0, 0, 3);
+    DMA1_BUFFER static uint8_t pctl1[3] = {0xA2U, 0x02U, 0x84U};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_PWR_CTRL1, pctl1, 3);
     LOG("ST7735:PWRCTL1 e")
 
     LOG("ST7735:PWRCTL2 s")
-    ST77XX_Command_Write8xN(instance, ST7735_CMD_PWR_CTRL2, 0xC5U, 0, 0, 0, 0, 0, 1);
+    DMA1_BUFFER static uint8_t pctl2[1] = {0xC5U};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_PWR_CTRL2, pctl2, 1);
     LOG("ST7735:PWRCTL2 e")
 
     LOG("ST7735:PWRCTL3 s")
-    ST77XX_Command_Write8xN(instance, ST7735_CMD_PWR_CTRL3, 0x0AU, 0x00U, 0, 0, 0, 0, 3);
+    DMA1_BUFFER static uint8_t pctl3[2] = {0x0AU, 0x00U};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_PWR_CTRL3, pctl3, 2);
     LOG("ST7735:PWRCTL3 e")
 
     LOG("ST7735:PWRCTL4 s")
-    ST77XX_Command_Write8xN(instance, ST7735_CMD_PWR_CTRL4, 0x8AU, 0x2AU, 0, 0, 0, 0, 2);
+    DMA1_BUFFER static uint8_t pctl4[2] = {0x8AU, 0x2AU};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_PWR_CTRL4, pctl4, 2);
     LOG("ST7735:PWRCTL4 e")
 
     LOG("ST7735:PWRCTL5 s")
-    ST77XX_Command_Write8xN(instance, ST7735_CMD_PWR_CTRL5, 0x8AU, 0xEEU, 0, 0, 0, 0, 2);
+    DMA1_BUFFER static uint8_t pctl5[2] = {0x8AU, 0xEEU};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_PWR_CTRL5, pctl5, 2);
     LOG("ST7735:PWRCTL5 e")
 
     LOG("ST7735:PWRCTL s")
-    ST77XX_Command_Write8xN(instance, ST7735_CMD_VCOMH_VCOML_CTRL1, 0x0EU, 0, 0, 0, 0, 0, 1);
+    DMA1_BUFFER static uint8_t vcomctl1[1] = {0x0EU};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_VCOMH_VCOML_CTRL1, vcomctl1, 1);
     LOG("ST7735:PWRCTL e")
 
     LOG("ST7735:DISINV s")
@@ -120,7 +122,7 @@ DEVICE_STATUS ST7735_Reset(ST77XX *instance)
     LOG("ST7735:DISINV e")
 
     LOG("ST7735:PIXFMT s")
-    ST77XX_Command_Write8xN(instance, ST7735_CMD_INTERFACE_PIXEL_FORMAT, instance->colorMode, 0, 0, 0, 0, 0, 1);
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_INTERFACE_PIXEL_FORMAT, &instance->colorMode, 1);
     LOG("ST7735:PIXFMT e")
 
     LOG("ST7735:PVGAMMA s")
@@ -140,7 +142,7 @@ DEVICE_STATUS ST7735_Reset(ST77XX *instance)
     LOG("ST7735:DISP e")
 
     LOG("ST7735:MEMDAC s")
-    ST77XX_Command_Write8xN(instance, ST7735_CMD_MEMORY_DATA_ACCESS_CONTROL, instance->orientation, 0, 0, 0, 0, 0, 1);
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_MEMORY_DATA_ACCESS_CONTROL, &instance->orientation, 1);
     LOG("ST7735:MEMDAC e")
 
     return DEVICE_STATUS_OK;
@@ -172,21 +174,28 @@ DEVICE_STATUS ST7735_Display(ST77XX *instance, uint8_t on)
 
 static DEVICE_STATUS ST7735_SetDisplayWindow(ST77XX *instance, uint16_t x, uint16_t y, uint16_t width, uint16_t height)
 {
+    uint16_t *buffer = (uint16_t *)instance->buffer;
     x += instance->xOffset;
     y += instance->yOffset;
 
-    ST77XX_Command_Write16xN(instance, ST7735_CMD_COLUMN_ADDRESS_SET, x, x + width - 1, 2);
-    ST77XX_Command_Write16xN(instance, ST7735_CMD_ROW_ADDRESS_SET, y, y + height - 1, 2);
+    buffer[0] = x;
+    buffer[1] = x + width - 1;
+
+    ST77XX_Command_WriteData16(instance, ST7735_CMD_COLUMN_ADDRESS_SET, buffer, 2);
+    buffer[0] = y;
+    buffer[1] = y + height - 1;
+    ST77XX_Command_WriteData16(instance, ST7735_CMD_ROW_ADDRESS_SET, buffer, 2);
     return DEVICE_STATUS_OK;
 }
 
 static DEVICE_STATUS ST7735_SetCursor(ST77XX *instance, uint16_t x, uint16_t y)
 {
-    x += instance->xOffset;
-    y += instance->yOffset;
+    uint16_t *buffer = (uint16_t *)instance->buffer;
 
-    ST77XX_Command_Write16xN(instance, ST7735_CMD_COLUMN_ADDRESS_SET, x, 0, 1);
-    ST77XX_Command_Write16xN(instance, ST7735_CMD_ROW_ADDRESS_SET, y, 0, 1);
+    buffer[0] = x + instance->xOffset;
+    ST77XX_Command_WriteData16(instance, ST7735_CMD_COLUMN_ADDRESS_SET, buffer, 1);
+    buffer[0] = y + instance->yOffset;
+    ST77XX_Command_WriteData16(instance, ST7735_CMD_ROW_ADDRESS_SET, buffer, 1);
 
     return DEVICE_STATUS_OK;
 }
@@ -309,7 +318,7 @@ DEVICE_STATUS ST7735_ReadID(ST77XX *instance, uint32_t *id)
     ST77XX_Command_ReadData8(instance, ST7735_CMD_READ_ID2, 1);
     id_temp += instance->cmdData[0];
     id_temp <<= 8;
-    ST77XX_Command_ReadData8(instance, ST7735_CMD_READ_ID1, 1);
+    ST77XX_Command_ReadData8(instance, ST7735_CMD_READ_ID3, 1);
     id_temp += instance->cmdData[0];
 
     *id = id_temp;

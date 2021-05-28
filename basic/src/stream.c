@@ -4,16 +4,16 @@
 #define STREAM_EVENT_TX_COMPLETE 0b0010
 #define STREAM_EVENT_TX_READY 0b0100
 
-void Stream_DoTxComplete_(Stream *stream)
+static inline void Stream_DoTxComplete_(Stream *stream)
 {
     if (stream->onTxComplete)
     {
         stream->onTxComplete(stream);
     }
     tx_event_flags_set(&(stream->events), STREAM_EVENT_TX_COMPLETE | STREAM_EVENT_TX_READY, TX_OR);
-}
+};
 
-void Stream_DoRxReady_(Stream *stream, uint16_t pos)
+static inline void Stream_DoRxReady_(Stream *stream, uint16_t pos)
 {
     RingBuffer8_SyncWrite(stream->rxBuffer, pos);
 
@@ -22,14 +22,27 @@ void Stream_DoRxReady_(Stream *stream, uint16_t pos)
         stream->onRxReady(stream);
     }
     tx_event_flags_set(&(stream->events), STREAM_EVENT_RX_READY, TX_OR);
-}
+};
 
-void Stream_DoError_(Stream *stream)
+static inline void Stream_DoError_(Stream *stream)
 {
     if (stream->onError)
     {
         stream->onError(stream);
     }
+};
+
+static inline void Stream_DoTxCompleteWrap_(StreamDevice *device)
+{
+    Stream_DoTxComplete_((Stream *)device);
+}
+static inline void Stream_DoRxReadyWrap_(StreamDevice *device, uint16_t pos)
+{
+    Stream_DoTxComplete_((Stream *)device);
+}
+static inline void Stream_DoErrorWrap_(StreamDevice *device)
+{
+    Stream_DoTxComplete_((Stream *)device);
 }
 
 DEVICE_STATUS Stream_Init(Stream *stream, RingBuffer8 *rxBuffer)
@@ -38,6 +51,10 @@ DEVICE_STATUS Stream_Init(Stream *stream, RingBuffer8 *rxBuffer)
     stream->rxBuffer = rxBuffer;
     tx_event_flags_create(&(stream->events), "stream");
     tx_event_flags_set(&(stream->events), STREAM_EVENT_TX_READY, TX_OR);
+    stream->device.base.host = stream;
+    stream->device.onRxReadyCallback = &Stream_DoRxReadyWrap_;
+    stream->device.onTxCompleteCallback = &Stream_DoTxCompleteWrap_;
+    stream->device.onErrorCallback = Stream_DoErrorWrap_;
 
     stream->device.Init(&stream->device);
     return DEVICE_STATUS_OK;
@@ -72,7 +89,7 @@ DEVICE_STATUS Stream_Tx(Stream *stream, uint8_t *data, uint32_t size)
         return DEVICE_STATUS_HARDWARE_ERROR;
     }
     return DEVICE_STATUS_OK;
-} 
+}
 
 UINT Stream_WaitForTxComplete(Stream *stream, ULONG timeout)
 {

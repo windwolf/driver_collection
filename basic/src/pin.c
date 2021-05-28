@@ -4,6 +4,7 @@
 DEVICE_STATUS Pin_Init(Pin *pin)
 {
     pin->device.Init(&pin->device);
+    pin->device.base.host = pin;
     return DEVICE_STATUS_OK;
 };
 

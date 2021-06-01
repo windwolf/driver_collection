@@ -30,6 +30,7 @@ void RingBuffer8_Create(RingBuffer8 *queue, uint8_t *data, uint32_t maxSize)
     queue->data = data;
     queue->write = 0;
     queue->read = 0;
+    queue->OperationNotify = 0;
     //queue->readMirror = 0;
     //queue->writeMirror = 0;
 }

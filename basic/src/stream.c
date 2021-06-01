@@ -38,11 +38,11 @@ static inline void Stream_DoTxCompleteWrap_(StreamDevice *device)
 }
 static inline void Stream_DoRxReadyWrap_(StreamDevice *device, uint16_t pos)
 {
-    Stream_DoTxComplete_((Stream *)device);
+    Stream_DoRxReady_((Stream *)device, pos);
 }
 static inline void Stream_DoErrorWrap_(StreamDevice *device)
 {
-    Stream_DoTxComplete_((Stream *)device);
+    Stream_DoError_((Stream *)device);
 }
 
 DEVICE_STATUS Stream_Init(Stream *stream, RingBuffer8 *rxBuffer)
@@ -63,7 +63,7 @@ DEVICE_STATUS Stream_Init(Stream *stream, RingBuffer8 *rxBuffer)
 DEVICE_STATUS Stream_StartServer(Stream *stream)
 {
 
-    if (stream->device.StartRx(&stream->device) == DEVICE_STATUS_OK)
+    if (stream->device.StartRx(&stream->device) != DEVICE_STATUS_OK)
     {
         Stream_DoError_(stream);
         return DEVICE_STATUS_HARDWARE_ERROR;

@@ -28,14 +28,14 @@ extern "C"
 
         uint8_t pvGamma[16];
         uint8_t nvGamma[16];
- 
+
         uint16_t xOffset;
         uint16_t width;
         uint16_t yOffset;
         uint16_t height;
         uint8_t colorMode;
         uint8_t orientation;
-        uint8_t buffer[640];
+        uint8_t buffer[48114];
 
     } ST77XX;
 

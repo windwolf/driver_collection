@@ -1,4 +1,4 @@
-#include "device/command_spi.h"
+#include "packet_io_device_spi.h"
 
 typedef enum SPI_INDEX
 {
@@ -153,6 +153,7 @@ static DEVICE_STATUS RxN16(PacketIoDevice *device, uint16_t *buffer, uint32_t si
 static DEVICE_STATUS TxN8Async(PacketIoDevice *device, uint8_t *data, uint32_t size)
 {
     SwitchTo8Bits(device);
+
     if (HAL_SPI_Transmit_DMA(device->instance, data, size) == HAL_OK)
     {
         return DEVICE_STATUS_OK;

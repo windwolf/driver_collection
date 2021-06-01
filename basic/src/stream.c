@@ -106,5 +106,6 @@ UINT Stream_WaitForTxComplete(Stream *stream, ULONG timeout)
 UINT Stream_WaitForRxReady(Stream *stream, ULONG timeout)
 {
     ULONG actualFlags;
-    return tx_event_flags_get(&stream->events, STREAM_EVENT_RX_READY, TX_AND_CLEAR, &actualFlags, timeout);
+    UINT rst = tx_event_flags_get(&stream->events, STREAM_EVENT_RX_READY, TX_AND_CLEAR, &actualFlags, timeout);
+    return rst;
 }

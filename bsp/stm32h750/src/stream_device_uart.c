@@ -1,4 +1,4 @@
-#include "device/stream_uart.h"
+#include "stream_device_uart.h"
 
 typedef enum UART_INDEX
 {

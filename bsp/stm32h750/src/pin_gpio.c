@@ -1,4 +1,4 @@
-#include "device/pin_gpio.h"
+#include "pin_gpio.h"
 
 static void Init(struct PinDevice *device){
 

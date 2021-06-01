@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/bsp_osport.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/port.cmake)
 
 if (NOT DEFINED DRIVERS_BSP)
     message(FATAL_ERROR "Error: DRIVERS_BSP not defined")
@@ -12,9 +12,10 @@ endif ()
 
 
 
-# BSP
-drivers_bsp_osport(${CMAKE_CURRENT_LIST_DIR})
-
+# BSP PORT
+drivers_bsp_port(${CMAKE_CURRENT_LIST_DIR})
+# OS PORT
+drivers_os_port(${CMAKE_CURRENT_LIST_DIR})
 # 驱动内容
 list_source_directories(${CMAKE_CURRENT_LIST_DIR} DRIVER_COMPONENTS)
 # list(REMOVE_ITEM DRIVER_COMPONENTS "common" "bsp" "os")

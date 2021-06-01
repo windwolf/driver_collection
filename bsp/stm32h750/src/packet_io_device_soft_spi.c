@@ -1,4 +1,4 @@
-// #include "device/command_soft_spi.h"
+// #include "packet_io_device_soft_spi.h"
 
 // #define SoftSpi_Clk_Set(port, pin, cpol) (HAL_GPIO_WritePin(port, pin, cpol))
 // #define SoftSpi_Clk_Reset(port, pin, cpol) (HAL_GPIO_WritePin(port, pin, !cpol))

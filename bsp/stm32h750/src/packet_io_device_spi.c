@@ -54,12 +54,14 @@ static void Spi_TxCpltCallback__(SPI_HandleTypeDef *handle)
 static void Spi_RxCpltCallback__(SPI_HandleTypeDef *handle)
 {
     PacketIoDevice *device = PacketIoDevice_Find(handle);
+    SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
     device->DoRxCompleteCallback(device);
 }
 
 static void Spi_ErrCallback__(SPI_HandleTypeDef *handle)
 {
     PacketIoDevice *device = PacketIoDevice_Find(handle);
+    SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
     device->DoErrorCallback(device);
 }
 
@@ -121,6 +123,7 @@ static DEVICE_STATUS TxN8(PacketIoDevice *device, uint8_t *data, uint32_t size)
     }
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
+
 static DEVICE_STATUS RxN8(PacketIoDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount)
 {
     SwitchTo8Bits(device);
@@ -140,6 +143,7 @@ static DEVICE_STATUS TxN16(PacketIoDevice *device, uint16_t *data, uint32_t size
     }
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
+
 static DEVICE_STATUS RxN16(PacketIoDevice *device, uint16_t *buffer, uint32_t size, uint8_t dummyCycleCount)
 {
     SwitchTo16Bits(device);
@@ -153,15 +157,18 @@ static DEVICE_STATUS RxN16(PacketIoDevice *device, uint16_t *buffer, uint32_t si
 static DEVICE_STATUS TxN8Async(PacketIoDevice *device, uint8_t *data, uint32_t size)
 {
     SwitchTo8Bits(device);
-
+    SCB_CleanDCache_by_Addr((uint32_t *)data, size);
     if (HAL_SPI_Transmit_DMA(device->instance, data, size) == HAL_OK)
     {
         return DEVICE_STATUS_OK;
     }
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
+
 static DEVICE_STATUS RxN8Async(struct PacketIoDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount)
 {
+    device->_rxBuffer.data = buffer;
+    device->_rxBuffer.size = size;
     SwitchTo8Bits(device);
     if (HAL_SPI_Receive_DMA(device->instance, (uint8_t *)buffer, size) == HAL_OK)
     {
@@ -169,17 +176,23 @@ static DEVICE_STATUS RxN8Async(struct PacketIoDevice *device, uint8_t *buffer, u
     }
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
+
 static DEVICE_STATUS TxN16Async(struct PacketIoDevice *device, uint16_t *data, uint32_t size)
 {
     SwitchTo16Bits(device);
+    SCB_CleanDCache_by_Addr((uint32_t *)data, size * 2);
     if (HAL_SPI_Transmit_DMA(device->instance, (uint8_t *)data, size) == HAL_OK)
     {
         return DEVICE_STATUS_OK;
     }
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
+
 static DEVICE_STATUS RxN16Async(struct PacketIoDevice *device, uint16_t *buffer, uint32_t size, uint8_t dummyCycleCount)
 {
+    device->_rxBuffer.data = buffer;
+    device->_rxBuffer.size = size * 2;
+
     SwitchTo16Bits(device);
     if (HAL_SPI_Receive_DMA(device->instance, (uint8_t *)buffer, size) == HAL_OK)
     {
@@ -201,4 +214,7 @@ void Spi_PacketIoDevice_Create(PacketIoDevice *device, SPI_HandleTypeDef *handle
     device->RxN16 = &RxN16;
     device->RxN16Async = &RxN16Async;
     device->opMode = PACKET_IO_DEVICE_OP_MODE_SYNC | PACKET_IO_DEVICE_OP_MODE_ASYNC;
+
+    device->_rxBuffer.data = 0;
+    device->_rxBuffer.size = 0;
 };

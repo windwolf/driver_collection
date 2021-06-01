@@ -8,6 +8,7 @@ extern "C"
 
 #include "basic/packet_io_device.h"
 #include "bsp.h"
+#include "basic/buffer.h"
 
     void Spi_PacketIoDevice_Create(PacketIoDevice *device, SPI_HandleTypeDef *instance);
 

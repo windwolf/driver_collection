@@ -8,6 +8,7 @@ extern "C"
 
 #include "stdint.h"
 #include "basic/device.h"
+#include "basic/buffer.h"
 
     typedef enum PACKET_IO_DEVICE_OP_MODE
     {
@@ -19,8 +20,8 @@ extern "C"
     {
         DeviceBase base;
         void *instance;
-
         PACKET_IO_DEVICE_OP_MODE opMode;
+        Buffer _rxBuffer;
 
         void (*Init)(struct PacketIoDevice *device);
         DEVICE_STATUS(*TxN8)

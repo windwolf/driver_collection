@@ -25,8 +25,8 @@ static DEVICE_STATUS Toggle(struct PinDevice *device, uint16_t pinMask)
 void Gpio_PinDevice_Create(PinDevice *device, GPIO_TypeDef *handle)
 {
     device->instance = handle;
-    device->Init = Init;
-    device->Read = Read;
-    device->Write = Write;
-    device->Toggle = Toggle;
+    device->Init = &Init;
+    device->Read = &Read;
+    device->Write = &Write;
+    device->Toggle = &Toggle;
 }

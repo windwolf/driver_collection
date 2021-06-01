@@ -51,6 +51,8 @@ static inline void Uart_TxCpltCallback__(UART_HandleTypeDef *huart)
 static inline void Uart_RxEventCpltCallback__(UART_HandleTypeDef *huart, uint16_t pos)
 {
     StreamDevice *device = StreamDevice_Find(huart);
+    RingBuffer8 *rxBuffer = ((Stream *)device->base.host)->rxBuffer;
+    SCB_InvalidateDCache_by_Addr(rxBuffer->data, rxBuffer->size);
     device->onRxReadyCallback(device, pos);
 }
 
@@ -68,10 +70,11 @@ static void Init(StreamDevice *device)
     HAL_UART_RegisterCallback(device->instance, HAL_UART_ERROR_CB_ID, Uart_ErrCpltCallback__);
     HAL_UART_RegisterRxEventCallback(device->instance, Uart_RxEventCpltCallback__);
 }
+
 static DEVICE_STATUS StartRx(StreamDevice *device)
 {
     UART_HandleTypeDef *huart = device->instance;
-    Stream *stream = (Stream *)device;
+    RingBuffer8 *rxBuffer = ((Stream *)device->base.host)->rxBuffer;
     if (huart->hdmarx->Init.Mode != DMA_CIRCULAR)
     {
         return DEVICE_STATUS_NOT_SUPPORT;
@@ -81,7 +84,7 @@ static DEVICE_STATUS StartRx(StreamDevice *device)
         return DEVICE_STATUS_BUSY;
     }
 
-    if (HAL_UARTEx_ReceiveToIdle_DMA(huart, stream->rxBuffer->data, RingBuffer8_GetMemorySize(stream->rxBuffer)) != HAL_OK)
+    if (HAL_UARTEx_ReceiveToIdle_DMA(huart, rxBuffer->data, rxBuffer->size) != HAL_OK)
     {
         return DEVICE_STATUS_HARDWARE_ERROR;
     }
@@ -104,11 +107,11 @@ static DEVICE_STATUS StopRx(StreamDevice *device)
 static DEVICE_STATUS Tx(StreamDevice *device, uint8_t *data, uint32_t size)
 {
     UART_HandleTypeDef *huart = device->instance;
-    //Stream *stream = (Stream *)device;
     if ((HAL_UART_GetState(huart) & HAL_UART_STATE_BUSY_TX) == HAL_UART_STATE_BUSY_TX)
     {
         return DEVICE_STATUS_BUSY;
     }
+    SCB_CleanDCache_by_Addr((uint32_t *)data, size);
     if (HAL_UART_Transmit_DMA(huart, data, size) != HAL_OK)
     {
         return DEVICE_STATUS_HARDWARE_ERROR;

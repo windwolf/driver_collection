@@ -42,9 +42,9 @@ extern "C"
         DEVICE_STATUS(*RxN16Async)
         (struct PacketIoDevice *device, uint16_t *buffer, uint32_t size, uint8_t dummyCycleCount);
 
-        void (*DoTxCompleteCallback)(struct PacketIoDevice *packetIo);
-        void (*DoRxCompleteCallback)(struct PacketIoDevice *packetIo);
-        void (*DoErrorCallback)(struct PacketIoDevice *packetIo);
+        void (*onTxComplete)(struct PacketIoDevice *packetIo);
+        void (*onRxComplete)(struct PacketIoDevice *packetIo);
+        void (*onError)(struct PacketIoDevice *packetIo);
     } PacketIoDevice;
 
 #ifdef __cplusplus

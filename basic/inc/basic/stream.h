@@ -7,12 +7,12 @@ extern "C"
 #endif
 #include "basic/device.h"
 #include "basic/ring_buffer8.h"
-#include "basic/stream_device.h"
+#include "basic/stream_io_device.h"
 #include "tx_api.h"
 
     typedef struct Stream
     {
-        StreamDevice device;
+        StreamIoDevice device;
 
         RingBuffer8 *rxBuffer;
         TX_EVENT_FLAGS_GROUP events;

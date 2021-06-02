@@ -8,31 +8,34 @@ extern "C"
 
 #include "stdint.h"
 #include "basic/device.h"
+#include "basic/buffer.h"
 
-    typedef struct StreamDevice
+    typedef struct StreamIoDevice
     {
         DeviceBase base;
         void *instance;
-        void (*Init)(struct StreamDevice *device);
+        Buffer _rxBuffer;
+
+        void (*Init)(struct StreamIoDevice *device);
         DEVICE_STATUS(*StartRx)
-        (struct StreamDevice *device);
+        (struct StreamIoDevice *device, uint8_t* data, uint16_t size);
         DEVICE_STATUS(*StopRx)
-        (struct StreamDevice *device);
+        (struct StreamIoDevice *device);
         DEVICE_STATUS(*Tx)
-        (struct StreamDevice *device, uint8_t *data, uint32_t size);
+        (struct StreamIoDevice *device, uint8_t *data, uint32_t size);
 
         /**
          * @brief tx完成后的回调. @note 回调运行在中断上下文中, 注意控制时间. 
          * 
          */
-        void (*onTxCompleteCallback)(struct StreamDevice *device);
+        void (*onTxComplete)(struct StreamIoDevice *device);
         /**
          * @brief rx有值时的回调. @note 回调运行在中断上下文中, 注意控制时间. 
          * 
          */
-        void (*onRxReadyCallback)(struct StreamDevice *device, uint16_t pos);
-        void (*onErrorCallback)(struct StreamDevice *device);
-    } StreamDevice;
+        void (*onRxReady)(struct StreamIoDevice *device, uint16_t pos);
+        void (*onError)(struct StreamIoDevice *device);
+    } StreamIoDevice;
 
 #ifdef __cplusplus
 }

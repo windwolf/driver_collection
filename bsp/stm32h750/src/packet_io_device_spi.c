@@ -12,7 +12,7 @@ typedef enum SPI_INDEX
 
 static PacketIoDevice *SPI_INSTANCE_[(uint32_t)(SPI_COUNT)];
 
-static inline SPI_INDEX PacketIoDevice_Instance_Index_Get(SPI_HandleTypeDef *handle)
+static inline SPI_INDEX Instance_Index_Get(SPI_HandleTypeDef *handle)
 {
     uint32_t ins = (uint32_t)(handle->Instance);
 
@@ -33,41 +33,50 @@ static inline SPI_INDEX PacketIoDevice_Instance_Index_Get(SPI_HandleTypeDef *han
     }
 }
 
-static inline void PacketIoDevice_Register(PacketIoDevice *device)
+static inline void Instance_Register(PacketIoDevice *device)
 {
-    SPI_INDEX index = PacketIoDevice_Instance_Index_Get((SPI_HandleTypeDef *)(device->instance));
+    SPI_INDEX index = Instance_Index_Get((SPI_HandleTypeDef *)(device->instance));
     SPI_INSTANCE_[(uint32_t)index] = device;
 }
 
-static inline PacketIoDevice *PacketIoDevice_Find(SPI_HandleTypeDef *huart)
+static inline PacketIoDevice *Instance_Find(SPI_HandleTypeDef *huart)
 {
-    SPI_INDEX index = PacketIoDevice_Instance_Index_Get(huart);
+    SPI_INDEX index = Instance_Index_Get(huart);
     return SPI_INSTANCE_[(uint32_t)index];
 }
 
 static void Spi_TxCpltCallback__(SPI_HandleTypeDef *handle)
 {
-    PacketIoDevice *device = PacketIoDevice_Find(handle);
-    device->DoTxCompleteCallback(device);
-}
+    PacketIoDevice *device = Instance_Find(handle);
+    if (device->onTxComplete)
+    {
+        device->onTxComplete(device);
+    }
+};
 
 static void Spi_RxCpltCallback__(SPI_HandleTypeDef *handle)
 {
-    PacketIoDevice *device = PacketIoDevice_Find(handle);
+    PacketIoDevice *device = Instance_Find(handle);
     SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
-    device->DoRxCompleteCallback(device);
+    if (device->onRxComplete)
+    {
+        device->onRxComplete(device);
+    }
 }
 
 static void Spi_ErrCallback__(SPI_HandleTypeDef *handle)
 {
-    PacketIoDevice *device = PacketIoDevice_Find(handle);
+    PacketIoDevice *device = Instance_Find(handle);
     SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
-    device->DoErrorCallback(device);
-}
+    if (device->onError)
+    {
+        device->onError(device);
+    }
+};
 
 static void Init(PacketIoDevice *device)
 {
-    PacketIoDevice_Register(device);
+    Instance_Register(device);
     HAL_SPI_RegisterCallback(device->instance, HAL_SPI_TX_COMPLETE_CB_ID, Spi_TxCpltCallback__);
     HAL_SPI_RegisterCallback(device->instance, HAL_SPI_RX_COMPLETE_CB_ID, Spi_RxCpltCallback__);
     HAL_SPI_RegisterCallback(device->instance, HAL_SPI_ERROR_CB_ID, Spi_ErrCallback__);
@@ -217,4 +226,8 @@ void Spi_PacketIoDevice_Create(PacketIoDevice *device, SPI_HandleTypeDef *handle
 
     device->_rxBuffer.data = 0;
     device->_rxBuffer.size = 0;
+
+    device->onError = NULL;
+    device->onRxComplete = NULL;
+    device->onTxComplete = NULL;
 };

@@ -154,9 +154,9 @@ DEVICE_STATUS CommandMaster_Init(CommandMaster *commandMaster)
 {
     CommandBase_Init((CommandBase *)commandMaster);
     commandMaster->base.device.base.host = commandMaster;
-    commandMaster->base.device.DoTxCompleteCallback = &CommandMaster_DoTxRxCplt;
-    commandMaster->base.device.DoRxCompleteCallback = &CommandMaster_DoTxRxCplt;
-    commandMaster->base.device.DoErrorCallback = &CommandMaster_DoError_;
+    commandMaster->base.device.onTxComplete = &CommandMaster_DoTxRxCplt;
+    commandMaster->base.device.onRxComplete = &CommandMaster_DoTxRxCplt;
+    commandMaster->base.device.onError = &CommandMaster_DoError_;
     commandMaster->base.device.Init(&commandMaster->base.device);
     return DEVICE_STATUS_OK;
 };

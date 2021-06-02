@@ -1,4 +1,4 @@
-#include "stream_device_uart.h"
+#include "stream_io_device_uart.h"
 
 typedef enum UART_INDEX
 {
@@ -9,9 +9,9 @@ typedef enum UART_INDEX
     UART_COUNT,
 } UART_INDEX;
 
-static StreamDevice *UART_INSTANCES_[(uint32_t)(UART_COUNT)];
+static StreamIoDevice *UART_INSTANCES_[(uint32_t)(UART_COUNT)];
 
-static inline UART_INDEX Stream_instance_index_get(UART_HandleTypeDef *huart)
+static inline UART_INDEX Instance_Index_Get(UART_HandleTypeDef *huart)
 {
     uint32_t ins = (uint32_t)(huart->Instance);
 
@@ -30,51 +30,57 @@ static inline UART_INDEX Stream_instance_index_get(UART_HandleTypeDef *huart)
     }
 }
 
-static inline void StreamDevice_Register(StreamDevice *stream)
+static inline void Instance_Register(StreamIoDevice *stream)
 {
-    UART_INDEX index = Stream_instance_index_get((UART_HandleTypeDef *)(stream->instance));
+    UART_INDEX index = Instance_Index_Get((UART_HandleTypeDef *)(stream->instance));
     UART_INSTANCES_[(uint32_t)index] = stream;
 }
 
-static inline StreamDevice *StreamDevice_Find(UART_HandleTypeDef *huart)
+static inline StreamIoDevice *Instance_Find(UART_HandleTypeDef *huart)
 {
-    UART_INDEX index = Stream_instance_index_get(huart);
+    UART_INDEX index = Instance_Index_Get(huart);
     return UART_INSTANCES_[(uint32_t)index];
 }
 
 static inline void Uart_TxCpltCallback__(UART_HandleTypeDef *huart)
 {
-    StreamDevice *device = StreamDevice_Find(huart);
-    device->onTxCompleteCallback(device);
+    StreamIoDevice *device = Instance_Find(huart);
+    device->onTxComplete(device);
 }
 
 static inline void Uart_RxEventCpltCallback__(UART_HandleTypeDef *huart, uint16_t pos)
 {
-    StreamDevice *device = StreamDevice_Find(huart);
-    RingBuffer8 *rxBuffer = ((Stream *)device->base.host)->rxBuffer;
-    SCB_InvalidateDCache_by_Addr(rxBuffer->data, rxBuffer->size);
-    device->onRxReadyCallback(device, pos);
+    StreamIoDevice *device = Instance_Find(huart);
+    SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    device->onRxReady(device, pos);
 }
 
 static inline void Uart_ErrCpltCallback__(UART_HandleTypeDef *huart)
 {
-    StreamDevice *device = StreamDevice_Find(huart);
-    device->onErrorCallback(device);
+    StreamIoDevice *device = Instance_Find(huart);
+    //HAL_UART_DeInit(huart);
+    //HAL_UART_Init(huart);
+    //Init(device);
+    LL_USART_Disable(huart->Instance);
+    LL_USART_Enable(huart->Instance);
+
+    device->onError(device);
 }
 
-static void Init(StreamDevice *device)
+static void Init(StreamIoDevice *device)
 {
-    StreamDevice_Register(device);
+    Instance_Register(device);
     HAL_UART_RegisterCallback(device->instance, HAL_UART_TX_COMPLETE_CB_ID, Uart_TxCpltCallback__);
     //HAL_UART_RegisterCallback(_handle, HAL_UART_RX_COMPLETE_CB_ID, Uart_RxCpltCallback__);
     HAL_UART_RegisterCallback(device->instance, HAL_UART_ERROR_CB_ID, Uart_ErrCpltCallback__);
     HAL_UART_RegisterRxEventCallback(device->instance, Uart_RxEventCpltCallback__);
 }
 
-static DEVICE_STATUS StartRx(StreamDevice *device)
+static DEVICE_STATUS StartRx(StreamIoDevice *device, uint8_t *data, uint16_t size)
 {
+    device->_rxBuffer.data = data;
+    device->_rxBuffer.size = size;
     UART_HandleTypeDef *huart = device->instance;
-    RingBuffer8 *rxBuffer = ((Stream *)device->base.host)->rxBuffer;
     if (huart->hdmarx->Init.Mode != DMA_CIRCULAR)
     {
         return DEVICE_STATUS_NOT_SUPPORT;
@@ -84,16 +90,16 @@ static DEVICE_STATUS StartRx(StreamDevice *device)
         return DEVICE_STATUS_BUSY;
     }
 
-    if (HAL_UARTEx_ReceiveToIdle_DMA(huart, rxBuffer->data, rxBuffer->size) != HAL_OK)
+    if (HAL_UARTEx_ReceiveToIdle_DMA(huart, data, size) != HAL_OK)
     {
         return DEVICE_STATUS_HARDWARE_ERROR;
     }
     return DEVICE_STATUS_OK;
 }
-static DEVICE_STATUS StopRx(StreamDevice *device)
+static DEVICE_STATUS StopRx(StreamIoDevice *device)
 {
     UART_HandleTypeDef *huart = device->instance;
-    //Stream *stream = (Stream *)device;
+
     if ((HAL_UART_GetState(huart) & HAL_UART_STATE_BUSY_RX) != HAL_UART_STATE_BUSY_RX)
     {
         return DEVICE_STATUS_NOT_NECESSARY;
@@ -104,7 +110,7 @@ static DEVICE_STATUS StopRx(StreamDevice *device)
     }
     return DEVICE_STATUS_OK;
 }
-static DEVICE_STATUS Tx(StreamDevice *device, uint8_t *data, uint32_t size)
+static DEVICE_STATUS Tx(StreamIoDevice *device, uint8_t *data, uint32_t size)
 {
     UART_HandleTypeDef *huart = device->instance;
     if ((HAL_UART_GetState(huart) & HAL_UART_STATE_BUSY_TX) == HAL_UART_STATE_BUSY_TX)
@@ -120,11 +126,14 @@ static DEVICE_STATUS Tx(StreamDevice *device, uint8_t *data, uint32_t size)
     return DEVICE_STATUS_OK;
 }
 
-void Uart_StreamDevice_Create(StreamDevice *device, UART_HandleTypeDef *huart)
+void Uart_StreamDevice_Create(StreamIoDevice *device, UART_HandleTypeDef *huart)
 {
     device->instance = huart;
     device->Init = &Init;
     device->StartRx = &StartRx;
     device->StopRx = &StopRx;
     device->Tx = &Tx;
+    device->onError = NULL;
+    device->onRxReady = NULL;
+    device->onTxComplete = NULL;
 }

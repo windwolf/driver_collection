@@ -6,10 +6,10 @@ extern "C"
 {
 #endif
 
-#include "basic/packet_io_device.h"
+#include "basic/reg_io_device.h"
 #include "bsp.h"
 
-    void I2C_PacketIoDevice_Create(PacketIoDevice *device, SPI_HandleTypeDef *instance);
+    void I2C_RegIoDevice_Create(RegIoDevice *device, I2C_HandleTypeDef *instance);
 
 #ifdef __cplusplus
 }

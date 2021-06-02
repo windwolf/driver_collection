@@ -6,12 +6,12 @@ extern "C"
 {
 #endif
 
-#include "basic/stream.h"
+#include "basic/stream_io_device.h"
 #include "bsp.h"
 
 
 
-    void Uart_StreamDevice_Create(StreamDevice *device, UART_HandleTypeDef *huart);
+    void Uart_StreamDevice_Create(StreamIoDevice *device, UART_HandleTypeDef *huart);
 
 #ifdef __cplusplus
 }

@@ -162,9 +162,9 @@ DEVICE_STATUS SimpleCommand_Init(SimpleCommand *simpleCommand)
 {
     CommandBase_Init((CommandBase *)simpleCommand);
     simpleCommand->base.device.base.host = simpleCommand;
-    simpleCommand->base.device.DoTxCompleteCallback = &SimpleCommand_DoTxRxCplt;
-    simpleCommand->base.device.DoRxCompleteCallback = &SimpleCommand_DoTxRxCplt;
-    simpleCommand->base.device.DoErrorCallback = &SimpleCommand_DoError_;
+    simpleCommand->base.device.onTxComplete = &SimpleCommand_DoTxRxCplt;
+    simpleCommand->base.device.onRxComplete = &SimpleCommand_DoTxRxCplt;
+    simpleCommand->base.device.onError = &SimpleCommand_DoError_;
     simpleCommand->base.device.Init(&simpleCommand->base.device);
     return DEVICE_STATUS_OK;
 };

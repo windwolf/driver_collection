@@ -68,53 +68,53 @@ DEVICE_STATUS ST7735_Reset(ST77XX *instance)
     LOG("ST7735:SLPOUT e")
 
     LOG("ST7735:RBGIC s")
-    DMA1_BUFFER static uint8_t frctl1[3] = {0x01U, 0x2CU, 0x2DU};
-    ST77XX_Command_WriteData8(instance, ST7735_CMD_FRAME_RATE_CTRL1, frctl1, 3);
+    static const uint8_t frctl1[3] = {0x01U, 0x2CU, 0x2DU};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_FRAME_RATE_CTRL1, (const uint8_t *)frctl1, 3);
     LOG("ST7735:RBGIC e")
 
     LOG("ST7735:PROCH s")
-    DMA1_BUFFER static uint8_t frctl2[3] = {0x01U, 0x2CU, 0x2DU};
-    ST77XX_Command_WriteData8(instance, ST7735_CMD_FRAME_RATE_CTRL2, frctl2, 3);
+    static const uint8_t frctl2[3] = {0x01U, 0x2CU, 0x2DU};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_FRAME_RATE_CTRL2, (const uint8_t *)frctl2, 3);
     LOG("ST7735:PROCH e")
 
     LOG("ST7735:FRMRCTL s")
-    DMA1_BUFFER static uint8_t frctl3[6] = {0x01U, 0x2CU, 0x2DU, 0x01U, 0x2CU, 0x2DU};
-    ST77XX_Command_WriteData8(instance, ST7735_CMD_FRAME_RATE_CTRL3, frctl3, 6);
+    static const uint8_t frctl3[6] = {0x01U, 0x2CU, 0x2DU, 0x01U, 0x2CU, 0x2DU};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_FRAME_RATE_CTRL3, (const uint8_t *)frctl3, 6);
     LOG("ST7735:FRMRCTL e")
 
     LOG("ST7735:FRMICTL s")
-    DMA1_BUFFER static uint8_t fictl[1] = {0x07U};
-    ST77XX_Command_WriteData8(instance, ST7735_CMD_FRAME_INVERSION_CTRL, fictl, 1);
+    static const uint8_t fictl[1] = {0x07U};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_FRAME_INVERSION_CTRL, (const uint8_t *)fictl, 1);
     LOG("ST7735:FRMICTL e")
 
     LOG("ST7735:PWRCTL1 s")
-    DMA1_BUFFER static uint8_t pctl1[3] = {0xA2U, 0x02U, 0x84U};
-    ST77XX_Command_WriteData8(instance, ST7735_CMD_PWR_CTRL1, pctl1, 3);
+    static const uint8_t pctl1[3] = {0xA2U, 0x02U, 0x84U};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_PWR_CTRL1, (const uint8_t *)pctl1, 3);
     LOG("ST7735:PWRCTL1 e")
 
     LOG("ST7735:PWRCTL2 s")
-    DMA1_BUFFER static uint8_t pctl2[1] = {0xC5U};
-    ST77XX_Command_WriteData8(instance, ST7735_CMD_PWR_CTRL2, pctl2, 1);
+    static const uint8_t pctl2[1] = {0xC5U};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_PWR_CTRL2, (const uint8_t *)pctl2, 1);
     LOG("ST7735:PWRCTL2 e")
 
     LOG("ST7735:PWRCTL3 s")
-    DMA1_BUFFER static uint8_t pctl3[2] = {0x0AU, 0x00U};
-    ST77XX_Command_WriteData8(instance, ST7735_CMD_PWR_CTRL3, pctl3, 2);
+    static const uint8_t pctl3[2] = {0x0AU, 0x00U};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_PWR_CTRL3, (const uint8_t *)pctl3, 2);
     LOG("ST7735:PWRCTL3 e")
 
     LOG("ST7735:PWRCTL4 s")
-    DMA1_BUFFER static uint8_t pctl4[2] = {0x8AU, 0x2AU};
-    ST77XX_Command_WriteData8(instance, ST7735_CMD_PWR_CTRL4, pctl4, 2);
+    static const uint8_t pctl4[2] = {0x8AU, 0x2AU};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_PWR_CTRL4, (const uint8_t *)pctl4, 2);
     LOG("ST7735:PWRCTL4 e")
 
     LOG("ST7735:PWRCTL5 s")
-    DMA1_BUFFER static uint8_t pctl5[2] = {0x8AU, 0xEEU};
-    ST77XX_Command_WriteData8(instance, ST7735_CMD_PWR_CTRL5, pctl5, 2);
+    static const uint8_t pctl5[2] = {0x8AU, 0xEEU};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_PWR_CTRL5, (const uint8_t *)pctl5, 2);
     LOG("ST7735:PWRCTL5 e")
 
     LOG("ST7735:PWRCTL s")
-    DMA1_BUFFER static uint8_t vcomctl1[1] = {0x0EU};
-    ST77XX_Command_WriteData8(instance, ST7735_CMD_VCOMH_VCOML_CTRL1, vcomctl1, 1);
+    static const uint8_t vcomctl1[1] = {0x0EU};
+    ST77XX_Command_WriteData8(instance, ST7735_CMD_VCOMH_VCOML_CTRL1, (const uint8_t *)vcomctl1, 1);
     LOG("ST7735:PWRCTL e")
 
     LOG("ST7735:DISINV s")

@@ -20,21 +20,19 @@ extern "C"
 #define DEVICE_STATUS_BUSY 3
 #define DEVICE_STATUS_NOT_SUPPORT 4
 
-    // typedef struct P2pDevice
-    // {
-    //     DEVICE_STATUS (*tx)(void);
-    // } P2pDevice;
+#define DEVICE_DATAWIDTH_8 0x00
+#define DEVICE_DATAWIDTH_16 0x01
+#define DEVICE_DATAWIDTH_24 0x02
+#define DEVICE_DATAWIDTH_32 0x03
 
-    // typedef struct BusDevice
-    // {
-
-    // } BusDevice;
+#define ALIGN(n) __attribute__((aligned(n)))
 
     typedef struct DeviceBase
     {
         void *host;
     } DeviceBase;
-    
+
+    void device_base_host_register(DeviceBase *device, void* host);
 
 #ifdef __cplusplus
 }

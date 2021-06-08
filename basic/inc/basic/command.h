@@ -61,9 +61,14 @@ extern "C"
 
     } COMMAND_READWRITE_PIN_MODE;
 
+#define COMMAND_ADDRESS_SIZE_8BIT 0x00;
+#define COMMAND_ADDRESS_SIZE_16BIT 0x01;
+#define COMMAND_ADDRESS_SIZE_24BIT 0x02;
+#define COMMAND_ADDRESS_SIZE_32BIT 0x03;
+
     typedef struct CommandBase
     {
-        PacketIoDevice device;
+        PacketIoDevice *device;
 
         Pin *csPin;
         Pin *rwPin;
@@ -86,8 +91,8 @@ extern "C"
             {
                 uint8_t isWrite : 1;
                 uint8_t isCmd : 1;
-                uint8_t csNotBreak : 1;
-                uint8_t is16Bits : 1;
+                //uint8_t csNotBreak : 1;
+                uint8_t dataBits : 2;
                 uint8_t dummyCycles : 4;
             } statusBits;
         };
@@ -108,44 +113,48 @@ extern "C"
     {
         CommandBase base;
         void *data;
+        uint32_t commandId;
+        uint32_t address;
         uint16_t dataSize;
-        uint8_t commandId;
         union
         {
             uint8_t flags;
             struct
             {
                 uint8_t isWrite : 1;
-                uint8_t is16Bits : 1;
+                uint8_t hasAddress : 1;
+                uint8_t commandBits : 2;
+                uint8_t addressBits : 2;
+                uint8_t dataBits : 2;
                 uint8_t dummyCycles : 4;
             } flagBits;
         };
-        uint8_t phase; // 0 = init, 1 = cmd, 2 = data
+        uint8_t _phase; // 0 = init, 1 = cmd, 2 = addr, 3 = data, 4 = end;
 
     } SimpleCommand;
 
-    DEVICE_STATUS CommandBase_Init(CommandBase *commandBase);
+    DEVICE_STATUS command_base_create(CommandBase *commandBase, PacketIoDevice *device,
+                                      Pin *csPin, COMMAND_SELECT_PIN_MODE csCfg,
+                                      Pin *rwPin, COMMAND_READWRITE_PIN_MODE rwCfg,
+                                      Pin *dcPin, COMMAND_DATACMD_PIN_MODE dcCfg);
 
     uint8_t CommandBase_IsBusy(CommandBase *commandBase);
 
     DEVICE_STATUS CommandBase_WaitForComplete(CommandBase *commandBase, ULONG timeout);
 
-    DEVICE_STATUS CommandBase_ConfigCs(CommandBase *commandBase, Pin *csPin, COMMAND_SELECT_PIN_MODE config);
-
-    DEVICE_STATUS CommandBase_ConfigRw(CommandBase *commandBase, Pin *rwPin, COMMAND_READWRITE_PIN_MODE config);
-
-    DEVICE_STATUS CommandBase_ConfigDc(CommandBase *commandBase, Pin *dcPin, COMMAND_DATACMD_PIN_MODE config);
-
-    DEVICE_STATUS CommandMaster_Init(CommandMaster *commandMaster);
+    DEVICE_STATUS command_master_create(CommandMaster *commandMaster, PacketIoDevice *device,
+                                        Pin *csPin, COMMAND_SELECT_PIN_MODE csCfg,
+                                        Pin *rwPin, COMMAND_READWRITE_PIN_MODE rwCfg,
+                                        Pin *dcPin, COMMAND_DATACMD_PIN_MODE dcCfg);
 
     DEVICE_STATUS CommandMaster_SendCommandSync(CommandMaster *commandMaster, CommandFrame *command, uint32_t size);
 
     DEVICE_STATUS CommandMaster_SendCommandAsync(CommandMaster *commandMaster, CommandFrame *command, uint32_t size);
 
-    DEVICE_STATUS CommandMaster_WaitForComplete(CommandMaster *commandMaster, ULONG timeout);
-
-    DEVICE_STATUS SimpleCommand_Init(SimpleCommand *simpleCommand);
-
+    DEVICE_STATUS simple_command_create(SimpleCommand *simpleCommand, PacketIoDevice *device,
+                                        Pin *csPin, COMMAND_SELECT_PIN_MODE csCfg,
+                                        Pin *rwPin, COMMAND_READWRITE_PIN_MODE rwCfg,
+                                        Pin *dcPin, COMMAND_DATACMD_PIN_MODE dcCfg);
     DEVICE_STATUS SimpleCommand_SendCommandSync(SimpleCommand *simpleCommand);
 
     DEVICE_STATUS SimpleCommand_SendCommandAsync(SimpleCommand *simpleCommand);

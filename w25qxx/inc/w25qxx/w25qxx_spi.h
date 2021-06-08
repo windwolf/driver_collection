@@ -6,6 +6,8 @@ extern "C"
 {
 #endif
 
+#include "w25qxx_base.h"
+
 #define W25QXX_SPI_RESET_ENABLE_CMD 0x66
 #define W25QXX_SPI_RESET_MEMORY_CMD 0x99
 
@@ -50,27 +52,23 @@ extern "C"
 #define W25QXX_SPI_PROG_ERASE_RESUME_CMD 0x7A
 #define W25QXX_SPI_PROG_ERASE_SUSPEND_CMD 0x75
 
-#define W25QXX_PAGE_SIZE 256
+
 
     typedef struct W25QXX_SPI
     {
-        uint32_t flashId;
-        uint32_t flashSize;
-        uint32_t sectorCount;
-        uint32_t sectorSize;
-        uint32_t subsectorCount;
-        uint32_t subsectorSize;
+        W25QXX_BASE base;
+        SimpleCommand *command;
     } W25QXX_SPI;
 
-    uint8_t w25qxx_init(void);
-    static void w25qxx_reset(void);
-    static uint8_t w25qxx_get_status(void);
-    uint8_t w25qxx_write_enable(void);
-    void w25qxx_read_id(uint16_t *ID);
-    uint8_t w25qxx_read(uint8_t *pData, uint32_t ReadAddr, uint32_t Size);
-    uint8_t w25qxx_write(uint8_t *pData, uint32_t WriteAddr, uint32_t Size);
-    uint8_t w25qxx_erase_block(uint32_t Address);
-    uint8_t w25qxx_erase_chip(void);
+    DEVICE_STATUS w25qxx_spi_create(W25QXX_SPI *instance, Buffer buffer, SimpleCommand* command);
+    DEVICE_STATUS w25qxx_spi_reset(W25QXX_SPI* instance);
+    DEVICE_STATUS w25qxx_spi_get_status(W25QXX_SPI* instance);
+    DEVICE_STATUS w25qxx_spi_write_enable(W25QXX_SPI* instance);
+    DEVICE_STATUS w25qxx_spi_read_id(W25QXX_SPI* instance, uint32_t *id);
+    DEVICE_STATUS w25qxx_spi_read(W25QXX_SPI* instance, uint8_t *pData, uint32_t ReadAddr, uint32_t Size);
+    DEVICE_STATUS w25qxx_spi_write(W25QXX_SPI* instance, uint8_t *pData, uint32_t WriteAddr, uint32_t Size);
+    DEVICE_STATUS w25qxx_spi_erase_block(W25QXX_SPI* instance, uint32_t Address);
+    DEVICE_STATUS w25qxx_spi_erase_chip(W25QXX_SPI* instance);
 
 #ifdef __cplusplus
 }

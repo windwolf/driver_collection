@@ -10,7 +10,7 @@ extern "C"
 #include "bsp.h"
 #include "basic/buffer.h"
 
-    void Spi_PacketIoDevice_Create(PacketIoDevice *device, SPI_HandleTypeDef *instance);
+    void spi_packet_io_device_create(PacketIoDevice *device, SPI_HandleTypeDef *instance);
 
 #ifdef __cplusplus
 }

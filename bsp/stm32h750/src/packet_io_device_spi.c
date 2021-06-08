@@ -76,13 +76,9 @@ static void Spi_ErrCallback__(SPI_HandleTypeDef *handle)
 
 static void Init(PacketIoDevice *device)
 {
-    Instance_Register(device);
-    HAL_SPI_RegisterCallback(device->instance, HAL_SPI_TX_COMPLETE_CB_ID, Spi_TxCpltCallback__);
-    HAL_SPI_RegisterCallback(device->instance, HAL_SPI_RX_COMPLETE_CB_ID, Spi_RxCpltCallback__);
-    HAL_SPI_RegisterCallback(device->instance, HAL_SPI_ERROR_CB_ID, Spi_ErrCallback__);
 }
 
-static void SwitchTo8Bits(PacketIoDevice *device)
+static uint32_t SwitchBits(PacketIoDevice *device, uint8_t width, uint32_t size)
 {
     SPI_HandleTypeDef *handle = (SPI_HandleTypeDef *)(device->instance);
     uint32_t stream_number_tx = (((uint32_t)((uint32_t *)handle->hdmatx->Instance) & 0xFFU) - 0x010UL) / 0x018UL;
@@ -90,41 +86,69 @@ static void SwitchTo8Bits(PacketIoDevice *device)
     uint32_t stream_number_rx = (((uint32_t)((uint32_t *)handle->hdmarx->Instance) & 0xFFU) - 0x010UL) / 0x018UL;
     uint32_t dma_base_rx = (uint32_t)((uint32_t *)handle->hdmarx->Instance) - stream_number_rx * 0x018UL - 0x010UL;
 
-    handle->Init.DataSize = SPI_DATASIZE_8BIT;
-    LL_SPI_SetDataWidth(handle->Instance, LL_SPI_DATAWIDTH_8BIT);
-    handle->hdmatx->Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    handle->hdmarx->Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    handle->hdmatx->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    handle->hdmarx->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_MDATAALIGN_BYTE);
-    LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_MDATAALIGN_BYTE);
-    LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_PDATAALIGN_BYTE);
-    LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_PDATAALIGN_BYTE);
-}
+    switch (width)
+    {
+    case DEVICE_DATAWIDTH_8:
+        handle->Init.DataSize = SPI_DATASIZE_8BIT;
+        LL_SPI_SetDataWidth(handle->Instance, LL_SPI_DATAWIDTH_8BIT);
+        handle->hdmatx->Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+        handle->hdmarx->Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+        handle->hdmatx->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+        handle->hdmarx->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+        LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_MDATAALIGN_BYTE);
+        LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_MDATAALIGN_BYTE);
+        LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_PDATAALIGN_BYTE);
+        LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_PDATAALIGN_BYTE);
+        return size;
+    case DEVICE_DATAWIDTH_16:
+        handle->Init.DataSize = SPI_DATASIZE_16BIT;
+        LL_SPI_SetDataWidth(handle->Instance, LL_SPI_DATAWIDTH_16BIT);
+        handle->hdmatx->Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+        handle->hdmarx->Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+        handle->hdmatx->Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+        handle->hdmarx->Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+        LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_MDATAALIGN_HALFWORD);
+        LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_MDATAALIGN_HALFWORD);
+        LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_PDATAALIGN_HALFWORD);
+        LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_PDATAALIGN_HALFWORD);
+        return size << 1;
+    case DEVICE_DATAWIDTH_24:
+        handle->Init.DataSize = SPI_DATASIZE_24BIT;
+        LL_SPI_SetDataWidth(handle->Instance, LL_SPI_DATAWIDTH_24BIT);
+        handle->hdmatx->Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+        handle->hdmarx->Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+        handle->hdmatx->Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+        handle->hdmarx->Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+        LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_MDATAALIGN_WORD);
+        LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_MDATAALIGN_WORD);
+        LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_PDATAALIGN_WORD);
+        LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_PDATAALIGN_WORD);
+        return size << 2;
+    case DEVICE_DATAWIDTH_32:
+        handle->Init.DataSize = SPI_DATASIZE_32BIT;
+        LL_SPI_SetDataWidth(handle->Instance, LL_SPI_DATAWIDTH_32BIT);
+        handle->hdmatx->Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+        handle->hdmarx->Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+        handle->hdmatx->Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+        handle->hdmarx->Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+        LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_MDATAALIGN_WORD);
+        LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_MDATAALIGN_WORD);
+        LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_PDATAALIGN_WORD);
+        LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_PDATAALIGN_WORD);
+        return size << 2;
+    default:
+        return 0;
+    }
+    //return;
+};
 
-static void SwitchTo16Bits(PacketIoDevice *device)
+static DEVICE_STATUS Tx(PacketIoDevice *device, void *data, uint32_t size, uint8_t width)
 {
-    SPI_HandleTypeDef *handle = (SPI_HandleTypeDef *)(device->instance);
-    uint32_t stream_number_tx = (((uint32_t)((uint32_t *)handle->hdmatx->Instance) & 0xFFU) - 0x010UL) / 0x018UL;
-    uint32_t dma_base_tx = (uint32_t)((uint32_t *)handle->hdmatx->Instance) - stream_number_tx * 0x018UL - 0x010UL;
-    uint32_t stream_number_rx = (((uint32_t)((uint32_t *)handle->hdmarx->Instance) & 0xFFU) - 0x010UL) / 0x018UL;
-    uint32_t dma_base_rx = (uint32_t)((uint32_t *)handle->hdmarx->Instance) - stream_number_rx * 0x018UL - 0x010UL;
-
-    handle->Init.DataSize = SPI_DATASIZE_16BIT;
-    LL_SPI_SetDataWidth(handle->Instance, LL_SPI_DATAWIDTH_16BIT);
-    handle->hdmatx->Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
-    handle->hdmarx->Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
-    handle->hdmatx->Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-    handle->hdmarx->Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-    LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_MDATAALIGN_HALFWORD);
-    LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_MDATAALIGN_HALFWORD);
-    LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_PDATAALIGN_HALFWORD);
-    LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_PDATAALIGN_HALFWORD);
-}
-
-static DEVICE_STATUS TxN8(PacketIoDevice *device, uint8_t *data, uint32_t size)
-{
-    SwitchTo8Bits(device);
+    uint32_t byteSize = SwitchBits(device, width, size);
+    if (size < 0)
+    {
+        return DEVICE_STATUS_ARGUMENT_ERROR;
+    }
 
     if (HAL_SPI_Transmit(device->instance, data, size, HAL_MAX_DELAY) == HAL_OK)
     {
@@ -133,9 +157,13 @@ static DEVICE_STATUS TxN8(PacketIoDevice *device, uint8_t *data, uint32_t size)
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
 
-static DEVICE_STATUS RxN8(PacketIoDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount)
+static DEVICE_STATUS Rx(PacketIoDevice *device, void *buffer, uint32_t size, uint8_t width, uint8_t dummyCycleCount)
 {
-    SwitchTo8Bits(device);
+    uint32_t byteSize = SwitchBits(device, width, size);
+    if (size < 0)
+    {
+        return DEVICE_STATUS_ARGUMENT_ERROR;
+    }
     if (HAL_SPI_Receive(device->instance, buffer, size, HAL_MAX_DELAY) == HAL_OK)
     {
         return DEVICE_STATUS_OK;
@@ -143,30 +171,14 @@ static DEVICE_STATUS RxN8(PacketIoDevice *device, uint8_t *buffer, uint32_t size
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
 
-static DEVICE_STATUS TxN16(PacketIoDevice *device, uint16_t *data, uint32_t size)
+static DEVICE_STATUS TxAsync(PacketIoDevice *device, uint8_t *data, uint32_t size, uint8_t width)
 {
-    SwitchTo16Bits(device);
-    if (HAL_SPI_Transmit(device->instance, (uint8_t *)data, size, HAL_MAX_DELAY) == HAL_OK)
+    uint32_t byteSize = SwitchBits(device, width, size);
+    if (size < 0)
     {
-        return DEVICE_STATUS_OK;
+        return DEVICE_STATUS_ARGUMENT_ERROR;
     }
-    return DEVICE_STATUS_HARDWARE_ERROR;
-};
-
-static DEVICE_STATUS RxN16(PacketIoDevice *device, uint16_t *buffer, uint32_t size, uint8_t dummyCycleCount)
-{
-    SwitchTo16Bits(device);
-    if (HAL_SPI_Receive(device->instance, (uint8_t *)buffer, size, HAL_MAX_DELAY) == HAL_OK)
-    {
-        return DEVICE_STATUS_OK;
-    }
-    return DEVICE_STATUS_HARDWARE_ERROR;
-};
-
-static DEVICE_STATUS TxN8Async(PacketIoDevice *device, uint8_t *data, uint32_t size)
-{
-    SwitchTo8Bits(device);
-    SCB_CleanDCache_by_Addr((uint32_t *)data, size);
+    SCB_CleanDCache_by_Addr((uint32_t *)data, byteSize);
     if (HAL_SPI_Transmit_DMA(device->instance, data, size) == HAL_OK)
     {
         return DEVICE_STATUS_OK;
@@ -174,11 +186,15 @@ static DEVICE_STATUS TxN8Async(PacketIoDevice *device, uint8_t *data, uint32_t s
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
 
-static DEVICE_STATUS RxN8Async(struct PacketIoDevice *device, uint8_t *buffer, uint32_t size, uint8_t dummyCycleCount)
+static DEVICE_STATUS RxAsync(PacketIoDevice *device, uint8_t *buffer, uint32_t size, uint8_t width, uint8_t dummyCycleCount)
 {
+    uint32_t byteSize = SwitchBits(device, width, size);
+    if (size < 0)
+    {
+        return DEVICE_STATUS_ARGUMENT_ERROR;
+    }
     device->_rxBuffer.data = buffer;
-    device->_rxBuffer.size = size;
-    SwitchTo8Bits(device);
+    device->_rxBuffer.size = byteSize;
     if (HAL_SPI_Receive_DMA(device->instance, (uint8_t *)buffer, size) == HAL_OK)
     {
         return DEVICE_STATUS_OK;
@@ -186,48 +202,21 @@ static DEVICE_STATUS RxN8Async(struct PacketIoDevice *device, uint8_t *buffer, u
     return DEVICE_STATUS_HARDWARE_ERROR;
 };
 
-static DEVICE_STATUS TxN16Async(struct PacketIoDevice *device, uint16_t *data, uint32_t size)
-{
-    SwitchTo16Bits(device);
-    SCB_CleanDCache_by_Addr((uint32_t *)data, size * 2);
-    if (HAL_SPI_Transmit_DMA(device->instance, (uint8_t *)data, size) == HAL_OK)
-    {
-        return DEVICE_STATUS_OK;
-    }
-    return DEVICE_STATUS_HARDWARE_ERROR;
-};
-
-static DEVICE_STATUS RxN16Async(struct PacketIoDevice *device, uint16_t *buffer, uint32_t size, uint8_t dummyCycleCount)
-{
-    device->_rxBuffer.data = buffer;
-    device->_rxBuffer.size = size * 2;
-
-    SwitchTo16Bits(device);
-    if (HAL_SPI_Receive_DMA(device->instance, (uint8_t *)buffer, size) == HAL_OK)
-    {
-        return DEVICE_STATUS_OK;
-    }
-    return DEVICE_STATUS_HARDWARE_ERROR;
-};
-
-void Spi_PacketIoDevice_Create(PacketIoDevice *device, SPI_HandleTypeDef *handle)
+void spi_packet_io_device_create(PacketIoDevice *device, SPI_HandleTypeDef *handle)
 {
     device->instance = handle;
     device->Init = &Init;
-    device->TxN8 = &TxN8;
-    device->TxN8Async = &TxN8Async;
-    device->RxN8 = &RxN8;
-    device->RxN8Async = &RxN8Async;
-    device->TxN16 = &TxN16;
-    device->TxN16Async = &TxN16Async;
-    device->RxN16 = &RxN16;
-    device->RxN16Async = &RxN16Async;
+    device->Tx = &Tx;
+    device->TxAsync = &TxAsync;
+    device->Rx = &Rx;
+    device->RxAsync = &RxAsync;
     device->opMode = PACKET_IO_DEVICE_OP_MODE_SYNC | PACKET_IO_DEVICE_OP_MODE_ASYNC;
 
     device->_rxBuffer.data = 0;
     device->_rxBuffer.size = 0;
 
-    device->onError = NULL;
-    device->onRxComplete = NULL;
-    device->onTxComplete = NULL;
+    Instance_Register(device);
+    HAL_SPI_RegisterCallback(handle, HAL_SPI_TX_COMPLETE_CB_ID, Spi_TxCpltCallback__);
+    HAL_SPI_RegisterCallback(handle, HAL_SPI_RX_COMPLETE_CB_ID, Spi_RxCpltCallback__);
+    HAL_SPI_RegisterCallback(handle, HAL_SPI_ERROR_CB_ID, Spi_ErrCallback__);
 };

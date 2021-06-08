@@ -8,30 +8,16 @@ static void CommandMaster_SendFrameSync(CommandMaster *commandMaster, CommandFra
 
     if (frame.statusBits.isWrite)
     {
-        if (frame.statusBits.is16Bits)
-        {
-            commandMaster->base.device.TxN16(&(commandMaster->base.device), frame.buffer.data, frame.buffer.size);
-        }
-        else
-        {
-            commandMaster->base.device.TxN8(&(commandMaster->base.device), frame.buffer.data, frame.buffer.size);
-        }
+        commandMaster->base.device->Tx(commandMaster->base.device, frame.buffer.data, frame.buffer.size, frame.statusBits.dataBits);
     }
     else
     {
-        if (frame.statusBits.is16Bits)
-        {
-            commandMaster->base.device.RxN16(&(commandMaster->base.device), frame.buffer.data, frame.buffer.size, frame.statusBits.dummyCycles);
-        }
-        else
-        {
-            commandMaster->base.device.RxN8(&(commandMaster->base.device), frame.buffer.data, frame.buffer.size, frame.statusBits.dummyCycles);
-        }
+        commandMaster->base.device->Rx(commandMaster->base.device, frame.buffer.data, frame.buffer.size, frame.statusBits.dataBits, frame.statusBits.dummyCycles);
     }
-    if (!frame.statusBits.csNotBreak)
-    {
-        COMMAND_BASE_CS_DISABLE(commandMaster->base);
-    }
+    // if (!frame.statusBits.csNotBreak)
+    // {
+    //     COMMAND_BASE_CS_DISABLE(commandMaster->base);
+    // }
 };
 
 static void CommandMaster_SendFrameAsync(CommandMaster *commandMaster)
@@ -46,33 +32,15 @@ static void CommandMaster_SendFrameAsync(CommandMaster *commandMaster)
 
         if (frame.statusBits.isWrite)
         {
-            if (frame.statusBits.is16Bits)
-            {
-                LOG("CMD-SF-A-W:st %lu", commandMaster->_curCommandFrameIndex)
-                commandMaster->base.device.TxN16Async(&(commandMaster->base.device), frame.buffer.data, frame.buffer.size);
-                LOG("CMD-SF-A-W:ed %lu", commandMaster->_curCommandFrameIndex)
-            }
-            else
-            {
-                LOG("CMD-SF-A-W:st %lu", commandMaster->_curCommandFrameIndex)
-                commandMaster->base.device.TxN8Async(&(commandMaster->base.device), frame.buffer.data, frame.buffer.size);
-                LOG("CMD-SF-A-W:ed %lu", commandMaster->_curCommandFrameIndex)
-            }
+            LOG("CMD-SF-A-W:st %lu", commandMaster->_curCommandFrameIndex)
+            commandMaster->base.device->TxAsync(commandMaster->base.device, frame.buffer.data, frame.buffer.size, frame.statusBits.dataBits);
+            LOG("CMD-SF-A-W:ed %lu", commandMaster->_curCommandFrameIndex)
         }
         else
         {
-            if (frame.statusBits.is16Bits)
-            {
-                LOG("CMD-SF-A-R:st %lu", commandMaster->_curCommandFrameIndex)
-                commandMaster->base.device.RxN16Async(&(commandMaster->base.device), frame.buffer.data, frame.buffer.size, frame.statusBits.dummyCycles);
-                LOG("CMD-SF-A-R:ed %lu", commandMaster->_curCommandFrameIndex)
-            }
-            else
-            {
-                LOG("CMD-SF-A-R:st %lu", commandMaster->_curCommandFrameIndex)
-                commandMaster->base.device.RxN8Async(&(commandMaster->base.device), frame.buffer.data, frame.buffer.size, frame.statusBits.dummyCycles);
-                LOG("CMD-SF-A-R:ed %lu", commandMaster->_curCommandFrameIndex)
-            }
+            LOG("CMD-SF-A-R:st %lu", commandMaster->_curCommandFrameIndex)
+            commandMaster->base.device->RxAsync(commandMaster->base.device, frame.buffer.data, frame.buffer.size, frame.statusBits.dataBits, frame.statusBits.dummyCycles);
+            LOG("CMD-SF-A-R:ed %lu", commandMaster->_curCommandFrameIndex)
         }
     }
     else
@@ -85,30 +53,32 @@ static void CommandMaster_SendFrameAsync(CommandMaster *commandMaster)
     }
 };
 
-static inline void CommandMaster_DoTxRxCplt(PacketIoDevice *device)
+static inline void CommandMaster_DoTxRxCplt_(PacketIoDevice *device)
 {
-    ((CommandMaster *)device)->_curCommandFrameIndex++;
-    CommandMaster_SendFrameAsync(((CommandMaster *)device));
+    CommandMaster *cmd = (CommandMaster *)device->base.host;
+    cmd->_curCommandFrameIndex++;
+    CommandMaster_SendFrameAsync(cmd);
 }
 
 static void CommandMaster_DoError_(PacketIoDevice *device)
 {
-    ((CommandMaster *)device)->base.hasError = 1;
-    if (CommandBase_IsBusy(&(((CommandMaster *)device)->base)))
+    CommandMaster *cmd = (CommandMaster *)device->base.host;
+    cmd->base.hasError = 1;
+    if (CommandBase_IsBusy((CommandBase *)cmd))
     {
-        EVENTS_RESET_FLAGS(((CommandMaster *)device)->base.events, COMMAND_BASE_EVENT_CMD_BUSY);
-        EVENTS_SET_FLAGS(((CommandMaster *)device)->base.events, COMMAND_BASE_EVENT_CMD_COMPLETE);
+        EVENTS_RESET_FLAGS(cmd->base.events, COMMAND_BASE_EVENT_CMD_BUSY);
+        EVENTS_SET_FLAGS(cmd->base.events, COMMAND_BASE_EVENT_CMD_COMPLETE);
     }
 
-    if (((CommandMaster *)device)->base.onError)
+    if (cmd->base.onError)
     {
-        ((CommandMaster *)device)->base.onError(((CommandBase *)device));
+        cmd->base.onError((CommandBase *)cmd);
     }
 };
 
 DEVICE_STATUS CommandMaster_SendCommandSync(CommandMaster *commandMaster, CommandFrame *command, uint32_t size)
 {
-    if (!(commandMaster->base.device.opMode & PACKET_IO_DEVICE_OP_MODE_SYNC))
+    if (!(commandMaster->base.device->opMode & PACKET_IO_DEVICE_OP_MODE_SYNC))
     {
         return DEVICE_STATUS_NOT_SUPPORT;
     }
@@ -130,7 +100,7 @@ DEVICE_STATUS CommandMaster_SendCommandSync(CommandMaster *commandMaster, Comman
 
 DEVICE_STATUS CommandMaster_SendCommandAsync(CommandMaster *commandMaster, CommandFrame *command, uint32_t size)
 {
-    if (!(commandMaster->base.device.opMode & PACKET_IO_DEVICE_OP_MODE_ASYNC))
+    if (!(commandMaster->base.device->opMode & PACKET_IO_DEVICE_OP_MODE_ASYNC))
     {
         return DEVICE_STATUS_NOT_SUPPORT;
     }
@@ -150,13 +120,13 @@ DEVICE_STATUS CommandMaster_SendCommandAsync(CommandMaster *commandMaster, Comma
     return DEVICE_STATUS_OK;
 };
 
-DEVICE_STATUS CommandMaster_Init(CommandMaster *commandMaster)
+DEVICE_STATUS command_master_create(CommandMaster *commandMaster, PacketIoDevice *device,
+                                    Pin *csPin, COMMAND_SELECT_PIN_MODE csCfg,
+                                    Pin *rwPin, COMMAND_READWRITE_PIN_MODE rwCfg,
+                                    Pin *dcPin, COMMAND_DATACMD_PIN_MODE dcCfg)
 {
-    CommandBase_Init((CommandBase *)commandMaster);
-    commandMaster->base.device.base.host = commandMaster;
-    commandMaster->base.device.onTxComplete = &CommandMaster_DoTxRxCplt;
-    commandMaster->base.device.onRxComplete = &CommandMaster_DoTxRxCplt;
-    commandMaster->base.device.onError = &CommandMaster_DoError_;
-    commandMaster->base.device.Init(&commandMaster->base.device);
+    command_base_create((CommandBase *)commandMaster, device, csPin, csCfg, rwPin, rwCfg, dcPin, dcCfg);
+    packet_io_device_host_register(device, commandMaster, &CommandMaster_DoTxRxCplt_, &CommandMaster_DoTxRxCplt_, &CommandMaster_DoError_);
+    device->Init(&commandMaster->base.device);
     return DEVICE_STATUS_OK;
 };

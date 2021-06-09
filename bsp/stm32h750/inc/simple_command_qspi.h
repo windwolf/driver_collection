@@ -6,6 +6,8 @@ extern "C"
 {
 #endif
 
+#include "../../../basic/inc/basic/command.h"
+
     DEVICE_STATUS simple_command_qspi_send_command_sync(SimpleCommand *simpleCommand){
 
     };

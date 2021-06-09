@@ -13,7 +13,7 @@ DEVICE_STATUS w25qxx_spi_create(W25QXX_SPI *instance, Buffer buffer, SimpleComma
 DEVICE_STATUS w25qxx_spi_reset(W25QXX_SPI *instance)
 {
     SimpleCommand *cmd = instance->command;
-    cmd->commandId = W25QXX_SPI_RESET_ENABLE_CMD;
+    cmd->commandId = W25QXX_SPI_ENABLE_RESET_CMD;
 
     cmd->flagBits.hasAddress = 0;
     // cmd->flagBits.addressBits = DEVICE_DATAWIDTH_8;
@@ -25,17 +25,73 @@ DEVICE_STATUS w25qxx_spi_reset(W25QXX_SPI *instance)
     SimpleCommand_SendCommandAsync(cmd);
     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
 
-    cmd->commandId = W25QXX_SPI_RESET_MEMORY_CMD;
+    cmd->commandId = W25QXX_SPI_RESET_DEVICE_CMD;
 
     cmd->dataSize = 0;
     // cmd->flagBits.dataBits = DEVICE_DATAWIDTH_8;
     // cmd->flagBits.isWrite = 1;
     SimpleCommand_SendCommandAsync(cmd);
     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+
+    w25qxx_spi_status_get(instance);
+    instance->base.QE = 0;
+    w25qxx_spi_status_set(instance);
+
     return DEVICE_STATUS_OK;
 };
 
-DEVICE_STATUS w25qxx_spi_get_status(W25QXX_SPI *instance)
+DEVICE_STATUS w25qxx_spi_status_get(W25QXX_SPI *instance)
+{
+    SimpleCommand *cmd = instance->command;
+    cmd->commandId = W25QXX_SPI_READ_STATUS_REG1_CMD;
+
+    cmd->flagBits.hasAddress = 0;
+
+    cmd->dataSize = 1;
+    cmd->flagBits.dataBits = DEVICE_DATAWIDTH_8;
+    cmd->flagBits.isWrite = 0;
+    cmd->data = instance->base.buffer.data;
+    SimpleCommand_SendCommandAsync(cmd);
+    CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+    instance->base.status1 = *(uint8_t *)cmd->data;
+    cmd->commandId = W25QXX_SPI_READ_STATUS_REG2_CMD;
+    SimpleCommand_SendCommandAsync(cmd);
+    CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+    instance->base.status2 = *(uint8_t *)cmd->data;
+    cmd->commandId = W25QXX_SPI_READ_STATUS_REG3_CMD;
+    SimpleCommand_SendCommandAsync(cmd);
+    CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+    instance->base.status3 = *(uint8_t *)cmd->data;
+    return DEVICE_STATUS_BUSY;
+};
+
+DEVICE_STATUS w25qxx_spi_status_set(W25QXX_SPI *instance)
+{
+    SimpleCommand *cmd = instance->command;
+    cmd->commandId = W25QXX_SPI_WRITE_STATUS_REG1_CMD;
+
+    cmd->flagBits.hasAddress = 0;
+
+    cmd->dataSize = 1;
+    cmd->flagBits.dataBits = DEVICE_DATAWIDTH_8;
+    cmd->flagBits.isWrite = 1;
+    *(uint8_t *)cmd->data = instance->base.status1;
+    SimpleCommand_SendCommandAsync(cmd);
+    CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+
+    cmd->commandId = W25QXX_SPI_WRITE_STATUS_REG2_CMD;
+    *(uint8_t *)cmd->data = instance->base.status2;
+    SimpleCommand_SendCommandAsync(cmd);
+    CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+
+    cmd->commandId = W25QXX_SPI_WRITE_STATUS_REG3_CMD;
+    *(uint8_t *)cmd->data = instance->base.status3;
+    SimpleCommand_SendCommandAsync(cmd);
+    CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+    return DEVICE_STATUS_BUSY;
+};
+
+DEVICE_STATUS w25qxx_spi_is_busy(W25QXX_SPI *instance)
 {
     SimpleCommand *cmd = instance->command;
     cmd->commandId = W25QXX_SPI_READ_STATUS_REG1_CMD;
@@ -73,14 +129,14 @@ DEVICE_STATUS w25qxx_spi_write_enable(W25QXX_SPI *instance)
     SimpleCommand_SendCommandAsync(cmd);
     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
 
-    while (w25qxx_spi_get_status(instance) == DEVICE_STATUS_BUSY)
+    while (w25qxx_spi_is_busy(instance) == DEVICE_STATUS_BUSY)
     {
         _tx_thread_sleep(1);
     }
     return DEVICE_STATUS_OK;
 };
 
-DEVICE_STATUS w25qxx_spi_read_id(W25QXX_SPI *instance, uint32_t *id)
+DEVICE_STATUS w25qxx_spi_id_read(W25QXX_SPI *instance, uint32_t *id)
 {
     uint32_t id_t = 0;
     SimpleCommand *cmd = instance->command;
@@ -122,6 +178,7 @@ DEVICE_STATUS w25qxx_spi_read(W25QXX_SPI *instance, uint8_t *pData, uint32_t rea
 
 DEVICE_STATUS w25qxx_spi_write(W25QXX_SPI *instance, uint8_t *pData, uint32_t writeAddr, uint32_t size)
 {
+    w25qxx_spi_write_enable(instance);
 
     uint32_t end_addr, current_size, current_addr;
     /* Calculation of the size between the write address and the end of the page */
@@ -143,8 +200,6 @@ DEVICE_STATUS w25qxx_spi_write(W25QXX_SPI *instance, uint8_t *pData, uint32_t wr
     current_addr = writeAddr;
     end_addr = writeAddr + size;
 
-    w25qxx_spi_write_enable(instance);
-
     SimpleCommand *cmd = instance->command;
     cmd->commandId = W25QXX_SPI_PAGE_PROG_CMD;
 
@@ -160,7 +215,7 @@ DEVICE_STATUS w25qxx_spi_write(W25QXX_SPI *instance, uint8_t *pData, uint32_t wr
         SimpleCommand_SendCommandAsync(cmd);
         CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
 
-        while (w25qxx_spi_get_status(instance) == DEVICE_STATUS_BUSY)
+        while (w25qxx_spi_is_busy(instance) == DEVICE_STATUS_BUSY)
         {
             tx_thread_sleep(1);
         }
@@ -173,22 +228,23 @@ DEVICE_STATUS w25qxx_spi_write(W25QXX_SPI *instance, uint8_t *pData, uint32_t wr
     return DEVICE_STATUS_OK;
 };
 
-DEVICE_STATUS w25qxx_spi_erase_block(W25QXX_SPI *instance, uint32_t address)
+DEVICE_STATUS w25qxx_spi_block_erase(W25QXX_SPI *instance, uint32_t address)
 {
 
+    w25qxx_spi_write_enable(instance);
+
     SimpleCommand *cmd = instance->command;
-    cmd->commandId = W25QXX_SPI_SECTOR_ERASE_CMD;
+    cmd->commandId = W25QXX_SPI_SECTOR_ERASE_4K_CMD;
 
     cmd->flagBits.hasAddress = 1;
     cmd->address = address;
 
     cmd->dataSize = 0;
-    w25qxx_spi_write_enable(instance);
 
     SimpleCommand_SendCommandAsync(cmd);
     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
 
-    while (w25qxx_spi_get_status(instance) == DEVICE_STATUS_BUSY)
+    while (w25qxx_spi_is_busy(instance) == DEVICE_STATUS_BUSY)
     {
         tx_thread_sleep(1);
     }
@@ -196,20 +252,21 @@ DEVICE_STATUS w25qxx_spi_erase_block(W25QXX_SPI *instance, uint32_t address)
     return DEVICE_STATUS_OK;
 };
 
-DEVICE_STATUS w25qxx_spi_erase_chip(W25QXX_SPI *instance)
+DEVICE_STATUS w25qxx_spi_chip_erase(W25QXX_SPI *instance)
 {
+    w25qxx_spi_write_enable(instance);
+
     SimpleCommand *cmd = instance->command;
     cmd->commandId = W25QXX_SPI_CHIP_ERASE_CMD;
 
     cmd->flagBits.hasAddress = 0;
 
     cmd->dataSize = 0;
-    w25qxx_spi_write_enable(instance);
 
     SimpleCommand_SendCommandAsync(cmd);
     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
 
-    while (w25qxx_spi_get_status(instance) == DEVICE_STATUS_BUSY)
+    while (w25qxx_spi_is_busy(instance) == DEVICE_STATUS_BUSY)
     {
         tx_thread_sleep(1);
     }

@@ -7,6 +7,8 @@ extern "C"
 #endif
 #include <stdio.h>
 
+#define BOOL uint8_t
+
 #ifdef DEBUG
 #define LOG(fmt, ...)           \
     printf(fmt, ##__VA_ARGS__); \

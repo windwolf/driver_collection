@@ -23,7 +23,7 @@
 //     // cmd->flagBits.dataBits = DEVICE_DATAWIDTH_8;
 //     // cmd->flagBits.isWrite = 1;
 //     SimpleCommand_SendCommandAsync(cmd);
-//     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+//     command_client_cplt_wait(&cmd->base, TX_WAIT_FOREVER);
 
 //     cmd->commandId = W25QXX_SPI_RESET_DEVICE_CMD;
 
@@ -31,7 +31,7 @@
 //     // cmd->flagBits.dataBits = DEVICE_DATAWIDTH_8;
 //     // cmd->flagBits.isWrite = 1;
 //     SimpleCommand_SendCommandAsync(cmd);
-//     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+//     command_client_cplt_wait(&cmd->base, TX_WAIT_FOREVER);
 
 //     w25qxx_spi_status_get(instance);
 //     instance->base.QE = 0;
@@ -52,15 +52,15 @@
 //     cmd->flagBits.isWrite = 0;
 //     cmd->data = instance->base.buffer.data;
 //     SimpleCommand_SendCommandAsync(cmd);
-//     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+//     command_client_cplt_wait(&cmd->base, TX_WAIT_FOREVER);
 //     instance->base.status1 = *(uint8_t *)cmd->data;
 //     cmd->commandId = W25QXX_SPI_READ_STATUS_REG2_CMD;
 //     SimpleCommand_SendCommandAsync(cmd);
-//     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+//     command_client_cplt_wait(&cmd->base, TX_WAIT_FOREVER);
 //     instance->base.status2 = *(uint8_t *)cmd->data;
 //     cmd->commandId = W25QXX_SPI_READ_STATUS_REG3_CMD;
 //     SimpleCommand_SendCommandAsync(cmd);
-//     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+//     command_client_cplt_wait(&cmd->base, TX_WAIT_FOREVER);
 //     instance->base.status3 = *(uint8_t *)cmd->data;
 //     return DEVICE_STATUS_BUSY;
 // };
@@ -77,17 +77,17 @@
 //     cmd->flagBits.isWrite = 1;
 //     *(uint8_t *)cmd->data = instance->base.status1;
 //     SimpleCommand_SendCommandAsync(cmd);
-//     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+//     command_client_cplt_wait(&cmd->base, TX_WAIT_FOREVER);
 
 //     cmd->commandId = W25QXX_SPI_WRITE_STATUS_REG2_CMD;
 //     *(uint8_t *)cmd->data = instance->base.status2;
 //     SimpleCommand_SendCommandAsync(cmd);
-//     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+//     command_client_cplt_wait(&cmd->base, TX_WAIT_FOREVER);
 
 //     cmd->commandId = W25QXX_SPI_WRITE_STATUS_REG3_CMD;
 //     *(uint8_t *)cmd->data = instance->base.status3;
 //     SimpleCommand_SendCommandAsync(cmd);
-//     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+//     command_client_cplt_wait(&cmd->base, TX_WAIT_FOREVER);
 //     return DEVICE_STATUS_BUSY;
 // };
 
@@ -104,7 +104,7 @@
 //     cmd->flagBits.isWrite = 0;
 //     cmd->data = instance->base.buffer.data;
 //     SimpleCommand_SendCommandAsync(cmd);
-//     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+//     command_client_cplt_wait(&cmd->base, TX_WAIT_FOREVER);
 //     if (*((uint8_t *)(cmd->data)) & W25QXX_STATUS1_BUSY)
 //     {
 //         return DEVICE_STATUS_BUSY;
@@ -127,7 +127,7 @@
 //     // cmd->flagBits.dataBits = DEVICE_DATAWIDTH_8;
 //     // cmd->flagBits.isWrite = 1;
 //     SimpleCommand_SendCommandAsync(cmd);
-//     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+//     command_client_cplt_wait(&cmd->base, TX_WAIT_FOREVER);
 
 //     while (w25qxx_spi_is_busy(instance) == DEVICE_STATUS_BUSY)
 //     {
@@ -151,7 +151,7 @@
 //     cmd->flagBits.dataBits = DEVICE_DATAWIDTH_24;
 
 //     SimpleCommand_SendCommandAsync(cmd);
-//     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+//     command_client_cplt_wait(&cmd->base, TX_WAIT_FOREVER);
 
 //     return DEVICE_STATUS_OK;
 // };
@@ -171,7 +171,7 @@
 //     cmd->flagBits.dataBits = DEVICE_DATAWIDTH_8;
 
 //     SimpleCommand_SendCommandAsync(cmd);
-//     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+//     command_client_cplt_wait(&cmd->base, TX_WAIT_FOREVER);
 
 //     return DEVICE_STATUS_OK;
 // };
@@ -213,7 +213,7 @@
 //         cmd->dataSize = current_size;
 //         cmd->flagBits.dataBits = DEVICE_DATAWIDTH_8;
 //         SimpleCommand_SendCommandAsync(cmd);
-//         CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+//         command_client_cplt_wait(&cmd->base, TX_WAIT_FOREVER);
 
 //         while (w25qxx_spi_is_busy(instance) == DEVICE_STATUS_BUSY)
 //         {
@@ -242,7 +242,7 @@
 //     cmd->dataSize = 0;
 
 //     SimpleCommand_SendCommandAsync(cmd);
-//     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+//     command_client_cplt_wait(&cmd->base, TX_WAIT_FOREVER);
 
 //     while (w25qxx_spi_is_busy(instance) == DEVICE_STATUS_BUSY)
 //     {
@@ -264,7 +264,7 @@
 //     cmd->dataSize = 0;
 
 //     SimpleCommand_SendCommandAsync(cmd);
-//     CommandBase_WaitForComplete(&cmd->base, TX_WAIT_FOREVER);
+//     command_client_cplt_wait(&cmd->base, TX_WAIT_FOREVER);
 
 //     while (w25qxx_spi_is_busy(instance) == DEVICE_STATUS_BUSY)
 //     {

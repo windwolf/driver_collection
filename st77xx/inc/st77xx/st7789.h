@@ -6,12 +6,11 @@ extern "C"
 {
 #endif
 
-#include "basic/command.h"
+#include "../../../basic/inc/basic/five_step_command_client.h"
 #include "tx_api.h"
 #include "stdint.h"
-#include "bsp.h"
-#include "basic/device.h"
-#include "st77xx/st77xx.h"
+#include "../../../basic/inc/basic/device.h"
+#include "st77xx.h"
 
     typedef enum ST7789_CMD
     {
@@ -133,21 +132,21 @@ extern "C"
         ST7899_DISPLAY_REFRESH_ORDER_B2T_R2L = 0x14
     } ST7789_DISPLAY_REFRESH_ORDER;
 
-    DEVICE_STATUS ST7789_Init(ST77XX *instance);
+    DEVICE_STATUS st7789_create(ST77XX *instance);
 
-    DEVICE_STATUS ST7789_Reset(ST77XX *instance, ST7789_COLOR_MODE color_mode, ST7789_DISPLAY_DIRECTION displayDirection, ST7789_DISPLAY_COLOR_DIRECTION colorDirection, ST7789_DISPLAY_REFRESH_ORDER refreshOrder);
+    DEVICE_STATUS st7789_reset(ST77XX *instance, ST7789_COLOR_MODE color_mode, ST7789_DISPLAY_DIRECTION displayDirection, ST7789_DISPLAY_COLOR_DIRECTION colorDirection, ST7789_DISPLAY_REFRESH_ORDER refreshOrder);
 
-    DEVICE_STATUS ST7789_Inversion(ST77XX *instance, uint8_t on);
+    DEVICE_STATUS st7789_inversion(ST77XX *instance, uint8_t on);
 
-    DEVICE_STATUS ST7789_Sleep(ST77XX *instance, uint8_t on);
+    DEVICE_STATUS st7789_sleep(ST77XX *instance, uint8_t on);
 
-    DEVICE_STATUS ST7789_Display(ST77XX *instance, uint8_t on);
+    DEVICE_STATUS st7789_display(ST77XX *instance, uint8_t on);
 
-    DEVICE_STATUS ST7789_Row_Address_Set(ST77XX *instance, uint16_t start, uint16_t end);
+    DEVICE_STATUS st7789_row_address_set(ST77XX *instance, uint16_t start, uint16_t end);
 
-    DEVICE_STATUS ST7789_Column_Address_Set(ST77XX *instance, uint16_t start, uint16_t end);
+    DEVICE_STATUS st7789_col_address_set(ST77XX *instance, uint16_t start, uint16_t end);
 
-    DEVICE_STATUS ST7789_Data_Write(ST77XX *instance, uint16_t *data, uint32_t size);
+    DEVICE_STATUS st7789_data_write(ST77XX *instance, uint16_t *data, uint32_t size);
 
 #ifdef __cplusplus
 }

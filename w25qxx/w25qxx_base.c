@@ -1,4 +1,4 @@
-#include "inc/w25qxx/w25qxx_base.h"
+#include "../inc/w25qxx/w25qxx_base.h"
 
 DEVICE_STATUS w25qxx_create(W25QXX_BASE *instance, Buffer buffer)
 {

@@ -6,7 +6,7 @@ extern "C"
 {
 #endif
 
-#include "basic/command.h"
+#include "../../../basic/inc/basic/device.h"
 #include "basic/buffer.h"
 #include "stdint.h"
 #include "tx_api.h"

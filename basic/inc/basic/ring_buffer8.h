@@ -7,16 +7,16 @@ extern "C"
 #endif
 
 #include "stdint.h"
-    typedef enum
+    typedef enum RINGBUFFER_OPERATION_TYPE
     {
-        CIRCLE_BUFFER_OPERATION_ENQUEUE,
-        CIRCLE_BUFFER_OPERATION_DEQUEUE,
-        CIRCLE_BUFFER_OPERATION_SYNC_HEAD,
-        CIRCLE_BUFFER_OPERATION_SYNC_TAIL,
-        CIRCLE_BUFFER_OPERATION_PEEK_TO_END,
-    } RingBuffer8_OperationType;
+        RINGBUFFER_OPERATION_TYPE_ENQUEUE,
+        RINGBUFFER_OPERATION_TYPE_DEQUEUE,
+        RINGBUFFER_OPERATION_TYPE_SYNC_HEAD,
+        RINGBUFFER_OPERATION_TYPE_SYNC_TAIL,
+        RINGBUFFER_OPERATION_TYPE_PEEK_TO_END,
+    } RINGBUFFER_OPERATION_TYPE;
 
-    typedef struct
+    typedef struct RingBuffer
     {
         uint8_t *data;
         uint32_t size;
@@ -33,7 +33,7 @@ extern "C"
             } statusBits;
         };
 
-        void (*OperationNotify)(RingBuffer8_OperationType type);
+        void (*OperationNotify)(RINGBUFFER_OPERATION_TYPE type);
         // union {
         //     uint8_t allFlags;
         //     struct
@@ -42,7 +42,7 @@ extern "C"
         //     } flagBits;
         // };
 
-    } RingBuffer8;
+    } RingBuffer;
 
     /**
      * @brief 
@@ -51,21 +51,21 @@ extern "C"
      * @param dataPtr 
      * @param maxSize 
      */
-    void RingBuffer8_Create(RingBuffer8 *queue, uint8_t *dataPtr, uint32_t maxSize);
-    uint8_t RingBuffer8_IsFull(RingBuffer8 *queue);
-    uint8_t RingBuffer8_IsEmpty(RingBuffer8 *queue);
-    uint8_t RingBuffer8_IsEnoughSpace(RingBuffer8 *queue, uint32_t length);
-    uint32_t RingBuffer8_GetMemorySize(RingBuffer8 *queue);
-    uint32_t RingBuffer8_GetCount(RingBuffer8 *queue);
-    uint8_t *RingBuffer8_GetWrite(RingBuffer8 *queue);
-    uint8_t *RingBuffer8_GetRead(RingBuffer8 *queue);
-    uint8_t RingBuffer8_SyncWrite(RingBuffer8 *queue, uint32_t newHead);
-    uint8_t RingBuffer8_SyncRead(RingBuffer8 *queue, uint32_t newTail);
-    int32_t RingBuffer8_Write(RingBuffer8 *queue, uint8_t *valuePtr, uint32_t length, uint8_t allowCoverTail);
-    int32_t RingBuffer8_Read(RingBuffer8 *queue, uint8_t *valuePtr, uint32_t length);
-    uint8_t RingBuffer8_PeekToEnd(RingBuffer8 *queue, uint8_t **valuePtr, uint32_t *length);
+    void ringbuffer_create(RingBuffer *queue, uint8_t *dataPtr, uint32_t maxSize);
+    uint8_t ringbuffer_is_full(RingBuffer *queue);
+    uint8_t ringbuffer_is_empty(RingBuffer *queue);
+    uint8_t ringbuffer_space_enough(RingBuffer *queue, uint32_t length);
+    uint32_t ringbuffer_mem_size_get(RingBuffer *queue);
+    uint32_t ringbuffer_count_get(RingBuffer *queue);
+    uint8_t *ringbuffer_write_ptr_get(RingBuffer *queue);
+    uint8_t *ringbuffer_read_ptr_get(RingBuffer *queue);
+    uint8_t ringbuffer_write_index_sync(RingBuffer *queue, uint32_t newHead);
+    uint8_t ringbuffer_read_index_sync(RingBuffer *queue, uint32_t newTail);
+    int32_t ringbuffer_write(RingBuffer *queue, uint8_t *valuePtr, uint32_t length, uint8_t allowCoverTail);
+    int32_t ringbuffer_read(RingBuffer *queue, uint8_t *valuePtr, uint32_t length);
+    uint8_t ringbuffer_peek_to_end(RingBuffer *queue, uint8_t **valuePtr, uint32_t *length);
 
-    void RingBuffer8_RegisterOperationNotify(RingBuffer8 *queue, void (*OperationNotify)(RingBuffer8_OperationType type));
+    void ringbuffer_operation_notify_register(RingBuffer *queue, void (*OperationNotify)(RINGBUFFER_OPERATION_TYPE type));
 
 #ifdef __cplusplus
 }

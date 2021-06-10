@@ -6,11 +6,10 @@ extern "C"
 {
 #endif
 
-#include "basic/command.h"
+#include "../../../basic/inc/basic/five_step_command_client.h"
 #include "tx_api.h"
 #include "stdint.h"
-#include "bsp.h"
-#include "basic/device.h"
+#include "../../../basic/inc/basic/device.h"
 
 #define ST77XX_EVENT_BUSY 0x01
 
@@ -21,9 +20,9 @@ extern "C"
 
     typedef struct ST77XX
     {
-        SimpleCommand command;
+        FiveStepCommandCient *command;
         TX_EVENT_FLAGS_GROUP events;
-
+        Buffer buffer; //48114;
         uint8_t cmdData[16];
 
         uint8_t pvGamma[16];
@@ -35,22 +34,24 @@ extern "C"
         uint16_t height;
         uint8_t colorMode;
         uint8_t orientation;
-        uint8_t buffer[48114];
+        
 
     } ST77XX;
 
-    int ST77XX_IsBusy(ST77XX *instance);
+    DEVICE_STATUS st7735_create(ST77XX *instance, FiveStepCommandCient *command, Buffer buffer);
 
-    DEVICE_STATUS ST77XX_Lock(ST77XX *instance);
-    void ST77XX_Unlock(ST77XX *instance);
+        int st77xx_is_busy(ST77XX *instance);
 
-    void ST77XX_Command(ST77XX *instance, uint8_t cmdId);
+    DEVICE_STATUS st77xx_lock(ST77XX *instance);
+    void st77xx_unlock(ST77XX *instance);
+
+    void st77xx_command(ST77XX *instance, uint8_t cmdId);
     // void ST77XX_Command_Write8xN(ST77XX *instance, uint8_t cmdId, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4, uint8_t data5, uint8_t data6, uint8_t size);
     // void ST77XX_Command_Write16xN(ST77XX *instance, uint8_t cmdId, uint16_t data1, uint16_t data2, uint8_t size);
-    void ST77XX_Command_WriteData8(ST77XX *instance, uint8_t cmdId, uint8_t *data, uint16_t size);
-    void ST77XX_Command_WriteData16(ST77XX *instance, uint8_t cmdId, uint16_t *data, uint16_t size);
-    void ST77XX_Command_ReadData8(ST77XX *instance, uint8_t cmdId, uint16_t size);
-    void ST77XX_Command_ReadData16(ST77XX *instance, uint8_t cmdId, uint16_t size);
+    void st77xx_command_write_8(ST77XX *instance, uint8_t cmdId, uint8_t *data, uint16_t size);
+    void st77xx_command_write_16(ST77XX *instance, uint8_t cmdId, uint16_t *data, uint16_t size);
+    void st77xx_command_read_8(ST77XX *instance, uint8_t cmdId, uint16_t size);
+    void st77xx_command_read_16(ST77XX *instance, uint8_t cmdId, uint16_t size);
 
 #ifdef __cplusplus
 }

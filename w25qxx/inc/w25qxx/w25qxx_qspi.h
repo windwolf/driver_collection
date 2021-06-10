@@ -5,13 +5,17 @@
 extern "C"
 {
 #endif
-
+#include "w25qxx_base.h"
+#include "../../../basic/inc/basic/five_step_command_client.h"
+#include "tx_api.h"
+#include "stdint.h"
+#include "../../../basic/inc/basic/device.h"
     typedef struct W25QXX_QSPI
     {
 
     } W25QXX_QSPI;
 
-    DEVICE_STATUS w25qxx_qspi_create(W25QXX_QSPI *instance, Buffer buffer, SimpleCommand *command);
+    DEVICE_STATUS w25qxx_qspi_create(W25QXX_QSPI *instance, Buffer buffer, FiveStepCommandCient *command);
     DEVICE_STATUS w25qxx_qspi_reset(W25QXX_QSPI *instance);
     DEVICE_STATUS w25qxx_qspi_status_get(W25QXX_QSPI *instance);
     DEVICE_STATUS w25qxx_qspi_status_set(W25QXX_QSPI *instance);

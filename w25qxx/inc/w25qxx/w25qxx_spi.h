@@ -7,14 +7,18 @@ extern "C"
 #endif
 
 #include "w25qxx_base.h"
+#include "../../../basic/inc/basic/five_step_command_client.h"
+#include "tx_api.h"
+#include "stdint.h"
+#include "../../../basic/inc/basic/device.h"
 
     typedef struct W25QXX_SPI
     {
         W25QXX_BASE base;
-        SimpleCommand *command;
+        FiveStepCommandCient *command;
     } W25QXX_SPI;
 
-    DEVICE_STATUS w25qxx_spi_create(W25QXX_SPI *instance, Buffer buffer, SimpleCommand *command);
+    DEVICE_STATUS w25qxx_spi_create(W25QXX_SPI *instance, Buffer buffer, FiveStepCommandCient *command);
     DEVICE_STATUS w25qxx_spi_reset(W25QXX_SPI *instance);
     DEVICE_STATUS w25qxx_spi_status_get(W25QXX_SPI *instance);
     DEVICE_STATUS w25qxx_spi_status_set(W25QXX_SPI *instance);

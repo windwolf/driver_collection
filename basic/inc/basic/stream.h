@@ -5,16 +5,14 @@
 extern "C"
 {
 #endif
-#include "basic/device.h"
-#include "basic/ring_buffer8.h"
-#include "basic/stream_io_device.h"
+#include "device.h"
+#include "ring_buffer8.h"
 #include "tx_api.h"
 
     typedef struct Stream
     {
-        StreamIoDevice device;
-
-        RingBuffer8 *rxBuffer;
+        UartDevice *device;
+        RingBuffer *rxBuffer;
         TX_EVENT_FLAGS_GROUP events;
 
         void (*onTxComplete)(struct Stream *stream);
@@ -25,20 +23,20 @@ extern "C"
 
     } Stream;
 
-    DEVICE_STATUS Stream_Init(Stream *stream, RingBuffer8 *rxBuffer);
+    DEVICE_STATUS stream_create(Stream *stream, UartDevice *device, RingBuffer *rxBuffer);
 
-    DEVICE_STATUS Stream_StartServer(Stream *stream);
+    DEVICE_STATUS stream_server_start(Stream *stream);
 
-    DEVICE_STATUS Stream_StopServer(Stream *stream);
+    DEVICE_STATUS stream_server_stop(Stream *stream);
 
-    DEVICE_STATUS Stream_Tx(Stream *stream, uint8_t *data, uint32_t size);
+    DEVICE_STATUS stream_send(Stream *stream, uint8_t *data, uint32_t size);
     /**
      * @brief 阻塞等待tx完成.
      * 
      * @param stream 
      * @return DEVICE_STATUS 
      */
-    UINT Stream_WaitForTxComplete(Stream *stream, ULONG timeout);
+    UINT stream_send_cplt_wait(Stream *stream, ULONG timeout);
     /**
      * @brief 阻塞等待rx准备数据.
      * 
@@ -46,7 +44,7 @@ extern "C"
      * @param timeout 
      * @return DEVICE_STATUS 
      */
-    UINT Stream_WaitForRxReady(Stream *stream, ULONG timeout);
+    UINT stream_receive_ready_wait(Stream *stream, ULONG timeout);
 
 #ifdef __cplusplus
 }

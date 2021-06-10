@@ -6,19 +6,11 @@ extern "C"
 {
 #endif
 
-#include "stm32h7xx_hal.h"
-#include "stm32h7xx_hal_uart.h"
-#include "stm32h7xx_hal_uart_ex.h"
-#include "stm32h7xx_ll_usart.h"
-#include "stm32h7xx_ll_dma.h"
-#include "stm32h7xx_hal_spi.h"
-#include "stm32h7xx_hal_spi_ex.h"
-#include "stm32h7xx_ll_spi.h"
-#include "stm32h7xx_hal_gpio.h"
-#include "stm32h7xx_hal_gpio_ex.h"
-#include "stm32h7xx_ll_gpio.h"
-#include "stm32h7xx_hal_i2c.h"
-#include "stm32h7xx_hal_i2c_ex.h"
+#include "bsp_pin.h"
+#include "bsp_i2c_mem.h"
+#include "bsp_spi.h"
+#include "bsp_uart.h"
+
 #ifdef __cplusplus
 }
 #endif

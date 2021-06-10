@@ -29,7 +29,10 @@ static void I2C_TxCpltCallback__(I2C_HandleTypeDef *handle)
 static void I2C_RxCpltCallback__(I2C_HandleTypeDef *handle)
 {
     I2CMemDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
-    SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    if (device->_status.isDmaRx)
+    {
+        SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    }
     if (device->onReadComplete)
     {
         device->onReadComplete(device);
@@ -39,7 +42,10 @@ static void I2C_RxCpltCallback__(I2C_HandleTypeDef *handle)
 static void I2C_ErrCallback__(I2C_HandleTypeDef *handle)
 {
     I2CMemDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
-    SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    if (device->_status.isDmaRx)
+    {
+        SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    }
     if (device->base.onError)
     {
         device->base.onError((DeviceBase *)device, handle->ErrorCode);
@@ -71,16 +77,25 @@ DEVICE_STATUS i2c_device_write(I2CMemDevice *device, uint16_t deviceAddress, uin
     {
         return DEVICE_STATUS_NOT_SUPPORT;
     }
-    SCB_CleanDCache_by_Addr((uint32_t *)data, size * (width - 1));
-    if (HAL_I2C_Mem_Write_DMA((I2C_HandleTypeDef *)device->base.instance,
-                              deviceAddress, memAddress,
-                              width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
-                              (uint8_t *)data,
-                              size /*TODO: 确认要不要x2 */) != HAL_OK)
+    if (size > device->dmaThershold)
     {
-        return DEVICE_STATUS_HARDWARE_ERROR;
+        device->_status.isDmaTx = 1;
+        SCB_CleanDCache_by_Addr((uint32_t *)data, size * (width - 1));
+        return HAL_I2C_Mem_Write_DMA((I2C_HandleTypeDef *)device->base.instance,
+                                     deviceAddress, memAddress,
+                                     width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
+                                     (uint8_t *)data,
+                                     size /*TODO: 确认要不要x2 */);
     }
-    return DEVICE_STATUS_OK;
+    else
+    {
+        device->_status.isDmaTx = 0;
+        return HAL_I2C_Mem_Write_IT((I2C_HandleTypeDef *)device->base.instance,
+                                    deviceAddress, memAddress,
+                                    width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
+                                    (uint8_t *)data,
+                                    size /*TODO: 确认要不要x2 */);
+    }
 };
 
 DEVICE_STATUS i2c_device_read(I2CMemDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width)
@@ -91,13 +106,22 @@ DEVICE_STATUS i2c_device_read(I2CMemDevice *device, uint16_t deviceAddress, uint
     }
     device->_rxBuffer.data = data;
     device->_rxBuffer.size = size * (width - 1);
-    if (HAL_I2C_Mem_Read_DMA((I2C_HandleTypeDef *)device->base.instance,
-                             deviceAddress, memAddress,
-                             width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
-                             (uint8_t *)data,
-                             size /*TODO: 确认要不要x2 */) != HAL_OK)
+    if (size > device->dmaThershold)
     {
-        return DEVICE_STATUS_HARDWARE_ERROR;
+        device->_status.isDmaRx = 1;
+        return HAL_I2C_Mem_Read_DMA((I2C_HandleTypeDef *)device->base.instance,
+                                    deviceAddress, memAddress,
+                                    width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
+                                    (uint8_t *)data,
+                                    size /*TODO: 确认要不要x2 */);
     }
-    return DEVICE_STATUS_OK;
+    else
+    {
+        device->_status.isDmaRx = 0;
+        return HAL_I2C_Mem_Read_DMA((I2C_HandleTypeDef *)device->base.instance,
+                                    deviceAddress, memAddress,
+                                    width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
+                                    (uint8_t *)data,
+                                    size /*TODO: 确认要不要x2 */);
+    }
 };

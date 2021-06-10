@@ -29,7 +29,11 @@ static void Uart_TxCpltCallback__(UART_HandleTypeDef *handle)
 static void Uart_RxEventCpltCallback__(UART_HandleTypeDef *handle, uint16_t pos)
 {
     UartDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
-    SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    if (device->_status.isDmaRx)
+    {
+        SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    }
+
     if (device->onRxComplete)
     {
         device->onRxComplete(device, pos);
@@ -39,7 +43,10 @@ static void Uart_RxEventCpltCallback__(UART_HandleTypeDef *handle, uint16_t pos)
 static void Uart_ErrCpltCallback__(UART_HandleTypeDef *handle)
 {
     UartDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
-    SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    if (device->_status.isDmaRx)
+    {
+        SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    }
     if (device->base.onError)
     {
         device->base.onError((DeviceBase *)device, handle->ErrorCode);
@@ -72,13 +79,17 @@ DEVICE_STATUS uart_device_tx(UartDevice *device, uint8_t *data, uint32_t size)
     {
         return DEVICE_STATUS_BUSY;
     }
-    SCB_CleanDCache_by_Addr((uint32_t *)data, size);
-    if (HAL_UART_Transmit_DMA(handle, data, size) != HAL_OK)
+    if (size > device->dmaThershold)
     {
-        return DEVICE_STATUS_HARDWARE_ERROR;
+        device->_status.isDmaTx = 1;
+        SCB_CleanDCache_by_Addr((uint32_t *)data, size);
+        return HAL_UART_Transmit_DMA(handle, data, size);
     }
-
-    return DEVICE_STATUS_OK;
+    else
+    {
+        device->_status.isDmaTx = 0;
+        return HAL_UART_Transmit_IT(handle, data, size);
+    }
 };
 
 DEVICE_STATUS uart_device_circular_rx_start(UartDevice *device, uint8_t *data, uint32_t size)

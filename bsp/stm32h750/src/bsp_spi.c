@@ -31,7 +31,11 @@ static void Spi_TxCpltCallback__(SPI_HandleTypeDef *handle)
 static void Spi_RxCpltCallback__(SPI_HandleTypeDef *handle)
 {
     SpiDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
-    SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    if (device->_status.isDmaRx)
+    {
+        SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    }
+
     if (device->onRxComplete)
     {
         device->onRxComplete(device);
@@ -41,7 +45,11 @@ static void Spi_RxCpltCallback__(SPI_HandleTypeDef *handle)
 static void Spi_ErrCallback__(SPI_HandleTypeDef *handle)
 {
     SpiDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
-    SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    if (device->_status.isDmaRx)
+    {
+        SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    }
+
     if (device->base.onError)
     {
         device->base.onError((DeviceBase *)device, handle->ErrorCode);
@@ -139,12 +147,17 @@ DEVICE_STATUS spi_device_tx(SpiDevice *device, void *data, uint32_t size, Device
     {
         return DEVICE_STATUS_GENERAL_ERROR;
     }
-    SCB_CleanDCache_by_Addr((uint32_t *)data, byteSize);
-    if (HAL_SPI_Transmit_DMA(handle, data, size) == HAL_OK)
+    if (size > device->dmaThershold)
     {
-        return DEVICE_STATUS_OK;
+        device->_status.isDmaTx = 1;
+        SCB_CleanDCache_by_Addr((uint32_t *)data, byteSize);
+        return HAL_SPI_Transmit_DMA(handle, data, size);
     }
-    return DEVICE_STATUS_HARDWARE_ERROR;
+    else
+    {
+        device->_status.isDmaTx = 0;
+        return HAL_SPI_Transmit_IT(handle, data, size);
+    }
 };
 
 DEVICE_STATUS spi_device_rx(SpiDevice *device, void *data, uint32_t size, DeviceDataWidth width, uint8_t dummyCycleCount)
@@ -157,9 +170,15 @@ DEVICE_STATUS spi_device_rx(SpiDevice *device, void *data, uint32_t size, Device
     }
     device->_rxBuffer.data = data;
     device->_rxBuffer.size = byteSize;
-    if (HAL_SPI_Receive_DMA(handle, (uint8_t *)data, size) == HAL_OK)
+    if (size > device->dmaThershold)
     {
-        return DEVICE_STATUS_OK;
+        device->_status.isDmaRx = 1;
+        return HAL_SPI_Receive_DMA(handle, (uint8_t *)data, size);
+    }
+    else
+    {
+        device->_status.isDmaRx = 0;
+        return HAL_SPI_Receive_IT(handle, (uint8_t *)data, size);
     }
     return DEVICE_STATUS_HARDWARE_ERROR;
 };

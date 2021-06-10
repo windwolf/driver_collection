@@ -92,6 +92,11 @@ extern "C"
 
         /** @private **/
         Buffer _rxBuffer;
+        struct
+        {
+            uint8_t isDmaTx : 1;
+            uint8_t isDmaRx : 1;
+        } _status;
     } SpiDevice;
 
     void _spi_device_register(SpiDevice *device, void *parent,
@@ -118,6 +123,11 @@ extern "C"
 
         /** @private **/
         Buffer _rxBuffer;
+        struct
+        {
+            uint8_t isDmaTx : 1;
+            uint8_t isDmaRx : 1;
+        } _status;
     } I2CMemDevice;
 
     void _i2c_device_register(I2CMemDevice *device, void *parent,
@@ -146,6 +156,10 @@ extern "C"
 
         /** @private **/
         Buffer _rxBuffer;
+        struct {
+            uint8_t isDmaTx : 1;
+            uint8_t isDmaRx : 1;
+        } _status;
     } UartDevice;
 
     void _uart_device_register(UartDevice *device, void *parent,

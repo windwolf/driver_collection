@@ -15,9 +15,9 @@ static inline void _command_client_tx_rx_cplt(SpiWithPinsDevice *device)
     _command_client_send_frame(cmd);
 };
 
-static void _command_client_error(SpiWithPinsDevice *device, DEVICE_STATUS error)
+static void _command_client_error(DeviceBase *device, DEVICE_STATUS error)
 {
-    CommandClient *cmd = (CommandClient *)device->base.parent;
+    CommandClient *cmd = (CommandClient *)device->parent;
     cmd->hasError = 1;
     if (_command_client_is_busy(cmd))
     {
@@ -39,15 +39,15 @@ static void _command_client_send_frame(CommandClient *commandClient)
 
         if (frame.statusBits.isRead)
         {
-            LOG("CMD-SF-A-W:st %lu", commandClient->_curCommandFrameIndex)
+            LOG("CMD-SF-A-W:st %u", commandClient->_curCommandFrameIndex)
             spi_with_pins_device_tx(commandClient->device, frame.statusBits.isData, frame.buffer.data, frame.buffer.size, frame.statusBits.dataBits);
-            LOG("CMD-SF-A-W:ed %lu", commandClient->_curCommandFrameIndex)
+            LOG("CMD-SF-A-W:ed %u", commandClient->_curCommandFrameIndex)
         }
         else
         {
-            LOG("CMD-SF-A-R:st %lu", commandClient->_curCommandFrameIndex)
+            LOG("CMD-SF-A-R:st %u", commandClient->_curCommandFrameIndex)
             spi_with_pins_device_rx(commandClient->device, frame.statusBits.isData, frame.buffer.data, frame.buffer.size, frame.statusBits.dataBits, frame.statusBits.dummyCycles);
-            LOG("CMD-SF-A-R:ed %lu", commandClient->_curCommandFrameIndex)
+            LOG("CMD-SF-A-R:ed %u", commandClient->_curCommandFrameIndex)
         }
     }
     else
@@ -73,6 +73,7 @@ DEVICE_STATUS command_client_create(CommandClient *commandClient, SpiWithPinsDev
                                    &_command_client_tx_rx_cplt,
                                    &_command_client_tx_rx_cplt,
                                    &_command_client_error);
+    return DEVICE_STATUS_OK;
 };
 
 void _command_client_register(CommandClient *commandClient, CommandClientEventHandlerFuncType onError)

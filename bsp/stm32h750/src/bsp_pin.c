@@ -28,7 +28,7 @@ DEVICE_STATUS pin_device_set(PinDevice *device, PIN_DEVICE_STATUS parent)
 DEVICE_STATUS pin_device_get(PinDevice *device, PIN_DEVICE_STATUS *parent)
 {
     PIN_DEVICE_STATUS rst;
-    rst = HAL_GPIO_ReadPin((GPIO_TypeDef *)device->base.instance, device->pinMask);
+    rst = (PIN_DEVICE_STATUS)HAL_GPIO_ReadPin((GPIO_TypeDef *)device->base.instance, device->pinMask);
     *parent = rst ^ device->inverse;
     return DEVICE_STATUS_OK;
 };

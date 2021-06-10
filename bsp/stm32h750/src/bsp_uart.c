@@ -29,7 +29,7 @@ static void Uart_TxCpltCallback__(UART_HandleTypeDef *handle)
 static void Uart_RxEventCpltCallback__(UART_HandleTypeDef *handle, uint16_t pos)
 {
     UartDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
-    if (device->_status.isDmaRx)
+    //if (device->_status.isDmaRx)
     {
         SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
     }
@@ -43,7 +43,7 @@ static void Uart_RxEventCpltCallback__(UART_HandleTypeDef *handle, uint16_t pos)
 static void Uart_ErrCpltCallback__(UART_HandleTypeDef *handle)
 {
     UartDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
-    if (device->_status.isDmaRx)
+    //if (device->_status.isDmaRx)
     {
         SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
     }

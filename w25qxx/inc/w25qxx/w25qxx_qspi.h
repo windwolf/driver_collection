@@ -12,10 +12,11 @@ extern "C"
 #include "../../../basic/inc/basic/device.h"
     typedef struct W25QXX_QSPI
     {
-
+        W25QXX_BASE base;
+        
     } W25QXX_QSPI;
 
-    DEVICE_STATUS w25qxx_qspi_create(W25QXX_QSPI *instance, Buffer buffer, FiveStepCommandCient *command);
+    DEVICE_STATUS w25qxx_qspi_create(W25QXX_QSPI *instance, Buffer buffer, FiveStepCommandClient *command);
     DEVICE_STATUS w25qxx_qspi_reset(W25QXX_QSPI *instance);
     DEVICE_STATUS w25qxx_qspi_status_get(W25QXX_QSPI *instance);
     DEVICE_STATUS w25qxx_qspi_status_set(W25QXX_QSPI *instance);

@@ -11,9 +11,9 @@ static inline int _st7735_is_busy(ST77XX *instance)
     return tx_event_flags_get(&instance->events, ST7735_EVENT_BUSY, TX_OR, &actualFlags, TX_NO_WAIT) == TX_SUCCESS;
 };
 
-DEVICE_STATUS st7735_create(ST77XX *instance, FiveStepCommandCient *command, Buffer buffer)
+DEVICE_STATUS st7735_create(ST77XX *instance, FiveStepCommandClientSpi *command, Buffer buffer)
 {
-    st7735_create(instance, command, buffer);
+    st77xx_create(instance, command, buffer);
 
     instance->pvGamma[0] = 0x02U;
     instance->pvGamma[1] = 0x1CU;
@@ -49,10 +49,10 @@ DEVICE_STATUS st7735_create(ST77XX *instance, FiveStepCommandCient *command, Buf
     instance->nvGamma[14] = 0x02U;
     instance->nvGamma[15] = 0x10U;
 
-    command->flagBits.hasAddress = 0;
-    command->flagBits.commandBits = DEVICE_DATAWIDTH_8;
-    command->flagBits.dummyCycles = 0;
-    command->altDataSize = 0;
+    command->base.flagBits.hasAddress = 0;
+    command->base.flagBits.commandBits = DEVICE_DATAWIDTH_8;
+    command->base.flagBits.dummyCycles = 0;
+    command->base.flagBits.hasAltData = 0;
 
     return DEVICE_STATUS_OK;
 };
@@ -75,52 +75,52 @@ DEVICE_STATUS st7735_reset(ST77XX *instance)
 
     //LOG("ST7735:RBGIC s")
     static const uint8_t frctl1[3] = {0x01U, 0x2CU, 0x2DU};
-    st77xx_command_write_8(instance, ST7735_CMD_FRAME_RATE_CTRL1, (const uint8_t *)frctl1, 3);
+    st77xx_command_write_8(instance, ST7735_CMD_FRAME_RATE_CTRL1, (uint8_t *)frctl1, 3);
     //LOG("ST7735:RBGIC e")
 
     //LOG("ST7735:PROCH s")
     static const uint8_t frctl2[3] = {0x01U, 0x2CU, 0x2DU};
-    st77xx_command_write_8(instance, ST7735_CMD_FRAME_RATE_CTRL2, (const uint8_t *)frctl2, 3);
+    st77xx_command_write_8(instance, ST7735_CMD_FRAME_RATE_CTRL2, (uint8_t *)frctl2, 3);
     //LOG("ST7735:PROCH e")
 
     //LOG("ST7735:FRMRCTL s")
     static const uint8_t frctl3[6] = {0x01U, 0x2CU, 0x2DU, 0x01U, 0x2CU, 0x2DU};
-    st77xx_command_write_8(instance, ST7735_CMD_FRAME_RATE_CTRL3, (const uint8_t *)frctl3, 6);
+    st77xx_command_write_8(instance, ST7735_CMD_FRAME_RATE_CTRL3, (uint8_t *)frctl3, 6);
     //LOG("ST7735:FRMRCTL e")
 
     //LOG("ST7735:FRMICTL s")
     static const uint8_t fictl[1] = {0x07U};
-    st77xx_command_write_8(instance, ST7735_CMD_FRAME_INVERSION_CTRL, (const uint8_t *)fictl, 1);
+    st77xx_command_write_8(instance, ST7735_CMD_FRAME_INVERSION_CTRL, (uint8_t *)fictl, 1);
     //LOG("ST7735:FRMICTL e")
 
     //LOG("ST7735:PWRCTL1 s")
     static const uint8_t pctl1[3] = {0xA2U, 0x02U, 0x84U};
-    st77xx_command_write_8(instance, ST7735_CMD_PWR_CTRL1, (const uint8_t *)pctl1, 3);
+    st77xx_command_write_8(instance, ST7735_CMD_PWR_CTRL1, (uint8_t *)pctl1, 3);
     //LOG("ST7735:PWRCTL1 e")
 
     //LOG("ST7735:PWRCTL2 s")
     static const uint8_t pctl2[1] = {0xC5U};
-    st77xx_command_write_8(instance, ST7735_CMD_PWR_CTRL2, (const uint8_t *)pctl2, 1);
+    st77xx_command_write_8(instance, ST7735_CMD_PWR_CTRL2, (uint8_t *)pctl2, 1);
     //LOG("ST7735:PWRCTL2 e")
 
     //LOG("ST7735:PWRCTL3 s")
     static const uint8_t pctl3[2] = {0x0AU, 0x00U};
-    st77xx_command_write_8(instance, ST7735_CMD_PWR_CTRL3, (const uint8_t *)pctl3, 2);
+    st77xx_command_write_8(instance, ST7735_CMD_PWR_CTRL3, (uint8_t *)pctl3, 2);
     //LOG("ST7735:PWRCTL3 e")
 
     //LOG("ST7735:PWRCTL4 s")
     static const uint8_t pctl4[2] = {0x8AU, 0x2AU};
-    st77xx_command_write_8(instance, ST7735_CMD_PWR_CTRL4, (const uint8_t *)pctl4, 2);
+    st77xx_command_write_8(instance, ST7735_CMD_PWR_CTRL4, (uint8_t *)pctl4, 2);
     //LOG("ST7735:PWRCTL4 e")
 
     //LOG("ST7735:PWRCTL5 s")
     static const uint8_t pctl5[2] = {0x8AU, 0xEEU};
-    st77xx_command_write_8(instance, ST7735_CMD_PWR_CTRL5, (const uint8_t *)pctl5, 2);
+    st77xx_command_write_8(instance, ST7735_CMD_PWR_CTRL5, (uint8_t *)pctl5, 2);
     //LOG("ST7735:PWRCTL5 e")
 
     //LOG("ST7735:PWRCTL s")
     static const uint8_t vcomctl1[1] = {0x0EU};
-    st77xx_command_write_8(instance, ST7735_CMD_VCOMH_VCOML_CTRL1, (const uint8_t *)vcomctl1, 1);
+    st77xx_command_write_8(instance, ST7735_CMD_VCOMH_VCOML_CTRL1, (uint8_t *)vcomctl1, 1);
     //LOG("ST7735:PWRCTL e")
 
     //LOG("ST7735:DISINV s")

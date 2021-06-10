@@ -1,4 +1,4 @@
-#include "../inc/basic/device_ex.h"
+#include "../inc/basic/spi_with_pins_device.h"
 
 static inline void cs_enable(PinDevice *csPin)
 {
@@ -27,7 +27,7 @@ static inline void rw_set(PinDevice *rwPin, uint8_t isRead)
 static void _spi_tx_clpt(struct SpiDevice *device)
 {
     SpiWithPinsDevice *spDev = (SpiWithPinsDevice *)device->base.parent;
-    if (spDev->optionBits.autoCs || spDev->_isSessionBusy)
+    if (spDev->optionBits.autoCs || !spDev->_isSessionBusy)
     {
         cs_disable(spDev->csPin);
     }
@@ -40,7 +40,7 @@ static void _spi_tx_clpt(struct SpiDevice *device)
 static void _spi_rx_clpt(struct SpiDevice *device)
 {
     SpiWithPinsDevice *spDev = (SpiWithPinsDevice *)device->base.parent;
-    if (spDev->optionBits.autoCs || spDev->_isSessionBusy)
+    if (spDev->optionBits.autoCs || !spDev->_isSessionBusy)
     {
         cs_disable(spDev->csPin);
     }
@@ -51,15 +51,15 @@ static void _spi_rx_clpt(struct SpiDevice *device)
     }
 };
 
-static void _spi_err(struct SpiDevice *device, DEVICE_STATUS error)
+static void _spi_err(struct DeviceBase *device, DEVICE_STATUS error)
 {
-    SpiWithPinsDevice *spDev = (SpiWithPinsDevice *)device->base.parent;
+    SpiWithPinsDevice *spDev = (SpiWithPinsDevice *)device->parent;
     cs_disable(spDev->csPin);
     spDev->_isSessionBusy = 0;
 
     if (spDev->base.onError != NULL)
     {
-        spDev->base.onError(spDev, error);
+        spDev->base.onError((DeviceBase *)spDev, error);
     }
 };
 
@@ -85,7 +85,7 @@ void _spi_with_pins_device_register(SpiWithPinsDevice *device, void *parent,
                                     SpiWithPinsDeviceEventHandlerFuncType onRxComplete,
                                     DeviceBaseEventHandlerFuncType onError)
 {
-    _device_base_register(device, parent, onError);
+    _device_base_register((DeviceBase *)device, parent, onError);
     device->onTxComplete = onTxComplete;
     device->onRxComplete = onRxComplete;
 };

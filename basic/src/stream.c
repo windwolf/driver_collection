@@ -24,11 +24,11 @@ static inline void _stream_rx_ready(Stream *stream, uint16_t pos)
     tx_event_flags_set(&(stream->events), STREAM_EVENT_RX_READY, TX_OR);
 };
 
-static inline void _stream_error(Stream *stream)
+static inline void _stream_error(Stream *stream, DEVICE_STATUS error)
 {
     if (stream->onError)
     {
-        stream->onError(stream);
+        stream->onError(stream, error);
     }
 };
 
@@ -38,11 +38,11 @@ static inline void _stream_device_tx_cplt(UartDevice *device)
 }
 static inline void _stream_device_rx_cplt(UartDevice *device, uint16_t pos)
 {
-    _stream_rx_ready((Stream *)device, pos);
+    _stream_rx_ready((Stream *)device->base.parent, pos);
 }
-static inline void _stream_device_error(UartDevice *device)
+static inline void _stream_device_error(DeviceBase *device, DEVICE_STATUS error)
 {
-    _stream_error((Stream *)device);
+    _stream_error((Stream *)device->parent, error);
 }
 
 DEVICE_STATUS stream_create(Stream *stream, UartDevice *device, RingBuffer *rxBuffer)
@@ -60,32 +60,17 @@ DEVICE_STATUS stream_create(Stream *stream, UartDevice *device, RingBuffer *rxBu
 
 DEVICE_STATUS stream_server_start(Stream *stream)
 {
-    if (uart_device_circular_rx_start(stream->device, stream->rxBuffer->data, stream->rxBuffer->size) != DEVICE_STATUS_OK)
-    {
-        _stream_error(stream);
-        return DEVICE_STATUS_HARDWARE_ERROR;
-    }
-    return DEVICE_STATUS_OK;
+    return uart_device_circular_rx_start(stream->device, stream->rxBuffer->data, stream->rxBuffer->size);
 }
 
 DEVICE_STATUS stream_server_stop(Stream *stream)
 {
-    if (uart_device_circular_rx_stop(stream->device) != DEVICE_STATUS_OK)
-    {
-        _stream_error(stream);
-        return DEVICE_STATUS_HARDWARE_ERROR;
-    }
-    return DEVICE_STATUS_OK;
+    return uart_device_circular_rx_stop(stream->device);
 }
 
 DEVICE_STATUS stream_send(Stream *stream, uint8_t *data, uint32_t size)
 {
-    if (uart_device_tx(stream->device, data, size) != DEVICE_STATUS_OK)
-    {
-        _stream_error(stream);
-        return DEVICE_STATUS_HARDWARE_ERROR;
-    }
-    return DEVICE_STATUS_OK;
+    return uart_device_tx(stream->device, data, size);
 }
 
 UINT stream_send_cplt_wait(Stream *stream, ULONG timeout)

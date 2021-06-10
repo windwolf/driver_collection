@@ -15,10 +15,10 @@ extern "C"
     typedef struct W25QXX_SPI
     {
         W25QXX_BASE base;
-        FiveStepCommandCient *command;
+        FiveStepCommandClientSpi *command;
     } W25QXX_SPI;
 
-    DEVICE_STATUS w25qxx_spi_create(W25QXX_SPI *instance, Buffer buffer, FiveStepCommandCient *command);
+    DEVICE_STATUS w25qxx_spi_create(W25QXX_SPI *instance, Buffer buffer, FiveStepCommandClientSpi *command);
     DEVICE_STATUS w25qxx_spi_reset(W25QXX_SPI *instance);
     DEVICE_STATUS w25qxx_spi_status_get(W25QXX_SPI *instance);
     DEVICE_STATUS w25qxx_spi_status_set(W25QXX_SPI *instance);

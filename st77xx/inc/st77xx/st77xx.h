@@ -20,7 +20,7 @@ extern "C"
 
     typedef struct ST77XX
     {
-        FiveStepCommandCient *command;
+        FiveStepCommandClientSpi *command;
         TX_EVENT_FLAGS_GROUP events;
         Buffer buffer; //48114;
         uint8_t cmdData[16];
@@ -38,9 +38,9 @@ extern "C"
 
     } ST77XX;
 
-    DEVICE_STATUS st7735_create(ST77XX *instance, FiveStepCommandCient *command, Buffer buffer);
+    DEVICE_STATUS st77xx_create(ST77XX *instance, FiveStepCommandClientSpi *command, Buffer buffer);
 
-        int st77xx_is_busy(ST77XX *instance);
+    int st77xx_is_busy(ST77XX *instance);
 
     DEVICE_STATUS st77xx_lock(ST77XX *instance);
     void st77xx_unlock(ST77XX *instance);

@@ -6,7 +6,7 @@ extern "C"
 {
 #endif
 #include "device.h"
-#include "ring_buffer8.h"
+#include "ringbuffer.h"
 #include "tx_api.h"
 
     typedef struct Stream
@@ -19,7 +19,7 @@ extern "C"
 
         void (*onRxReady)(struct Stream *stream);
 
-        void (*onError)(struct Stream *stream);
+        void (*onError)(struct Stream *stream, DEVICE_STATUS error);
 
     } Stream;
 

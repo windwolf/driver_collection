@@ -6,11 +6,10 @@ extern "C"
 {
 #endif
 #include "device.h"
-#include "device_ex.h"
-#include "ring_buffer8.h"
+#include "spi_with_pins_device.h"
+#include "ringbuffer.h"
 #include "tx_api.h"
 #include "buffer.h"
-
 
 #define COMMAND_CLIENT_EVENT_CMD_BUSY 0x01
 #define COMMAND_CLIENT_EVENT_CMD_COMPLETE 0x02
@@ -54,7 +53,7 @@ extern "C"
     } CommandFrame;
 
     struct CommandClient;
-    typedef void (*CommandClientEventHandlerFuncType)(struct CommandMaster *commandClient, DEVICE_STATUS error);
+    typedef void (*CommandClientEventHandlerFuncType)(struct CommandClient *commandClient, DEVICE_STATUS error);
 
     typedef struct CommandClient
     {

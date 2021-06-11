@@ -5,11 +5,11 @@
 extern "C"
 {
 #endif
-#include "basic/device.h"
-#include "basic/spi_with_pins_device.h"
-#include "basic/ringbuffer.h"
+#include "common/device.h"
+#include "common/spi_with_pins_device.h"
+#include "common/ringbuffer.h"
 #include "tx_api.h"
-#include "basic/buffer.h"
+#include "common/buffer.h"
 
 #define FIVE_STEP_COMMAND_EVENT_CMD_BUSY 0x01
 #define FIVE_STEP_COMMAND_EVENT_CMD_COMPLETE 0x02

@@ -4,7 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "basic/five_step_command_client.h"
+#include "common/five_step_command_client.h"
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx_hal_qspi.h"
 

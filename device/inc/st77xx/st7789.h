@@ -6,10 +6,10 @@ extern "C"
 {
 #endif
 
-#include "../../../basic/inc/basic/five_step_command_client.h"
+#include "../../../common/inc/common/five_step_command_client.h"
 #include "tx_api.h"
 #include "stdint.h"
-#include "../../../basic/inc/basic/device.h"
+#include "../../../common/inc/common/device.h"
 #include "st77xx.h"
 
     typedef enum ST7789_CMD

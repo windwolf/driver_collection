@@ -6,7 +6,7 @@ extern "C"
 {
 #endif
 #include "stdint.h"
-#include "basic/shared.h"
+#include "common/shared.h"
 #include "buffer.h"
 
 #define DEVICE_STATUS uint32_t

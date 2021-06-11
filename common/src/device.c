@@ -1,4 +1,4 @@
-#include "../inc/basic/device.h"
+#include "../inc/common/device.h"
 
 void device_base_create(DeviceBase *device)
 {

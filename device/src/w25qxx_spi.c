@@ -1,4 +1,4 @@
-#include "inc/w25qxx/w25qxx_spi.h"
+#include "../inc/w25qxx/w25qxx_spi.h"
 #include "bsp.h"
 
 DEVICE_STATUS w25qxx_spi_create(W25QXX_SPI *instance, Buffer buffer, FiveStepCommandClientSpi *command)

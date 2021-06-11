@@ -6,8 +6,8 @@ extern "C"
 {
 #endif
 
-#include "../../../basic/inc/basic/device.h"
-#include "basic/buffer.h"
+#include "../../../common/inc/common/device.h"
+#include "../../../common/inc/common/buffer.h"
 #include "stdint.h"
 #include "tx_api.h"
 

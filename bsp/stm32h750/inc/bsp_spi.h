@@ -6,7 +6,7 @@ extern "C"
 {
 #endif
 
-#include "basic/device.h"
+#include "common/device.h"
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx_hal_spi.h"
 #include "stm32h7xx_hal_spi_ex.h"

@@ -1,4 +1,4 @@
-#include "../inc/basic/spi_with_pins_device.h"
+#include "../inc/common/spi_with_pins_device.h"
 
 static inline void cs_enable(PinDevice *csPin)
 {

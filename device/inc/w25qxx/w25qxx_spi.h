@@ -7,10 +7,10 @@ extern "C"
 #endif
 
 #include "w25qxx_base.h"
-#include "../../../basic/inc/basic/five_step_command_client.h"
+#include "../../../common/inc/common/five_step_command_client.h"
 #include "tx_api.h"
 #include "stdint.h"
-#include "../../../basic/inc/basic/device.h"
+#include "../../../common/inc/common/device.h"
 
     typedef struct W25QXX_SPI
     {

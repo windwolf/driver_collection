@@ -6,7 +6,7 @@ extern "C"
 {
 #endif
 
-#include "../../../basic/inc/basic/five_step_command_client.h"
+#include "../../../common/inc/common/five_step_command_client.h"
 #include "tx_api.h"
 #include "stdint.h"
 

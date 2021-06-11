@@ -1,4 +1,4 @@
-#include "bsp_qspi.h"
+#include "../inc/bsp_qspi.h"
 
 static FiveStepCommandCientQspi *_cc;
 

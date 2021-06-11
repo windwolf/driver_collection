@@ -4,8 +4,8 @@ DEVICE_STATUS w25qxx_create(W25QXX_BASE *instance, Buffer buffer)
 {
 	instance->buffer = buffer;
 	tx_event_flags_create(&instance->events, "w25qxx");
-    return DEVICE_STATUS_OK;
-    }
+	return DEVICE_STATUS_OK;
+}
 
 void w25qxx_calc_parameter(W25QXX_BASE *instance)
 {

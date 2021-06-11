@@ -1,4 +1,4 @@
-#include "../inc/basic/five_step_command_client.h"
+#include "../inc/common/five_step_command_client.h"
 
 static void _send_phase_1(FiveStepCommandClientSpi *commandClient);
 static void _send_phase_2(FiveStepCommandClientSpi *commandClient);

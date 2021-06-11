@@ -1,4 +1,4 @@
-#include "../inc/basic/stream.h"
+#include "../inc/common/stream.h"
 
 #define STREAM_EVENT_RX_READY 0b0001
 #define STREAM_EVENT_TX_COMPLETE 0b0010

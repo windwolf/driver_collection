@@ -1,4 +1,4 @@
-#include "basic/five_step_command_client.h"
+#include "../inc/common/five_step_command_client.h"
 
 DEVICE_STATUS five_step_command_client_create(FiveStepCommandClient *commandClient)
 {

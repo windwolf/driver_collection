@@ -1,5 +1,5 @@
 #include "../inc/st77xx/st7735.h"
-#include "basic/shared.h"
+#include "common/shared.h"
 #include "stdio.h"
 #include "mem_layout.h"
 

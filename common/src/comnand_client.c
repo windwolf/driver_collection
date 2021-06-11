@@ -1,4 +1,4 @@
-#include "../inc/basic/command_client.h"
+#include "../inc/common/command_client.h"
 
 static void _command_client_send_frame(CommandClient *commandClient);
 

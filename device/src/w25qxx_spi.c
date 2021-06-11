@@ -20,7 +20,7 @@ DEVICE_STATUS w25qxx_spi_reset(W25QXX_SPI *instance)
 
     cmd->base.flagBits.hasAddress = 0;
     // cmd->flagBits.addressBits = DEVICE_DATAWIDTH_8;
-    //cmd->address = 0;
+    // cmd->address = 0;
 
     cmd->base.dataSize = 0;
     // cmd->flagBits.dataBits = DEVICE_DATAWIDTH_8;

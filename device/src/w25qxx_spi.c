@@ -12,7 +12,7 @@ static DEVICE_STATUS _w25qxx_spi_busy_wait(W25QXX_SPI *instance)
     cmd->base.dataSize = 1;
     cmd->base.flagBits.dataBits = DEVICE_DATAWIDTH_8;
     cmd->base.flagBits.isWrite = 0;
-    cmd->base.data = instance->base.buffer.data;
+    cmd->base.data = &instance->base.status1;
     do
     {
         rst = five_step_command_client_spi_send(cmd);
@@ -219,7 +219,8 @@ DEVICE_STATUS w25qxx_spi_status_get(W25QXX_SPI *instance)
     cmd->base.dataSize = 1;
     cmd->base.flagBits.dataBits = DEVICE_DATAWIDTH_8;
     cmd->base.flagBits.isWrite = 0;
-    cmd->base.data = instance->base.buffer.data;
+
+    cmd->base.data = &instance->base.status1;
     rst = five_step_command_client_spi_send(cmd);
     if (rst != DEVICE_STATUS_OK)
     {
@@ -230,8 +231,9 @@ DEVICE_STATUS w25qxx_spi_status_get(W25QXX_SPI *instance)
     {
         return rst;
     }
-    instance->base.status1 = *(uint8_t *)(cmd->base.data);
+
     cmd->base.commandId = W25QXX_SPI_READ_STATUS_REG2_CMD;
+    cmd->base.data = &instance->base.status2;
     rst = five_step_command_client_spi_send(cmd);
     if (rst != DEVICE_STATUS_OK)
     {
@@ -242,8 +244,9 @@ DEVICE_STATUS w25qxx_spi_status_get(W25QXX_SPI *instance)
     {
         return rst;
     }
-    instance->base.status2 = *(uint8_t *)(cmd->base.data);
+
     cmd->base.commandId = W25QXX_SPI_READ_STATUS_REG3_CMD;
+    cmd->base.data = &instance->base.status3;
     rst = five_step_command_client_spi_send(cmd);
     if (rst != DEVICE_STATUS_OK)
     {
@@ -254,7 +257,6 @@ DEVICE_STATUS w25qxx_spi_status_get(W25QXX_SPI *instance)
     {
         return rst;
     }
-    instance->base.status3 = *(uint8_t *)(cmd->base.data);
     return DEVICE_STATUS_OK;
 };
 
@@ -269,7 +271,7 @@ DEVICE_STATUS w25qxx_spi_status_set(W25QXX_SPI *instance)
     cmd->base.dataSize = 1;
     cmd->base.flagBits.dataBits = DEVICE_DATAWIDTH_8;
     cmd->base.flagBits.isWrite = 1;
-    *(uint8_t *)(cmd->base.data) = instance->base.status1;
+    cmd->base.data = &instance->base.status1;
     rst = five_step_command_client_spi_send(cmd);
     if (rst != DEVICE_STATUS_OK)
     {
@@ -281,7 +283,7 @@ DEVICE_STATUS w25qxx_spi_status_set(W25QXX_SPI *instance)
         return rst;
     }
     cmd->base.commandId = W25QXX_SPI_WRITE_STATUS_REG2_CMD;
-    *(uint8_t *)(cmd->base.data) = instance->base.status2;
+    cmd->base.data = &instance->base.status2;
     rst = five_step_command_client_spi_send(cmd);
     if (rst != DEVICE_STATUS_OK)
     {
@@ -293,7 +295,7 @@ DEVICE_STATUS w25qxx_spi_status_set(W25QXX_SPI *instance)
         return rst;
     }
     cmd->base.commandId = W25QXX_SPI_WRITE_STATUS_REG3_CMD;
-    *(uint8_t *)(cmd->base.data) = instance->base.status3;
+    cmd->base.data = &instance->base.status3;
     rst = five_step_command_client_spi_send(cmd);
     if (rst != DEVICE_STATUS_OK)
     {

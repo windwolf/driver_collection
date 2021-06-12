@@ -1,10 +1,13 @@
 #ifndef ___BSP_QSPI_H__
-#define ___BSP_QSPI_H__ 
+#define ___BSP_QSPI_H__
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
-#include "common/five_step_command_client.h"
+
+#include "../../../common/inc/common/device.h"
+#include "../../../common/inc/common/five_step_command_client.h"
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx_hal_qspi.h"
 
@@ -14,5 +17,4 @@ extern "C" {
 }
 #endif
 
-#endif	// ___BSP_QSPI_H__
-
+#endif // ___BSP_QSPI_H__

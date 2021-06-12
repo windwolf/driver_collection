@@ -11,6 +11,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 #include "../inc/filex/fx_spi_driver.h"
+#include "../../device/inc/w25qxx/w25qxx_spi.h"
 
 /* USER CODE BEGIN Includes */
 #include "../../common/inc/common/device.h"
@@ -34,13 +35,14 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+static W25QXX_SPI *fxDrvFlash;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
-void spi_fx_register(ULONG mediaId, SpiDevice spiDevice){
-
+void spi_fx_register(ULONG mediaId, W25QXX_SPI *flush)
+{
+    fxDrvFlash = fxDrvFlash;
 };
 /* USER CODE END PFP */
 
@@ -51,16 +53,16 @@ void spi_fx_register(ULONG mediaId, SpiDevice spiDevice){
 VOID fx_spi_driver(FX_MEDIA *media_ptr)
 {
     /* USER CODE BEGIN USER_CODE_SECTION_1 */
+    UINT bytes_per_sector;
+    /* USER CODE END USER_CODE_SECTION_1 */
 
-        /* USER CODE END USER_CODE_SECTION_1 */
-
-        switch (media_ptr->fx_media_driver_request)
+    switch (media_ptr->fx_media_driver_request)
     {
     case FX_DRIVER_INIT:
     {
 
         /* USER CODE BEGIN DRIVER_INIT */
-
+        w25qxx_spi_reset(fxDrvFlash);
         /* USER CODE END DRIVER_INIT */
 
         media_ptr->fx_media_driver_status = FX_SUCCESS;
@@ -89,6 +91,22 @@ VOID fx_spi_driver(FX_MEDIA *media_ptr)
     {
         /* USER CODE BEGIN DRIVER_BOOT_READ */
 
+        w25qxx_spi_read(fxDrvFlash,
+                        media_ptr->fx_media_driver_buffer,
+                        FX_BYTES_SECTOR,
+                        2);
+        bytes_per_sector = _fx_utility_16_unsigned_read(media_ptr->fx_media_driver_buffer);
+        /* Ensure this is less than the media memory size.  */
+        if (bytes_per_sector > media_ptr->fx_media_memory_size)
+        {
+            media_ptr->fx_media_driver_status = FX_BUFFER_ERROR;
+            break;
+        }
+
+        w25qxx_spi_read(fxDrvFlash,
+                        media_ptr->fx_media_driver_buffer,
+                        0,
+                        bytes_per_sector);
         /* USER CODE END DRIVER_BOOT_READ */
 
         media_ptr->fx_media_driver_status = FX_SUCCESS;
@@ -102,6 +120,10 @@ VOID fx_spi_driver(FX_MEDIA *media_ptr)
     case FX_DRIVER_READ:
     {
         /* USER CODE BEGIN DRIVER_READ */
+        w25qxx_spi_read(fxDrvFlash,
+                        media_ptr->fx_media_driver_buffer,
+                        (media_ptr->fx_media_driver_logical_sector + media_ptr->fx_media_hidden_sectors) * media_ptr->fx_media_bytes_per_sector,
+                        media_ptr->fx_media_driver_sectors * media_ptr->fx_media_bytes_per_sector);
 
         /* USER CODE END DRIVER_READ */
 
@@ -116,7 +138,10 @@ VOID fx_spi_driver(FX_MEDIA *media_ptr)
     case FX_DRIVER_BOOT_WRITE:
     {
         /* USER CODE BEGIN DRIVER_BOOT_WRITE */
-
+        w25qxx_spi_write(fxDrvFlash,
+                         media_ptr->fx_media_driver_buffer,
+                         0,
+                         media_ptr->fx_media_bytes_per_sector);
         /* USER CODE END DRIVER_BOOT_WRITE */
 
         media_ptr->fx_media_driver_status = FX_SUCCESS;

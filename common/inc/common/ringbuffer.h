@@ -1,5 +1,5 @@
-#ifndef __BASIC_RING_BUFFER8_H__
-#define __BASIC_RING_BUFFER8_H__
+#ifndef __RINGBUFFER_H__
+#define __RINGBUFFER_H__
 
 #ifdef __cplusplus
 extern "C"
@@ -71,4 +71,4 @@ extern "C"
 }
 #endif
 
-#endif // __BASIC_RING_BUFFER8_H__
+#endif // __RINGBUFFER_H__

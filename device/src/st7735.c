@@ -1,5 +1,5 @@
 #include "../inc/st77xx/st7735.h"
-#include "common/shared.h"
+#include "../../common/inc/common/device.h"
 #include "stdio.h"
 #include "mem_layout.h"
 
@@ -235,7 +235,7 @@ DEVICE_STATUS st7735_hline_draw(ST77XX *instance, uint32_t x, uint32_t y, uint32
 
     if ((x + length) > instance->width)
     {
-        ret = DEVICE_STATUS_GENERAL_ERROR;
+        return DEVICE_STATUS_GENERAL_ERROR;
     }
 
     ret = st7735_cursor_set(instance, x, y);
@@ -262,7 +262,7 @@ DEVICE_STATUS st7735_vline_draw(ST77XX *instance, uint16_t x, uint16_t y, uint16
 
     if ((y + length) > instance->height)
     {
-        ret = DEVICE_STATUS_GENERAL_ERROR;
+        return DEVICE_STATUS_GENERAL_ERROR;
     }
 
     ret = st7735_display_window_set(instance, x, y, 1, length);
@@ -287,11 +287,11 @@ DEVICE_STATUS st7735_rect_draw(ST77XX *instance, uint16_t x, uint16_t y, uint16_
 
     if ((x + width) > instance->width)
     {
-        ret = DEVICE_STATUS_GENERAL_ERROR;
+        return DEVICE_STATUS_GENERAL_ERROR;
     }
     if ((y + height) > instance->height)
     {
-        ret = DEVICE_STATUS_GENERAL_ERROR;
+        return DEVICE_STATUS_GENERAL_ERROR;
     }
 
     ret = st7735_display_window_set(instance, x, y, width, height);

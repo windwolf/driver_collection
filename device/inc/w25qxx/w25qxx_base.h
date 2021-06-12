@@ -127,12 +127,14 @@ extern "C"
 #define W25QXX_EVENTS_RESET_BUSY(instance) EVENTS_RESET_FLAGS(instance->events, W25QXX_EVENT_BUSY);
 
 #define W25QXX_PAGE_SIZE 256
+#define W25QXX_BLOCK_SIZE 4096
 
     typedef enum W25QXX_FLASH_ID
     {
         W25QXX_FLASH_ID_SST25VF016B = 0xBF2541,
         W25QXX_FLASH_ID_MX25L1606E = 0xC22015,
         W25QXX_FLASH_ID_W25Q64BV = 0xEF4017, /* BV, JV, FV */
+        W25QXX_FLASH_ID_W25Q64VJ = 0xEF16EF, /* BV, JV, FV */
         W25QXX_FLASH_ID_W25Q128 = 0xEF4018
     } W25QXX_FLASH_ID;
 
@@ -146,9 +148,6 @@ extern "C"
     {
         TX_EVENT_FLAGS_GROUP events;
         W25QXX_FLASH_ID flashId;
-        char *flashName;
-        uint32_t flashSize;
-        uint32_t sectorSize;
         Buffer buffer;
         union
         {

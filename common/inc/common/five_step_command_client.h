@@ -1,15 +1,15 @@
-#ifndef ___FIVE_STEP_COMMAND_H__
-#define ___FIVE_STEP_COMMAND_H__
+#ifndef ___FIVE_STEP_COMMAND_CLIENT_H__
+#define ___FIVE_STEP_COMMAND_CLIENT_H__
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-#include "common/device.h"
-#include "common/spi_with_pins_device.h"
-#include "common/ringbuffer.h"
+#include "device.h"
+#include "spi_with_pins_device.h"
+#include "ringbuffer.h"
 #include "tx_api.h"
-#include "common/buffer.h"
+#include "buffer.h"
 
 #define FIVE_STEP_COMMAND_EVENT_CMD_BUSY 0x01
 #define FIVE_STEP_COMMAND_EVENT_CMD_COMPLETE 0x02
@@ -92,4 +92,4 @@ extern "C"
 }
 #endif
 
-#endif // ___FIVE_STEP_COMMAND_H__
+#endif // ___FIVE_STEP_COMMAND_CLIENT_H__

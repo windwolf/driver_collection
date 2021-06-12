@@ -5,8 +5,7 @@
 extern "C"
 {
 #endif
-
-#include "common/device.h"
+#include "../../../common/inc/common/device.h"
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx_ll_dma.h"
 #include "stm32h7xx_hal_i2c.h"

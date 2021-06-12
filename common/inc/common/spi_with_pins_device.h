@@ -1,5 +1,5 @@
-#ifndef __BASIC_SPI_WITH_PINS_DEVICE_H__
-#define __BASIC_SPI_WITH_PINS_DEVICE_H__
+#ifndef __SPI_WITH_PINS_DEVICE_H__
+#define __SPI_WITH_PINS_DEVICE_H__
 
 #ifdef __cplusplus
 extern "C"
@@ -75,4 +75,4 @@ extern "C"
 }
 #endif
 
-#endif // __BASIC_SPI_WITH_PINS_DEVICE_H__
+#endif // __SPI_WITH_PINS_DEVICE_H__

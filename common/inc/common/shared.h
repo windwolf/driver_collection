@@ -20,6 +20,11 @@ extern "C"
 #define EVENTS_SET_FLAGS(eg, flags) (tx_event_flags_set(&eg, flags, TX_OR))
 #define EVENTS_RESET_FLAGS(eg, flags) (tx_event_flags_set(&eg, ~flags, TX_AND))
 
+
+    typedef void (*EventHandler)(void *sender, void *host, void *event);
+
+#define ALIGN32 __attribute__((aligned(32)))
+
 #ifdef __cplusplus
 }
 #endif

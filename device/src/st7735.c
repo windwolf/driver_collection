@@ -11,7 +11,7 @@ static inline int _st7735_is_busy(ST77XX *instance)
     return tx_event_flags_get(&instance->events, ST7735_EVENT_BUSY, TX_OR, &actualFlags, TX_NO_WAIT) == TX_SUCCESS;
 };
 
-DEVICE_STATUS st7735_create(ST77XX *instance, FiveStepCommandClientSpi *command, Buffer buffer)
+DEVICE_STATUS st7735_create(ST77XX *instance, FiveStepCommandClient *command, Buffer buffer)
 {
     st77xx_create(instance, command, buffer);
 
@@ -49,10 +49,9 @@ DEVICE_STATUS st7735_create(ST77XX *instance, FiveStepCommandClientSpi *command,
     instance->nvGamma[14] = 0x02U;
     instance->nvGamma[15] = 0x10U;
 
-    command->base.flagBits.hasAddress = 0;
-    command->base.flagBits.commandBits = DEVICE_DATAWIDTH_8;
-    command->base.flagBits.dummyCycles = 0;
-    command->base.flagBits.hasAltData = 0;
+    instance->command.addressMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
+    instance->command.dummyCycles = 0;
+    instance->command.altDataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
 
     return DEVICE_STATUS_OK;
 };

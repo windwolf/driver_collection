@@ -1,8 +1,8 @@
 #include "../inc/st77xx/st77xx.h"
 
-DEVICE_STATUS st77xx_create(ST77XX *instance, FiveStepCommandClientSpi *command, Buffer buffer)
+DEVICE_STATUS st77xx_create(ST77XX *instance, FiveStepCommandClient *cc, Buffer buffer)
 {
-    instance->command = command;
+    instance->cc = cc;
     instance->buffer = buffer;
     tx_event_flags_create(&instance->events, "st77xx");
     return DEVICE_STATUS_OK;
@@ -33,73 +33,77 @@ void st77xx_unlock(ST77XX *instance)
 
 void st77xx_command(ST77XX *instance, uint8_t cmdId)
 {
-    FiveStepCommandClientSpi *cmd = (FiveStepCommandClientSpi *)instance->command;
-
+    FiveStepCommandClient *cc = instance->cc;
+    CommandStruct *cmd = &instance->command;
     //LOG("ST77XX-CMD0: S: %x", cmdId)
-    cmd->base.commandId = cmdId;
-    cmd->base.dataSize = 0;
-    five_step_command_client_spi_send(cmd);
+    cmd->commandId = cmdId;
+    cmd->dataSize = 0;
+    five_step_command_client_send(cc, cmd);
     //LOG("ST77XX-CMD0: W: %x", cmdId)
-    five_step_command_client_cplt_wait((FiveStepCommandClient *)cmd, TX_WAIT_FOREVER);
+    five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
     //LOG("ST77XX-CMD0: WC: %x", cmdId)
 }
 
 void st77xx_command_write_8(ST77XX *instance, uint8_t cmdId, uint8_t *data, uint16_t size)
 {
-    FiveStepCommandClientSpi *cmd = (FiveStepCommandClientSpi *)instance->command;
-    cmd->base.commandId = cmdId;
-    cmd->base.data = data;
-    cmd->base.dataSize = size;
-    cmd->base.flagBits.isWrite = 1;
-    cmd->base.flagBits.dataBits = DEVICE_DATAWIDTH_8;
+    FiveStepCommandClient *cc = instance->cc;
+    CommandStruct *cmd = &instance->command;
+    cmd->commandId = cmdId;
+    cmd->data = data;
+    cmd->dataSize = size;
+    cmd->isWrite = 1;
+    cmd->dataBits = DEVICE_DATAWIDTH_8;
     //LOG("ST77XX-DATA8: S: %x", cmdId)
-    five_step_command_client_spi_send(cmd);
+    five_step_command_client_send(cc, cmd);
     //LOG("ST77XX-DATA8: W: %x", cmdId)
-    five_step_command_client_cplt_wait((FiveStepCommandClient *)cmd, TX_WAIT_FOREVER);
+    five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
     //LOG("ST77XX-DATA8: WC: %x", cmdId)
 }
 
 void st77xx_command_write_16(ST77XX *instance, uint8_t cmdId, uint16_t *data, uint16_t size)
 {
-    FiveStepCommandClientSpi *cmd = (FiveStepCommandClientSpi *)instance->command;
-    cmd->base.commandId = cmdId;
-    cmd->base.data = data;
-    cmd->base.dataSize = size;
-    cmd->base.flagBits.isWrite = 1;
-    cmd->base.flagBits.dataBits = DEVICE_DATAWIDTH_16;
+    FiveStepCommandClient *cc = instance->cc;
+    CommandStruct *cmd = &instance->command;
+    cmd->commandId = cmdId;
+    cmd->data = data;
+    cmd->dataSize = size;
+    cmd->isWrite = 1;
+    cmd->dataBits = DEVICE_DATAWIDTH_16;
     //LOG("ST77XX-DATA16: S: %x", cmdId)
-    five_step_command_client_spi_send(cmd);
+    five_step_command_client_send(cc, cmd);
     //LOG("ST77XX-DATA16: W: %x", cmdId)
-    five_step_command_client_cplt_wait((FiveStepCommandClient *)cmd, TX_WAIT_FOREVER);
+    five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
     //LOG("ST77XX-DATA16: WC: %x", cmdId)
 }
 
 void st77xx_command_read_8(ST77XX *instance, uint8_t cmdId, uint16_t size)
 {
-    FiveStepCommandClientSpi *cmd = (FiveStepCommandClientSpi *)instance->command;
-    cmd->base.commandId = cmdId;
-    cmd->base.data = instance->buffer.data;
-    cmd->base.dataSize = size;
-    cmd->base.flagBits.isWrite = 0;
-    cmd->base.flagBits.dataBits = DEVICE_DATAWIDTH_8;
+    FiveStepCommandClient *cc = instance->cc;
+    CommandStruct *cmd = &instance->command;
+    cmd->commandId = cmdId;
+    cmd->data = instance->buffer.data;
+    cmd->dataSize = size;
+    cmd->isWrite = 0;
+    cmd->dataBits = DEVICE_DATAWIDTH_8;
     //LOG("ST77XX-DATA8: S: %x", cmdId)
-    five_step_command_client_spi_send(cmd);
+    five_step_command_client_send(cc, cmd);
     //LOG("ST77XX-DATA8: W: %x", cmdId)
-    five_step_command_client_cplt_wait((FiveStepCommandClient *)cmd, TX_WAIT_FOREVER);
+    five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
     //LOG("ST77XX-DATA8: WC: %x", cmdId)
 }
 
 void st77xx_command_read_16(ST77XX *instance, uint8_t cmdId, uint16_t size)
 {
-    FiveStepCommandClientSpi *cmd = (FiveStepCommandClientSpi *)instance->command;
-    cmd->base.commandId = cmdId;
-    cmd->base.data = instance->buffer.data;
-    cmd->base.dataSize = size;
-    cmd->base.flagBits.isWrite = 0;
-    cmd->base.flagBits.dataBits = DEVICE_DATAWIDTH_16;
+    FiveStepCommandClient *cc = instance->cc;
+    CommandStruct *cmd = &instance->command;
+    cmd->commandId = cmdId;
+    cmd->data = instance->buffer.data;
+    cmd->dataSize = size;
+    cmd->isWrite = 0;
+    cmd->dataBits = DEVICE_DATAWIDTH_16;
     //LOG("ST77XX-DATA16: S: %x", cmdId)
-    five_step_command_client_spi_send(cmd);
+    five_step_command_client_send(cc, cmd);
     //LOG("ST77XX-DATA16: W: %x", cmdId)
-    five_step_command_client_cplt_wait((FiveStepCommandClient *)cmd, TX_WAIT_FOREVER);
+    five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
     //LOG("ST77XX-DATA16: WC: %x", cmdId)
 }

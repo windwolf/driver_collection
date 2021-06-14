@@ -6,6 +6,8 @@ extern "C"
 {
 #endif
 
+
+
 #define DEFINE_DEVICE_REGISTER_BEGIN(deviceName, itemCount)                 \
     static void *_##deviceName##_REGISTER_INSTENCE_[(uint32_t)(itemCount)]; \
     static inline uint32_t device_instance_index_get(void *bspBase)         \

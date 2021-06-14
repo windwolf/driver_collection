@@ -8,6 +8,7 @@ extern "C"
 
 #include "../../../common/inc/common/device.h"
 #include "../../../common/inc/common/buffer.h"
+#include "../../../common/inc/common/fscc.h"
 #include "stdint.h"
 #include "tx_api.h"
 
@@ -121,22 +122,16 @@ extern "C"
 #define W25QXX_QPI_RESET_DEVICE_CMD 0x99
 #define W25QXX_QPI_EXIT_QPI_MODE_CMD 0xFF
 
-#define W25QXX_EVENT_BUSY 0x01
+#define W25QXX_EVENT_OP_BUSY 0x01
+#define W25QXX_EVENT_OP_CPLT 0x02
 
-#define W25QXX_EVENTS_SET_BUSY(instance) EVENTS_SET_FLAGS(instance->events, W25QXX_EVENT_BUSY)
-#define W25QXX_EVENTS_RESET_BUSY(instance) EVENTS_RESET_FLAGS(instance->events, W25QXX_EVENT_BUSY);
+    // #define W25QXX_EVENTS_OP_BUSY_SET(instance) EVENTS_SET_FLAGS(instance->events, W25QXX_EVENT_OP_BUSY)
+    // #define W25QXX_EVENTS_OP_BUSY_RESET(instance) EVENTS_RESET_FLAGS(instance->events, W25QXX_EVENT_OP_BUSY)
+    // #define W25QXX_EVENTS_DEVICE_BUSY_SET(instance) EVENTS_SET_FLAGS(instance->events, W25QXX_EVENT_DEVICE_BUSY)
+    // #define W25QXX_EVENTS_DEVICE_BUSY_RESET(instance) EVENTS_RESET_FLAGS(instance->events, W25QXX_EVENT_DEVICE_BUSY)
 
 #define W25QXX_PAGE_SIZE 256
 #define W25QXX_BLOCK_SIZE 4096
-
-    typedef enum W25QXX_FLASH_ID
-    {
-        W25QXX_FLASH_ID_SST25VF016B = 0xBF2541,
-        W25QXX_FLASH_ID_MX25L1606E = 0xC22015,
-        W25QXX_FLASH_ID_W25Q64BV = 0xEF4017, /* BV, JV, FV */
-        W25QXX_FLASH_ID_W25Q64VJ = 0xEF16EF, /* BV, JV, FV */
-        W25QXX_FLASH_ID_W25Q128 = 0xEF4018
-    } W25QXX_FLASH_ID;
 
     typedef enum W25QXX_STATUS1
     {
@@ -144,11 +139,20 @@ extern "C"
         W25QXX_STATUS1_WEL = 0x02,
     } W25QXX_STATUS1;
 
-    typedef struct W25QXX_BASE
+    typedef enum W25QXX_CMD_MODE
+    {
+        W25QXX_CMD_MODE_SPI,
+        //W25QXX_CMD_MODE_QSPI,
+        W25QXX_CMD_MODE_QPI,
+    } W25QXX_CMD_MODE;
+
+    typedef struct W25QXX
     {
         TX_EVENT_FLAGS_GROUP events;
-        W25QXX_FLASH_ID flashId;
+        uint16_t mdId;
+        uint32_t jedecId;
         Buffer buffer;
+        W25QXX_CMD_MODE cmdMode;
         union
         {
             uint8_t status1;
@@ -160,7 +164,7 @@ extern "C"
                 uint8_t TB : 1;
                 uint8_t SEC : 1;
                 uint8_t SRP : 1;
-            };
+            } status1Bits;
         };
         union
         {
@@ -173,7 +177,7 @@ extern "C"
                 uint8_t LB : 3;
                 uint8_t CMP : 1;
                 uint8_t SUS : 1;
-            };
+            } status2Bits;
         };
         union
         {
@@ -185,12 +189,34 @@ extern "C"
                 uint8_t R2 : 2;
                 uint8_t DRV : 2;
                 uint8_t HOLD_RST : 1;
+            } status3Bits;
+        };
+        FiveStepCommandClient *cc;
+        CommandStruct command;
+        union
+        {
+            uint32_t options;
+            struct
+            {
+                uint32_t autoPolling : 1;
+                uint32_t dummyCycles : 5;
             };
         };
-    } W25QXX_BASE;
+    } W25QXX;
 
-    DEVICE_STATUS w25qxx_create(W25QXX_BASE *instance, Buffer buffer);
+    DEVICE_STATUS w25qxx_create(W25QXX *instance, Buffer buffer, FiveStepCommandClient *cc, uint8_t autoPolling);
+    DEVICE_STATUS w25qxx_reset(W25QXX *instance);
+    DEVICE_STATUS w25qxx_status_get(W25QXX *instance);
+    DEVICE_STATUS w25qxx_status_set(W25QXX *instance);
+    DEVICE_STATUS w25qxx_id_read(W25QXX *instance);
 
+    DEVICE_STATUS w25qxx_mode_switch(W25QXX *instance, W25QXX_CMD_MODE cmdMode);
+
+    DEVICE_STATUS w25qxx_read(W25QXX *instance, uint8_t *pData, uint32_t ReadAddr, uint32_t Size);
+    DEVICE_STATUS w25qxx_write(W25QXX *instance, uint8_t *pData, uint32_t WriteAddr, uint32_t Size);
+
+    DEVICE_STATUS w25qxx_block_erase(W25QXX *instance, uint32_t Address);
+    DEVICE_STATUS w25qxx_chip_erase(W25QXX *instance);
 #ifdef __cplusplus
 }
 #endif

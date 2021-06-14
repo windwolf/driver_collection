@@ -6,7 +6,7 @@ extern "C"
 {
 #endif
 
-#include "../../../common/inc/common/five_step_command_client.h"
+#include "../../../common/inc/common/fscc.h"
 #include "tx_api.h"
 #include "stdint.h"
 
@@ -102,7 +102,7 @@ extern "C"
         ST7735_DISPLAY_REFRESH_ORDER_B2T_R2L = 0x14
     } ST7735_DISPLAY_REFRESH_ORDER;
 
-    DEVICE_STATUS st7735_create(ST77XX *instance, FiveStepCommandClientSpi *command, Buffer buffer);
+    DEVICE_STATUS st7735_create(ST77XX *instance, FiveStepCommandClient *command, Buffer buffer);
 
     DEVICE_STATUS st7735_reset(ST77XX *instance);
     DEVICE_STATUS st7735_inversion(ST77XX *instance, uint8_t on);

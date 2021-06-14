@@ -19,6 +19,7 @@ extern "C"
 
 #define ALIGN(n) __attribute__((aligned(n)))
 
+
     typedef enum DeviceDataWidth
     {
         DEVICE_DATAWIDTH_8 = 0x00,

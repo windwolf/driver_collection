@@ -1,4 +1,4 @@
-#include "../inc/common/five_step_command_client.h"
+#include "../inc/common/fscc.h"
 
 static void _send_phase_1(FiveStepCommandClientSpi *commandClient);
 static void _send_phase_2(FiveStepCommandClientSpi *commandClient);
@@ -55,15 +55,22 @@ static void _error(DeviceBase *device, DEVICE_STATUS error)
 static void _send_phase_1(FiveStepCommandClientSpi *commandClient)
 {
     commandClient->_phase = 1;
-    spi_with_pins_device_session_begin(commandClient->device);
-    spi_with_pins_device_tx(commandClient->device, 0, &commandClient->base.commandId, 1, commandClient->base.flagBits.commandBits);
+    if (commandClient->base._curCmd->commandMode != FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP)
+    {
+        spi_with_pins_device_session_begin(commandClient->device);
+        spi_with_pins_device_tx(commandClient->device, 0, &commandClient->base._curCmd->commandId, 1, DEVICE_DATAWIDTH_8);
+    }
+    else
+    {
+        _send_phase_2(commandClient);
+    }
 };
 static void _send_phase_2(FiveStepCommandClientSpi *commandClient)
 {
     commandClient->_phase = 2;
-    if (commandClient->base.flagBits.hasAddress == 1)
+    if (commandClient->base._curCmd->addressMode != FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP)
     {
-        spi_with_pins_device_tx(commandClient->device, 1, &commandClient->base.address, 1, commandClient->base.flagBits.addressBits);
+        spi_with_pins_device_tx(commandClient->device, 1, &commandClient->base._curCmd->address, 1, commandClient->base._curCmd->addressBits);
     }
     else
     {
@@ -73,9 +80,9 @@ static void _send_phase_2(FiveStepCommandClientSpi *commandClient)
 static void _send_phase_3(FiveStepCommandClientSpi *commandClient)
 {
     commandClient->_phase = 3;
-    if (commandClient->base.flagBits.hasAltData)
+    if (commandClient->base._curCmd->altDataMode != FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP)
     {
-        spi_with_pins_device_tx(commandClient->device, 1, &commandClient->base.altData, 1, commandClient->base.flagBits.altDataBits);
+        spi_with_pins_device_tx(commandClient->device, 1, &commandClient->base._curCmd->altData, 1, commandClient->base._curCmd->altDataBits);
     }
     else
     {
@@ -85,7 +92,7 @@ static void _send_phase_3(FiveStepCommandClientSpi *commandClient)
 static void _send_phase_4(FiveStepCommandClientSpi *commandClient)
 {
     commandClient->_phase = 4;
-    if (commandClient->base.flagBits.dummyCycles != 0)
+    if (commandClient->base._curCmd->dummyCycles != 0)
     {
         _send_phase_end(commandClient);
         commandClient->base.hasError = 1;
@@ -99,15 +106,15 @@ static void _send_phase_4(FiveStepCommandClientSpi *commandClient)
 static void _send_phase_5(FiveStepCommandClientSpi *commandClient)
 {
     commandClient->_phase = 5;
-    if (commandClient->base.dataSize > 0)
+    if (commandClient->base._curCmd->dataSize > 0 && commandClient->base._curCmd->dataMode != FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP)
     {
-        if (commandClient->base.flagBits.isWrite)
+        if (commandClient->base._curCmd->isWrite)
         {
-            spi_with_pins_device_tx(commandClient->device, 1, commandClient->base.data, commandClient->base.dataSize, commandClient->base.flagBits.dataBits);
+            spi_with_pins_device_tx(commandClient->device, 1, commandClient->base._curCmd->data, commandClient->base._curCmd->dataSize, commandClient->base._curCmd->dataBits);
         }
         else
         {
-            spi_with_pins_device_rx(commandClient->device, 1, commandClient->base.data, commandClient->base.dataSize, commandClient->base.flagBits.dataBits, 0);
+            spi_with_pins_device_rx(commandClient->device, 1, commandClient->base._curCmd->data, commandClient->base._curCmd->dataSize, commandClient->base._curCmd->dataBits, 0);
         }
     }
     else
@@ -123,11 +130,26 @@ static void _send_phase_end(FiveStepCommandClientSpi *commandClient)
     EVENTS_RESET_FLAGS(commandClient->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
 };
 
+static DEVICE_STATUS _five_step_command_client_spi_send(FiveStepCommandClient *commandClient, CommandStruct *command)
+{
+    if (_is_busy(commandClient))
+    {
+        return DEVICE_STATUS_BUSY;
+    }
+
+    EVENTS_CLEAR_FLAGS(commandClient->events);
+    EVENTS_SET_FLAGS(commandClient->events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
+    commandClient->_curCmd = command;
+    _send_phase_1((FiveStepCommandClientSpi *)commandClient);
+
+    return DEVICE_STATUS_OK;
+};
+
 DEVICE_STATUS five_step_command_client_spi_create(FiveStepCommandClientSpi *commandClient, SpiWithPinsDevice *device)
 {
-    five_step_command_client_create((FiveStepCommandClient *)commandClient);
-    commandClient->device = device;
+    five_step_command_client_create((FiveStepCommandClient *)commandClient, &_five_step_command_client_spi_send);
     device->optionBits.autoCs = 0;
+    commandClient->device = device;
     commandClient->_phase = 0;
     _spi_with_pins_device_register(device, commandClient,
                                    &_tx_rx_cplt_,
@@ -137,23 +159,7 @@ DEVICE_STATUS five_step_command_client_spi_create(FiveStepCommandClientSpi *comm
 };
 
 void _five_step_command_client_spi_register(FiveStepCommandClientSpi *commandClient,
-                                            FiveStepCommandClientEventHandlerFuncType onError)
+                                            FiveStepCommandClientErrorHandleFuncType onError)
 {
     commandClient->base.onError = onError;
-};
-
-DEVICE_STATUS five_step_command_client_spi_send(FiveStepCommandClientSpi *commandClient)
-{
-    if (_is_busy((FiveStepCommandClient *)commandClient))
-    {
-        return DEVICE_STATUS_BUSY;
-    }
-
-    EVENTS_CLEAR_FLAGS(commandClient->base.events);
-
-    EVENTS_SET_FLAGS(commandClient->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
-
-    _send_phase_1(commandClient);
-
-    return DEVICE_STATUS_OK;
 };

@@ -7,11 +7,35 @@ extern "C"
 #endif
 
 #include "../../../common/inc/common/device.h"
-#include "../../../common/inc/common/five_step_command_client.h"
+#include "../../../common/inc/common/fscc.h"
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx_hal_qspi.h"
 
-    DEVICE_STATUS five_step_command_client_qspi_create(FiveStepCommandCientQspi *commandClient, QSPI_HandleTypeDef *instance);
+#define FSCCAutoPollingTypeDef QSPI_AutoPollingTypeDef
+#define FSCC_EVENT_AUTO_POLLING_CPLT 0x08000000
+struct FiveStepCommandClientQspi;
+    typedef void (*FiveStepCommandClientQspiEventHandleFuncType)(struct FiveStepCommandClientQspi *instance);
+    typedef struct FiveStepCommandClientQspi
+    {
+        FiveStepCommandClient base;
+        void *instance;
+        uint32_t dmaThreshold;
+
+        void* parent;
+        FiveStepCommandClientQspiEventHandleFuncType onStatusPollingResult;
+
+        uint8_t _phase; // 0 = init, 1 = cmd, 2 = txrx, 3 = end;
+    } FiveStepCommandClientQspi;
+
+    void _five_step_command_client_qspi_register(FiveStepCommandClientQspi *commandClient, void *parent,
+                                                 FiveStepCommandClientErrorHandleFuncType onError,
+                                                 FiveStepCommandClientQspiEventHandleFuncType onStatusPollingResult);
+
+    DEVICE_STATUS five_step_command_client_qspi_create(FiveStepCommandClientQspi *commandClient,
+                                                       QSPI_HandleTypeDef *instance,
+                                                       uint32_t dmaThreshold);
+
+    DEVICE_STATUS fscc_qspi_autopolling(FiveStepCommandClientQspi *commandClient, CommandStruct* pollingCommand, FSCCAutoPollingTypeDef *autoPolling);
 
 #ifdef __cplusplus
 }

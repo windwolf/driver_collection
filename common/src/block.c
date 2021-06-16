@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include "string.h"
 
+#define LOG_MODULE "block"
+
 static DEVICE_STATUS _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size);
 
 DEVICE_STATUS block_create(Block *block, void *instance,
@@ -21,7 +23,7 @@ DEVICE_STATUS block_create(Block *block, void *instance,
 
     if (writeBlockSize < eraseBlockSize)
     {
-        LOG("block 4")
+        LOG_E("write block must be great then erase block size.");
         return DEVICE_STATUS_PARAMETER_ERROR;
     }
     if (buffer.size < max(readBlockSize, eraseBlockSize))

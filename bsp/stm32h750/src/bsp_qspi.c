@@ -36,7 +36,6 @@ static void _fscc_qspi_cmd_tranlate(CommandStruct *cmd, QSPI_CommandTypeDef *cmd
 
 static DEVICE_STATUS _fscc_qspi_cmd_begin(FiveStepCommandClientQspi *commandClient)
 {
-
     QSPI_CommandTypeDef cmdHandler;
     CommandStruct *cmd = commandClient->base._curCmd;
     _fscc_qspi_cmd_tranlate(cmd, &cmdHandler);

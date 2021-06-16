@@ -1,5 +1,9 @@
 #include "../inc/common/command_client.h"
 
+#define LOG_MODULE "cc"
+#define LOG_LEVEL LOG_LEVEL_INFO
+#include "log.h"
+
 static void _command_client_send_frame(CommandClient *commandClient);
 
 static BOOL _command_client_is_busy(CommandClient *commandClient)
@@ -39,20 +43,20 @@ static void _command_client_send_frame(CommandClient *commandClient)
 
         if (frame.statusBits.isRead)
         {
-            LOG("CMD-SF-A-W:st %u", commandClient->_curCommandFrameIndex)
+            LOG_D("CMD-SF-A-W:st %u", commandClient->_curCommandFrameIndex);
             spi_with_pins_device_tx(commandClient->device, frame.statusBits.isData, frame.buffer.data, frame.buffer.size, frame.statusBits.dataBits);
-            LOG("CMD-SF-A-W:ed %u", commandClient->_curCommandFrameIndex)
+            LOG_D("CMD-SF-A-W:ed %u", commandClient->_curCommandFrameIndex);
         }
         else
         {
-            LOG("CMD-SF-A-R:st %u", commandClient->_curCommandFrameIndex)
+            LOG_D("CMD-SF-A-R:st %u", commandClient->_curCommandFrameIndex);
             spi_with_pins_device_rx(commandClient->device, frame.statusBits.isData, frame.buffer.data, frame.buffer.size, frame.statusBits.dataBits, frame.statusBits.dummyCycles);
-            LOG("CMD-SF-A-R:ed %u", commandClient->_curCommandFrameIndex)
+            LOG_D("CMD-SF-A-R:ed %u", commandClient->_curCommandFrameIndex);
         }
     }
     else
     {
-        LOG("CMD-SF-E:")
+        LOG_D("CMD-SF-E:");
         commandClient->hasError = 0;
         EVENTS_SET_FLAGS(commandClient->events, COMMAND_CLIENT_EVENT_CMD_COMPLETE);
         EVENTS_RESET_FLAGS(commandClient->events, COMMAND_CLIENT_EVENT_CMD_BUSY);
@@ -95,7 +99,7 @@ DEVICE_STATUS command_client_send(CommandClient *commandClient, CommandFrame *co
     EVENTS_CLEAR_FLAGS(commandClient->events);
 
     EVENTS_SET_FLAGS(commandClient->events, COMMAND_CLIENT_EVENT_CMD_BUSY);
-    LOG("CMD-SND-CMD")
+    LOG_D("CMD-SND-CMD");
     _command_client_send_frame(commandClient);
 
     return DEVICE_STATUS_OK;

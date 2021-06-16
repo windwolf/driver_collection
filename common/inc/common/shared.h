@@ -6,7 +6,8 @@ extern "C"
 {
 #endif
 #include <stdio.h>
-
+#include <stdint.h>
+#include <stdlib.h>
 #define BOOL uint8_t
 
 #ifdef DEBUG
@@ -20,10 +21,17 @@ extern "C"
 #define EVENTS_SET_FLAGS(eg, flags) (tx_event_flags_set(&eg, flags, TX_OR))
 #define EVENTS_RESET_FLAGS(eg, flags) (tx_event_flags_set(&eg, ~flags, TX_AND))
 
+#define ALIGN32 __attribute__((aligned(32)))
+#define min(a, b) (((a) <= (b)) ? (a) : (b))
+#define max(a, b) (((a) >= (b)) ? (a) : (b))
+
+    //-快速log2 的算�
+    uint32_t fast_log2(uint32_t _val);
+    typedef uint8_t bool_t;
+#define true 1
+#define false 0
 
     typedef void (*EventHandler)(void *sender, void *host, void *event);
-
-#define ALIGN32 __attribute__((aligned(32)))
 
 #ifdef __cplusplus
 }

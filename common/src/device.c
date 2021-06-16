@@ -5,7 +5,6 @@ void device_base_create(DeviceBase *device)
     device->onError = NULL;
 };
 
-
 void _device_base_register(DeviceBase *device, void *parent,
                            DeviceBaseEventHandlerFuncType onError)
 {
@@ -44,6 +43,16 @@ void _uart_device_register(UartDevice *device, void *parent,
                            UartDeviceEventHandlerFuncType onTxComplete,
                            UartDeviceRxEventHandlerFuncType onRxComplete,
                            DeviceBaseEventHandlerFuncType onError)
+{
+    _device_base_register((DeviceBase *)device, parent, onError);
+    device->onTxComplete = onTxComplete;
+    device->onRxComplete = onRxComplete;
+};
+
+void _sd_device_register(SdDevice *device, void *parent,
+                         SdDeviceEventHandlerFuncType onTxComplete,
+                         SdDeviceEventHandlerFuncType onRxComplete,
+                         DeviceBaseEventHandlerFuncType onError)
 {
     _device_base_register((DeviceBase *)device, parent, onError);
     device->onTxComplete = onTxComplete;

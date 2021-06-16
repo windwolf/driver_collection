@@ -14,11 +14,10 @@ extern "C"
 #define DEVICE_STATUS_OK 0x00000000
 #define DEVICE_STATUS_BUSY 0x80000000
 #define DEVICE_STATUS_NOT_SUPPORT 0x40000000
-#define DEVICE_STATUS_HARDWARE_ERROR 0x20000000
+#define DEVICE_STATUS_PARAMETER_ERROR 0x20000000
 #define DEVICE_STATUS_GENERAL_ERROR 0x10000000
 
 #define ALIGN(n) __attribute__((aligned(n)))
-
 
     typedef enum DeviceDataWidth
     {
@@ -157,7 +156,8 @@ extern "C"
 
         /** @private **/
         Buffer _rxBuffer;
-        struct {
+        struct
+        {
             uint8_t isDmaTx : 1;
             uint8_t isDmaRx : 1;
         } _status;
@@ -176,6 +176,29 @@ extern "C"
 
     DEVICE_STATUS uart_device_circular_rx_start(UartDevice *device, uint8_t *data, uint32_t size);
     DEVICE_STATUS uart_device_circular_rx_stop(UartDevice *device);
+
+    struct SdDevice;
+    typedef void (*SdDeviceEventHandlerFuncType)(struct SdDevice *device);
+    
+    typedef struct SdDevice
+    {
+        DeviceBase base;
+        uint16_t dmaThershold;
+        uint32_t blockSize;
+        SdDeviceEventHandlerFuncType onTxComplete;
+        SdDeviceEventHandlerFuncType onRxComplete;
+
+        Buffer _rxBuffer;
+        
+    } SdDevice;
+
+    DEVICE_STATUS sd_device_init(SdDevice *device);
+    DEVICE_STATUS sd_device_deinit(SdDevice *device);
+    DEVICE_STATUS sd_device_block_read(SdDevice *device, void *data, uint32_t num, uint32_t count);
+    DEVICE_STATUS sd_device_block_write(SdDevice *device, void *data, uint32_t num, uint32_t count);
+    DEVICE_STATUS sd_device_block_erase(SdDevice *device, uint32_t num, uint32_t count);
+
+    DEVICE_STATUS sd_device_query_status(SdDevice *device);
 
 #ifdef __cplusplus
 }

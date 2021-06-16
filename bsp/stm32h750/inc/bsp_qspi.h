@@ -24,6 +24,12 @@ struct FiveStepCommandClientQspi;
         void* parent;
         FiveStepCommandClientQspiEventHandleFuncType onStatusPollingResult;
 
+        Buffer _rxBuffer;
+        struct
+        {
+            uint8_t isDmaTx : 1;
+            uint8_t isDmaRx : 1;
+        } _status;
         uint8_t _phase; // 0 = init, 1 = cmd, 2 = txrx, 3 = end;
     } FiveStepCommandClientQspi;
 

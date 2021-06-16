@@ -106,11 +106,7 @@ DEVICE_STATUS uart_device_circular_rx_start(UartDevice *device, uint8_t *data, u
         return DEVICE_STATUS_BUSY;
     }
 
-    if (HAL_UARTEx_ReceiveToIdle_DMA(handle, data, size) != HAL_OK)
-    {
-        return DEVICE_STATUS_HARDWARE_ERROR;
-    }
-    return DEVICE_STATUS_OK;
+    return HAL_UARTEx_ReceiveToIdle_DMA(handle, data, size);
 };
 DEVICE_STATUS uart_device_circular_rx_stop(UartDevice *device)
 {
@@ -120,9 +116,5 @@ DEVICE_STATUS uart_device_circular_rx_stop(UartDevice *device)
     {
         return DEVICE_STATUS_OK;
     }
-    if (HAL_UART_DMAStop(handle) != HAL_OK)
-    {
-        return DEVICE_STATUS_HARDWARE_ERROR;
-    }
-    return DEVICE_STATUS_OK;
+    return HAL_UART_DMAStop(handle);
 };

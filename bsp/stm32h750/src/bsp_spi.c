@@ -180,5 +180,4 @@ DEVICE_STATUS spi_device_rx(SpiDevice *device, void *data, uint32_t size, Device
         device->_status.isDmaRx = 0;
         return HAL_SPI_Receive_IT(handle, (uint8_t *)data, size);
     }
-    return DEVICE_STATUS_HARDWARE_ERROR;
 };

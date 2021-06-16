@@ -87,7 +87,6 @@ static DEVICE_STATUS _fscc_qspi_cmd_begin(FiveStepCommandClientQspi *commandClie
 
 static void _fscc_qspi_cmd_data_end(FiveStepCommandClientQspi *commandClient)
 {
-
     commandClient->_rxBuffer.data = 0;
     commandClient->_rxBuffer.size = 0;
     EVENTS_RESET_FLAGS(commandClient->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
@@ -104,7 +103,6 @@ static DEVICE_STATUS _fscc_qspi_send(FiveStepCommandClient *cc, CommandStruct *c
 
     EVENTS_CLEAR_FLAGS(commandClient->base.events);
     EVENTS_SET_FLAGS(commandClient->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
-    commandClient->_phase = 1;
     commandClient->base._curCmd = command;
     return _fscc_qspi_cmd_begin(commandClient);
 };
@@ -177,7 +175,6 @@ DEVICE_STATUS five_step_command_client_qspi_create(FiveStepCommandClientQspi *co
     five_step_command_client_create((FiveStepCommandClient *)commandClient, &_fscc_qspi_send);
     commandClient->instance = instance;
     commandClient->dmaThreshold = dmaThreshold;
-    commandClient->_phase = 0;
     commandClient->_rxBuffer.data = NULL;
     commandClient->_rxBuffer.size = 0;
     commandClient->_status.isDmaRx = 0;

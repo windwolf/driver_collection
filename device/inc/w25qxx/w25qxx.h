@@ -9,6 +9,7 @@ extern "C"
 #include "../../../common/inc/common/device.h"
 #include "../../../common/inc/common/buffer.h"
 #include "../../../common/inc/common/fscc.h"
+#include "../../../common/inc/common/block.h"
 #include "stdint.h"
 #include "tx_api.h"
 
@@ -151,7 +152,6 @@ extern "C"
         TX_EVENT_FLAGS_GROUP events;
         uint16_t mdId;
         uint32_t jedecId;
-        Buffer buffer;
         W25QXX_CMD_MODE cmdMode;
         union
         {
@@ -204,7 +204,7 @@ extern "C"
         };
     } W25QXX;
 
-    DEVICE_STATUS w25qxx_create(W25QXX *instance, Buffer buffer, FiveStepCommandClient *cc, uint8_t autoPolling);
+    DEVICE_STATUS w25qxx_create(W25QXX *instance, FiveStepCommandClient *cc, uint8_t autoPolling);
     DEVICE_STATUS w25qxx_reset(W25QXX *instance);
     DEVICE_STATUS w25qxx_status_get(W25QXX *instance);
     DEVICE_STATUS w25qxx_status_set(W25QXX *instance);
@@ -217,6 +217,8 @@ extern "C"
 
     DEVICE_STATUS w25qxx_block_erase(W25QXX *instance, uint32_t Address);
     DEVICE_STATUS w25qxx_chip_erase(W25QXX *instance);
+
+    DEVICE_STATUS w25qxx_block_create(W25QXX *instance, Block *block, Buffer buffer);
 #ifdef __cplusplus
 }
 #endif

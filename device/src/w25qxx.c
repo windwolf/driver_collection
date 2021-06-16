@@ -1,6 +1,7 @@
 #include "../inc/w25qxx/w25qxx.h"
 #include "bsp.h"
 #include <stdlib.h>
+#include "string.h"
 
 typedef enum W25QXX_CMD_LINE_MODE
 {
@@ -393,7 +394,7 @@ static inline DEVICE_STATUS _w25qxx_4k_sector_erase_cmd(W25QXX *instance, uint32
     }
     rst = five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
     return rst;
-}
+};
 
 static inline DEVICE_STATUS _w25qxx_32k_block_erase_cmd(W25QXX *instance, uint32_t address)
 {
@@ -589,59 +590,58 @@ static inline DEVICE_STATUS _w25qxx_reset_cmd(W25QXX *instance)
     return five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
-static inline DEVICE_STATUS _w25qxx_spi_write(W25QXX *instance, uint8_t *pData, uint32_t writeAddr, uint32_t size)
-{
-    DEVICE_STATUS rst;
+// static inline DEVICE_STATUS _w25qxx_spi_write(W25QXX *instance, uint8_t *pData, uint32_t writeAddr, uint32_t size)
+// {
+//     DEVICE_STATUS rst;
 
-    uint32_t end_addr, current_size, current_addr;
-    current_addr = 0;
+//     uint32_t end_addr, current_size, current_addr;
+//     current_addr = 0;
 
-    while (current_addr <= writeAddr)
-    {
-        current_addr += W25QXX_PAGE_SIZE;
-    }
-    current_size = current_addr - writeAddr;
+//     while (current_addr <= writeAddr)
+//     {
+//         current_addr += W25QXX_PAGE_SIZE;
+//     }
+//     current_size = current_addr - writeAddr;
 
-    if (current_size > size)
-    {
-        current_size = size;
-    }
+//     if (current_size > size)
+//     {
+//         current_size = size;
+//     }
 
-    current_addr = writeAddr;
-    end_addr = writeAddr + size;
+//     current_addr = writeAddr;
+//     end_addr = writeAddr + size;
 
-    do
-    {
-        rst = _w25qxx_write_enable_cmd(instance);
-        if (rst != DEVICE_STATUS_OK)
-        {
-            return rst;
-        }
+//     do
+//     {
+//         rst = _w25qxx_write_enable_cmd(instance);
+//         if (rst != DEVICE_STATUS_OK)
+//         {
+//             return rst;
+//         }
 
-        rst = _w25qxx_write_cmd(instance, pData, current_addr, current_size);
-        if (rst != DEVICE_STATUS_OK)
-        {
-            return rst;
-        }
+//         rst = _w25qxx_write_cmd(instance, pData, current_addr, current_size);
+//         if (rst != DEVICE_STATUS_OK)
+//         {
+//             return rst;
+//         }
 
-        rst = _w25qxx_busy_wait(instance);
-        if (rst != DEVICE_STATUS_OK)
-        {
-            return rst;
-        }
+//         rst = _w25qxx_busy_wait(instance);
+//         if (rst != DEVICE_STATUS_OK)
+//         {
+//             return rst;
+//         }
 
-        current_addr += current_size;
-        pData += current_size;
-        current_size = ((current_addr + W25QXX_PAGE_SIZE) > end_addr) ? (end_addr - current_addr) : W25QXX_PAGE_SIZE;
-    } while (current_addr < end_addr);
+//         current_addr += current_size;
+//         pData += current_size;
+//         current_size = ((current_addr + W25QXX_PAGE_SIZE) > end_addr) ? (end_addr - current_addr) : W25QXX_PAGE_SIZE;
+//     } while (current_addr < end_addr);
 
-    return DEVICE_STATUS_OK;
-};
+//     return DEVICE_STATUS_OK;
+// };
 
-DEVICE_STATUS w25qxx_create(W25QXX *instance, Buffer buffer, FiveStepCommandClient *cc, uint8_t autoPolling)
+DEVICE_STATUS w25qxx_create(W25QXX *instance, FiveStepCommandClient *cc, uint8_t autoPolling)
 {
     tx_event_flags_create(&instance->events, "w25qxx");
-    instance->buffer = buffer;
     instance->cc = cc;
     instance->command.addressBits = DEVICE_DATAWIDTH_24;
     instance->command.dummyCycles = 0;
@@ -820,40 +820,59 @@ DEVICE_STATUS w25qxx_read(W25QXX *instance, uint8_t *pData, uint32_t readAddr, u
     return _w25qxx_read_cmd(instance, pData, readAddr, size);
 };
 
-DEVICE_STATUS w25qxx_write(W25QXX *instance, uint8_t *pData, uint32_t writeAddress, uint32_t size)
+// DEVICE_STATUS w25qxx_write(W25QXX *instance, uint8_t *pData, uint32_t writeAddress, uint32_t size)
+// {
+//     DEVICE_STATUS rst;
+//     uint32_t curWriteAddress = writeAddress;
+//     uint32_t remainSize = size;
+//     uint32_t blockBeginAddress;
+//     do
+//     {
+//         blockBeginAddress = curWriteAddress & ~(uint32_t)(W25QXX_BLOCK_SIZE);
+
+//         uint32_t posInBlock = curWriteAddress & (uint32_t)(W25QXX_BLOCK_SIZE);
+//         uint32_t sizeInBlock = (size <= curWriteAddress + W25QXX_BLOCK_SIZE - posInBlock) ? size : (curWriteAddress + W25QXX_BLOCK_SIZE - posInBlock);
+//         rst = _w25qxx_read_cmd(instance, instance->buffer.data, blockBeginAddress, W25QXX_BLOCK_SIZE);
+//         if (rst != DEVICE_STATUS_OK)
+//         {
+//             return rst;
+//         }
+//         memcpy(instance->buffer.data + posInBlock, pData, sizeInBlock);
+//         rst = w25qxx_block_erase(instance, blockBeginAddress);
+//         if (rst != DEVICE_STATUS_OK)
+//         {
+//             return rst;
+//         }
+//         rst = _w25qxx_spi_write(instance, instance->buffer.data, blockBeginAddress, W25QXX_BLOCK_SIZE);
+//         if (rst != DEVICE_STATUS_OK)
+//         {
+//             return rst;
+//         }
+//         curWriteAddress = blockBeginAddress + W25QXX_BLOCK_SIZE;
+//         remainSize -= sizeInBlock;
+
+//     } while (remainSize > 0);
+
+//     return DEVICE_STATUS_OK;
+// };
+
+DEVICE_STATUS w25qxx_write(W25QXX *instance, uint8_t *pData, uint32_t writeAddr, uint32_t size)
 {
     DEVICE_STATUS rst;
-    uint32_t curWriteAddress = writeAddress;
-    uint32_t remainSize = size;
-    uint32_t blockBeginAddress;
-    do
+
+    rst = _w25qxx_write_enable_cmd(instance);
+    if (rst != DEVICE_STATUS_OK)
     {
-        blockBeginAddress = curWriteAddress & ~(uint32_t)(W25QXX_BLOCK_SIZE);
+        return rst;
+    }
 
-        uint32_t posInBlock = curWriteAddress & (uint32_t)(W25QXX_BLOCK_SIZE);
-        uint32_t sizeInBlock = (size <= curWriteAddress + W25QXX_BLOCK_SIZE - posInBlock) ? size : (curWriteAddress + W25QXX_BLOCK_SIZE - posInBlock);
-        rst = _w25qxx_read_cmd(instance, instance->buffer.data, blockBeginAddress, W25QXX_BLOCK_SIZE);
-        if (rst != DEVICE_STATUS_OK)
-        {
-            return rst;
-        }
-        memcpy(instance->buffer.data + posInBlock, pData, sizeInBlock);
-        rst = w25qxx_block_erase(instance, blockBeginAddress);
-        if (rst != DEVICE_STATUS_OK)
-        {
-            return rst;
-        }
-        rst = _w25qxx_spi_write(instance, instance->buffer.data, blockBeginAddress, W25QXX_BLOCK_SIZE);
-        if (rst != DEVICE_STATUS_OK)
-        {
-            return rst;
-        }
-        curWriteAddress = blockBeginAddress + W25QXX_BLOCK_SIZE;
-        remainSize -= sizeInBlock;
+    rst = _w25qxx_write_cmd(instance, pData, writeAddr, size);
+    if (rst != DEVICE_STATUS_OK)
+    {
+        return rst;
+    }
 
-    } while (remainSize > 0);
-
-    return DEVICE_STATUS_OK;
+    return _w25qxx_busy_wait(instance);
 };
 
 DEVICE_STATUS w25qxx_block_erase(W25QXX *instance, uint32_t address)
@@ -887,4 +906,21 @@ DEVICE_STATUS w25qxx_chip_erase(W25QXX *instance)
         return rst;
     }
     return _w25qxx_busy_wait(instance);
+};
+
+DEVICE_STATUS w25qxx_block_create(W25QXX *instance, Block *block, Buffer buffer)
+{
+    block->instance = instance;
+    block->needEraseBeforeWrite = true;
+    block->readMode = BLOCK_MODE_RANDOM;
+    block->readBlockSize = 0;
+    block->eraseMode = BLOCK_MODE_BLOCK;
+    block->eraseBlockSize = W25QXX_BLOCK_SIZE;
+    block->writeMode = BLOCK_MODE_WRAP;
+    block->writeBlockSize = W25QXX_PAGE_SIZE;
+    block->read = &w25qxx_read;
+    block->write = &w25qxx_write;
+    block->erase = &w25qxx_block_erase;
+    block->buffer = buffer;
+    return DEVICE_STATUS_OK;
 };

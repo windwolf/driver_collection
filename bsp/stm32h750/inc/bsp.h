@@ -11,6 +11,7 @@ extern "C"
 #include "bsp_spi.h"
 #include "bsp_uart.h"
 #include "bsp_qspi.h"
+#include "bsp_sd.h"
 
 #ifdef __cplusplus
 }

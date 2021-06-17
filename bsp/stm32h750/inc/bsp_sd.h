@@ -9,9 +9,10 @@ extern "C"
 #include "../../../common/inc/common/device.h"
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx_hal_sd.h"
+#include "../../../common/inc/common/block.h"
 
-    DEVICE_STATUS sd_device_create(SdDevice *device, SD_HandleTypeDef *instance, uint16_t dmaThershold, uint32_t blockSize);
-
+    DEVICE_STATUS sd_device_create(SdDevice *device, SD_HandleTypeDef *instance, uint16_t dmaThershold);
+    DEVICE_STATUS sd_device_block_create(SdDevice *device, Block *block, Buffer buffer);
 #ifdef __cplusplus
 }
 #endif

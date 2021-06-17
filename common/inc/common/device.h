@@ -179,17 +179,27 @@ extern "C"
 
     struct SdDevice;
     typedef void (*SdDeviceEventHandlerFuncType)(struct SdDevice *device);
-    
+
     typedef struct SdDevice
     {
         DeviceBase base;
         uint16_t dmaThershold;
-        uint32_t blockSize;
+
+        uint32_t cardType; /*!< Specifies the card Type                         */
+        uint32_t cardVersion; /*!< Specifies the card version                      */
+        uint32_t class; /*!< Specifies the class of the card class           */
+        uint32_t relCardAdd; /*!< Specifies the Relative Card Address             */
+        uint32_t blockNbr; /*!< Specifies the Card Capacity in blocks           */
+        uint32_t blockSize; /*!< Specifies one block size in bytes               */
+        uint32_t logBlockNbr; /*!< Specifies the Card logical Capacity in blocks   */
+        uint32_t logBlockSize; /*!< Specifies logical block size in bytes           */
+        uint32_t cardSpeed; /*!< Specifies the card Speed  */
+        
         SdDeviceEventHandlerFuncType onTxComplete;
         SdDeviceEventHandlerFuncType onRxComplete;
 
         Buffer _rxBuffer;
-        
+
     } SdDevice;
 
     DEVICE_STATUS sd_device_init(SdDevice *device);
@@ -199,6 +209,8 @@ extern "C"
     DEVICE_STATUS sd_device_block_erase(SdDevice *device, uint32_t num, uint32_t count);
 
     DEVICE_STATUS sd_device_query_status(SdDevice *device);
+
+    DEVICE_STATUS sd_device_card_init(SdDevice *device);
 
 #ifdef __cplusplus
 }

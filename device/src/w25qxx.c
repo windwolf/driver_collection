@@ -15,6 +15,25 @@ typedef enum W25QXX_CMD_LINE_MODE
     W25QXX_CMD_LINE_MODE_400,
 } W25QXX_CMD_LINE_MODE;
 
+static DEVICE_STATUS _w25qxx_block_erase_wrap(W25QXX *instance, uint32_t addr, uint32_t size)
+{
+    DEVICE_STATUS rst;
+    uint32_t blkBeginAddr = addr & ~(W25QXX_BLOCK_SIZE - 1);
+    uint32_t blkEndAddr = (addr + size - 1) & ~(W25QXX_BLOCK_SIZE - 1);
+    uint32_t curAddr = blkBeginAddr;
+    do
+    {
+        rst = w25qxx_block_erase(instance, curAddr);
+        if (rst != DEVICE_STATUS_OK)
+        {
+            return rst;
+        }
+        curAddr += W25QXX_BLOCK_SIZE;
+
+    } while (curAddr <= blkEndAddr);
+    return DEVICE_STATUS_OK;
+}
+
 static inline void _w25qxx_cmd_line_cfg(CommandStruct *cmd, W25QXX_CMD_LINE_MODE lineMode)
 {
     switch (lineMode)
@@ -910,17 +929,11 @@ DEVICE_STATUS w25qxx_chip_erase(W25QXX *instance)
 
 DEVICE_STATUS w25qxx_block_create(W25QXX *instance, Block *block, Buffer buffer)
 {
-    block->instance = instance;
-    block->needEraseBeforeWrite = true;
-    block->readMode = BLOCK_MODE_RANDOM;
-    block->readBlockSize = 0;
-    block->eraseMode = BLOCK_MODE_BLOCK;
-    block->eraseBlockSize = W25QXX_BLOCK_SIZE;
-    block->writeMode = BLOCK_MODE_WRAP;
-    block->writeBlockSize = W25QXX_PAGE_SIZE;
-    block->read = &w25qxx_read;
-    block->write = &w25qxx_write;
-    block->erase = &w25qxx_block_erase;
-    block->buffer = buffer;
+    block_create(block, instance,
+                 0, W25QXX_PAGE_SIZE, W25QXX_BLOCK_SIZE,
+                 true,
+                 BLOCK_MODE_RANDOM, BLOCK_MODE_WRAP, BLOCK_MODE_RANDOM_BLOCK,
+                 buffer,
+                 &w25qxx_read, &w25qxx_write, &_w25qxx_block_erase_wrap);
     return DEVICE_STATUS_OK;
 };

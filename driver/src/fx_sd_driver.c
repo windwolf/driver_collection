@@ -9,15 +9,15 @@
 /*      Partial Copyright (c) STMicroelctronics 2020. All rights reserved */
 /**************************************************************************/
 
-
 /* Include necessary system files.  */
 #include "../inc/filex/fx_sd_driver.h"
 #include "bsp_sd.h"
 
+static SdDevice *fx_device;
 
 ALIGN32 UCHAR scratch[DEFAULT_SECTOR_SIZE];
 
-UINT  _fx_partition_offset_calculate(void  *partition_sector, UINT partition, ULONG *partition_start, ULONG *partition_size);
+UINT _fx_partition_offset_calculate(void *partition_sector, UINT partition, ULONG *partition_start, ULONG *partition_size);
 
 static UINT sd_read_data(FX_MEDIA *media_ptr, ULONG sector, UINT num_sectors, UINT use_scratch_buffer);
 static UINT sd_write_data(FX_MEDIA *media_ptr, ULONG sector, UINT num_sectors, UINT use_scratch_buffer);
@@ -26,7 +26,7 @@ static TX_SEMAPHORE transfer_semaphore;
 
 static uint8_t is_initialized = 0;
 
-static int32_t check_sd_status(SdDevice* instance)
+static int32_t check_sd_status(SdDevice *instance)
 {
     uint32_t start = tx_time_get();
 
@@ -35,19 +35,23 @@ static int32_t check_sd_status(SdDevice* instance)
         if (sd_device_query_status(instance) == DEVICE_STATUS_OK)
         {
             return DEVICE_STATUS_OK;
-      }
+        }
     }
 
     return DEVICE_STATUS_BUSY;
 }
 
+void fx_sd_driver_device_set(SdDevice *fx_device)
+{
+}
+
 /**
   * @brief This function is the entry point to the STM32 SDIO disk driver.     */
- /*        It relies on the STM32 peripheral library from ST.
+/*        It relies on the STM32 peripheral library from ST.
   * @param media_ptr: FileX's Media Config Block
   * @retval None
   */
-VOID  fx_sd_driver(FX_MEDIA *media_ptr)
+VOID fx_sd_driver(FX_MEDIA *media_ptr)
 {
     UINT status;
     UINT unaligned_buffer = 0;
@@ -57,179 +61,179 @@ VOID  fx_sd_driver(FX_MEDIA *media_ptr)
 #if (FX_DRIVER_CALLS_SD_INIT == 0)
     is_initialized = 1; /* the SD  was initialized by the application*/
 #endif
-   /* before performing any operation, check the status of the SDMMC */
+    /* before performing any operation, check the status of the SDMMC */
     if (is_initialized == 1)
     {
         if (check_sd_status(SD_INSTANCE) != DEVICE_STATUS_OK)
         {
-            media_ptr->fx_media_driver_status =  FX_IO_ERROR;
+            media_ptr->fx_media_driver_status = FX_IO_ERROR;
             return;
         }
     }
 
     /* Process the driver request specified in the media control block.  */
-    switch(media_ptr->fx_media_driver_request)
+    switch (media_ptr->fx_media_driver_request)
     {
-        case FX_DRIVER_INIT:
+    case FX_DRIVER_INIT:
+    {
+#if (FX_DRIVER_CALLS_SD_INIT == 1)
+        /* Initialize the SD instance */
+        if (is_initialized == 0)
         {
-#if (FX_DRIVER_CALLS_SD_INIT == 1)
-            /* Initialize the SD instance */
-            if (is_initialized == 0)
+            status = BSP_SD_Init(SD_INSTANCE);
+
+            if (status == BSP_ERROR_NONE)
             {
-                status = BSP_SD_Init(SD_INSTANCE);
-
-                if (status == BSP_ERROR_NONE)
-                {
-                    is_initialized = 1;
+                is_initialized = 1;
 #endif
-                    /* Create a counting semaphore to check the DMA transfer status */
-                    if (tx_semaphore_create(&transfer_semaphore, "sdmmc dma transfer semaphore", 1) != TX_SUCCESS)
-                    {
-                        media_ptr->fx_media_driver_status =  FX_IO_ERROR;
-                    }
-                    else
-                    {
-                        media_ptr->fx_media_driver_status =  FX_SUCCESS;
-                    }
-
-#if (FX_DRIVER_CALLS_SD_INIT == 1)
+                /* Create a counting semaphore to check the DMA transfer status */
+                if (tx_semaphore_create(&transfer_semaphore, "sdmmc dma transfer semaphore", 1) != TX_SUCCESS)
+                {
+                    media_ptr->fx_media_driver_status = FX_IO_ERROR;
                 }
                 else
                 {
-                    media_ptr->fx_media_driver_status =  FX_IO_ERROR;
+                    media_ptr->fx_media_driver_status = FX_SUCCESS;
                 }
-            }
-#endif
-            break;
-        }
-
-        case FX_DRIVER_UNINIT:
-        {
-            tx_semaphore_delete(&transfer_semaphore);
 
 #if (FX_DRIVER_CALLS_SD_INIT == 1)
-            BSP_SD_DeInit(SD_INSTANCE);
-            is_initialized = 0;
+            }
+            else
+            {
+                media_ptr->fx_media_driver_status = FX_IO_ERROR;
+            }
+        }
 #endif
-            /* Successful driver request.  */
+        break;
+    }
+
+    case FX_DRIVER_UNINIT:
+    {
+        tx_semaphore_delete(&transfer_semaphore);
+
+#if (FX_DRIVER_CALLS_SD_INIT == 1)
+        BSP_SD_DeInit(SD_INSTANCE);
+        is_initialized = 0;
+#endif
+        /* Successful driver request.  */
+        media_ptr->fx_media_driver_status = FX_SUCCESS;
+        break;
+    }
+
+    case FX_DRIVER_READ:
+    {
+        media_ptr->fx_media_driver_status = FX_IO_ERROR;
+        unaligned_buffer = (UINT)(media_ptr->fx_media_driver_buffer) & 0x3;
+
+        if (sd_read_data(media_ptr, media_ptr->fx_media_driver_logical_sector + media_ptr->fx_media_hidden_sectors,
+                         media_ptr->fx_media_driver_sectors, unaligned_buffer) == FX_SUCCESS)
+        {
             media_ptr->fx_media_driver_status = FX_SUCCESS;
+        }
+
+        break;
+    }
+
+    case FX_DRIVER_WRITE:
+    {
+        media_ptr->fx_media_driver_status = FX_IO_ERROR;
+        unaligned_buffer = (UINT)(media_ptr->fx_media_driver_buffer) & 0x3;
+
+        if (sd_write_data(media_ptr, media_ptr->fx_media_driver_logical_sector + media_ptr->fx_media_hidden_sectors,
+                          media_ptr->fx_media_driver_sectors, unaligned_buffer) == FX_SUCCESS)
+        {
+            media_ptr->fx_media_driver_status = FX_SUCCESS;
+        }
+
+        break;
+    }
+
+    case FX_DRIVER_FLUSH:
+    {
+        /* Return driver success.  */
+        media_ptr->fx_media_driver_status = FX_SUCCESS;
+        break;
+    }
+
+    case FX_DRIVER_ABORT:
+    {
+        /* Return driver success.  */
+        media_ptr->fx_media_driver_status = FX_SUCCESS;
+        break;
+    }
+
+    case FX_DRIVER_BOOT_READ:
+    {
+        /* Check supplied buffer alignment*/
+        unaligned_buffer = (UINT)(media_ptr->fx_media_driver_buffer) & 0x3;
+
+        /* the boot sector is the sector zero */
+        status = sd_read_data(media_ptr, 0, media_ptr->fx_media_driver_sectors, unaligned_buffer);
+
+        if (status != FX_SUCCESS)
+        {
+            media_ptr->fx_media_driver_status = status;
             break;
         }
 
-        case FX_DRIVER_READ:
-        {
-            media_ptr->fx_media_driver_status = FX_IO_ERROR;
-            unaligned_buffer = (UINT)(media_ptr->fx_media_driver_buffer) & 0x3;
+        /* Check if the sector 0 is the actual boot sector, otherwise calculate the offset into it.
+            Please note that this should belong to higher level of MW to do this check and it is here
+            as a temporary work solution */
 
-            if (sd_read_data(media_ptr, media_ptr->fx_media_driver_logical_sector + media_ptr->fx_media_hidden_sectors,
-                             media_ptr->fx_media_driver_sectors, unaligned_buffer) == FX_SUCCESS)
+        partition_start = 0;
+
+        status = _fx_partition_offset_calculate(media_ptr->fx_media_driver_buffer, 0,
+                                                &partition_start, &partition_size);
+
+        /* Check partition read error.  */
+        if (status)
+        {
+            /* Unsuccessful driver request.  */
+            media_ptr->fx_media_driver_status = FX_IO_ERROR;
+            break;
+        }
+
+        /* Now determine if there is a partition...   */
+        if (partition_start)
+        {
+
+            if (check_sd_status(SD_INSTANCE) != DEVICE_STATUS_OK)
             {
-                media_ptr->fx_media_driver_status = FX_SUCCESS;
+                media_ptr->fx_media_driver_status = FX_IO_ERROR;
+                break;
             }
 
-            break;
-        }
-
-        case FX_DRIVER_WRITE:
-        {
-            media_ptr->fx_media_driver_status = FX_IO_ERROR;
-            unaligned_buffer = (UINT)(media_ptr->fx_media_driver_buffer) & 0x3;
-
-            if (sd_write_data(media_ptr, media_ptr->fx_media_driver_logical_sector + media_ptr->fx_media_hidden_sectors,
-                              media_ptr->fx_media_driver_sectors, unaligned_buffer) == FX_SUCCESS)
-            {
-                media_ptr->fx_media_driver_status = FX_SUCCESS;
-            }
-
-            break;
-        }
-
-        case FX_DRIVER_FLUSH:
-        {
-            /* Return driver success.  */
-            media_ptr->fx_media_driver_status =  FX_SUCCESS;
-            break;
-        }
-
-        case FX_DRIVER_ABORT:
-        {
-            /* Return driver success.  */
-            media_ptr->fx_media_driver_status =  FX_SUCCESS;
-            break;
-        }
-
-        case FX_DRIVER_BOOT_READ:
-        {
-            /* Check supplied buffer alignment*/
-            unaligned_buffer = (UINT)(media_ptr->fx_media_driver_buffer) & 0x3;
-
-            /* the boot sector is the sector zero */
-            status = sd_read_data(media_ptr, 0, media_ptr->fx_media_driver_sectors, unaligned_buffer);
+            /* Yes, now lets read the actual boot record.  */
+            status = sd_read_data(media_ptr, partition_start, media_ptr->fx_media_driver_sectors, unaligned_buffer);
 
             if (status != FX_SUCCESS)
             {
                 media_ptr->fx_media_driver_status = status;
                 break;
             }
-
-            /* Check if the sector 0 is the actual boot sector, otherwise calculate the offset into it.
-            Please note that this should belong to higher level of MW to do this check and it is here
-            as a temporary work solution */
-
-            partition_start =  0;
-
-            status =  _fx_partition_offset_calculate(media_ptr -> fx_media_driver_buffer, 0,
-                                                                &partition_start, &partition_size);
-
-            /* Check partition read error.  */
-            if (status)
-            {
-                /* Unsuccessful driver request.  */
-                media_ptr -> fx_media_driver_status =  FX_IO_ERROR;
-                break;
-            }
-
-            /* Now determine if there is a partition...   */
-            if (partition_start)
-            {
-
-                if (check_sd_status(SD_INSTANCE) != DEVICE_STATUS_OK)
-                {
-                    media_ptr->fx_media_driver_status =  FX_IO_ERROR;
-                    break;
-                }
-
-                /* Yes, now lets read the actual boot record.  */
-                status = sd_read_data(media_ptr, partition_start, media_ptr->fx_media_driver_sectors, unaligned_buffer);
-
-                if (status != FX_SUCCESS)
-          	    {
-            	    media_ptr->fx_media_driver_status = status;
-                    break;
-                }
-            }
-
-            /* Successful driver request.  */
-            media_ptr -> fx_media_driver_status =  FX_SUCCESS;
-            break;
         }
 
-        case FX_DRIVER_BOOT_WRITE:
-        {
-            unaligned_buffer = (UINT)(media_ptr->fx_media_driver_buffer) & 0x3;
+        /* Successful driver request.  */
+        media_ptr->fx_media_driver_status = FX_SUCCESS;
+        break;
+    }
 
-            status = sd_write_data(media_ptr, 0, media_ptr->fx_media_driver_sectors, unaligned_buffer);
+    case FX_DRIVER_BOOT_WRITE:
+    {
+        unaligned_buffer = (UINT)(media_ptr->fx_media_driver_buffer) & 0x3;
 
-            media_ptr->fx_media_driver_status = status;
+        status = sd_write_data(media_ptr, 0, media_ptr->fx_media_driver_sectors, unaligned_buffer);
 
-            break;
-        }
+        media_ptr->fx_media_driver_status = status;
 
-        default:
-        {
-            media_ptr->fx_media_driver_status =  FX_IO_ERROR;
-            break;
-        }
+        break;
+    }
+
+    default:
+    {
+        media_ptr->fx_media_driver_status = FX_IO_ERROR;
+        break;
+    }
     }
 }
 
@@ -269,19 +273,19 @@ static UINT sd_read_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_secto
     UCHAR *read_addr;
 
     /* Lock access to HW resources for this operation */
-    if(tx_semaphore_get(&transfer_semaphore, DEFAULT_TIMEOUT) != TX_SUCCESS)
+    if (tx_semaphore_get(&transfer_semaphore, DEFAULT_TIMEOUT) != TX_SUCCESS)
     {
         return FX_ACCESS_ERROR;
     }
 
     if (use_scratch_buffer)
     {
-    	read_addr = media_ptr->fx_media_driver_buffer;
+        read_addr = media_ptr->fx_media_driver_buffer;
 
         for (i = 0; i < num_sectors; i++)
         {
             /* Start DMA read into the scratch buffer */
-            status = BSP_SD_ReadBlocks_DMA(SD_INSTANCE, (uint32_t*)scratch, start_sector++, 1);
+            status = sd_device_block_read(SD_INSTANCE, (uint32_t *)scratch, start_sector++, 1);
 
             if (status != DEVICE_STATUS_OK)
             {
@@ -291,13 +295,13 @@ static UINT sd_read_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_secto
             }
 
             /* Block while trying to get the semaphore until DMA transfer is complete */
-            if(tx_semaphore_get(&transfer_semaphore, DEFAULT_TIMEOUT) != TX_SUCCESS)
+            if (tx_semaphore_get(&transfer_semaphore, DEFAULT_TIMEOUT) != TX_SUCCESS)
             {
                 return FX_ACCESS_ERROR;
             }
 
 #if (ENABLE_CACHE_MAINTENANCE == 1)
-            SCB_InvalidateDCache_by_Addr((uint32_t*)scratch, DEFAULT_SECTOR_SIZE);
+            SCB_InvalidateDCache_by_Addr((uint32_t *)scratch, DEFAULT_SECTOR_SIZE);
 #endif
 
             _fx_utility_memory_copy(scratch, read_addr, DEFAULT_SECTOR_SIZE);
@@ -317,7 +321,7 @@ static UINT sd_read_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_secto
     else
     {
 
-        status = BSP_SD_ReadBlocks_DMA(SD_INSTANCE, (uint32_t*)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
+        status = sd_device_block_read(SD_INSTANCE, (uint32_t *)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
 
         if (status != DEVICE_STATUS_OK)
         {
@@ -327,13 +331,13 @@ static UINT sd_read_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_secto
         }
 
         /* Block while trying to get the semaphore until DMA transfer is complete */
-        if(tx_semaphore_get(&transfer_semaphore, DEFAULT_TIMEOUT) != TX_SUCCESS)
+        if (tx_semaphore_get(&transfer_semaphore, DEFAULT_TIMEOUT) != TX_SUCCESS)
         {
             return FX_ACCESS_ERROR;
         }
 
 #if (ENABLE_CACHE_MAINTENANCE == 1)
-        SCB_InvalidateDCache_by_Addr((uint32_t*)media_ptr->fx_media_driver_buffer, num_sectors * DEFAULT_SECTOR_SIZE);
+        SCB_InvalidateDCache_by_Addr((uint32_t *)media_ptr->fx_media_driver_buffer, num_sectors * DEFAULT_SECTOR_SIZE);
 #endif
 
         status = FX_SUCCESS;
@@ -361,14 +365,14 @@ static UINT sd_write_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_sect
     UCHAR *write_addr;
 
     /* Lock access to HW resources for this operation */
-    if(tx_semaphore_get(&transfer_semaphore, DEFAULT_TIMEOUT) != TX_SUCCESS)
+    if (tx_semaphore_get(&transfer_semaphore, DEFAULT_TIMEOUT) != TX_SUCCESS)
     {
         return FX_ACCESS_ERROR;
     }
 
     if (use_scratch_buffer)
     {
-    	write_addr = media_ptr->fx_media_driver_buffer;
+        write_addr = media_ptr->fx_media_driver_buffer;
 
         for (i = 0; i < num_sectors; i++)
         {
@@ -377,10 +381,10 @@ static UINT sd_write_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_sect
 
 #if (ENABLE_CACHE_MAINTENANCE == 1)
             /* Clean the DCache to make the SD DMA see the actual content of the scratch buffer */
-            SCB_CleanDCache_by_Addr((uint32_t*)scratch, DEFAULT_SECTOR_SIZE);
+            SCB_CleanDCache_by_Addr((uint32_t *)scratch, DEFAULT_SECTOR_SIZE);
 #endif
 
-            status = BSP_SD_WriteBlocks_DMA(SD_INSTANCE, (uint32_t*)scratch, (uint32_t)start_sector++, 1);
+            status = sd_device_block_write(SD_INSTANCE, (uint32_t *)scratch, (uint32_t)start_sector++, 1);
 
             if (status != DEVICE_STATUS_OK)
             {
@@ -390,7 +394,7 @@ static UINT sd_write_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_sect
             }
 
             /* Block while trying to get the semaphore until DMA transfer is complete */
-            if(tx_semaphore_get(&transfer_semaphore, DEFAULT_TIMEOUT) != TX_SUCCESS)
+            if (tx_semaphore_get(&transfer_semaphore, DEFAULT_TIMEOUT) != TX_SUCCESS)
             {
                 return FX_ACCESS_ERROR;
             }
@@ -408,9 +412,9 @@ static UINT sd_write_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_sect
     else
     {
 #if (ENABLE_CACHE_MAINTENANCE == 1)
-        SCB_CleanDCache_by_Addr((uint32_t*)media_ptr->fx_media_driver_buffer, num_sectors * DEFAULT_SECTOR_SIZE);
+        SCB_CleanDCache_by_Addr((uint32_t *)media_ptr->fx_media_driver_buffer, num_sectors * DEFAULT_SECTOR_SIZE);
 #endif
-        status = BSP_SD_WriteBlocks_DMA(SD_INSTANCE, (uint32_t*)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
+        status = sd_device_block_write(SD_INSTANCE, (uint32_t *)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
 
         if (status != DEVICE_STATUS_OK)
         {
@@ -420,7 +424,7 @@ static UINT sd_write_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_sect
         }
 
         /* Block while trying to get the semaphore until DMA transfer is complete */
-        if(tx_semaphore_get(&transfer_semaphore, DEFAULT_TIMEOUT) != TX_SUCCESS)
+        if (tx_semaphore_get(&transfer_semaphore, DEFAULT_TIMEOUT) != TX_SUCCESS)
         {
             return FX_ACCESS_ERROR;
         }

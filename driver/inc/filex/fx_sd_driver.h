@@ -52,7 +52,7 @@ extern "C"
     VOID fx_sd_driver(FX_MEDIA *media_ptr);
 
     /* USER CODE BEGIN EFP */
-
+    void fx_sd_driver_device_set(SdDevice *fx_device);
     /* USER CODE END EFP */
 
     /* Private defines -----------------------------------------------------------*/

@@ -11,9 +11,26 @@ extern "C"
     struct Block;
 
 #define BLOCK_MODE uint8_t
+
+/**
+ * @brief address random, operate random.
+ * 
+ */
 #define BLOCK_MODE_RANDOM 0x00
+/**
+ * @brief address random, operate block wrap.
+ * 
+ */
 #define BLOCK_MODE_WRAP 0x01
+/**
+ * @brief address block, operate block
+ * 
+ */
 #define BLOCK_MODE_BLOCK 0x02
+/**
+ * @brief address random, operate block
+ * 
+ */
 #define BLOCK_MODE_RANDOM_BLOCK 0x03
     /**
     * @brief 

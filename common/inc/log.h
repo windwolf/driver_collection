@@ -6,6 +6,8 @@ extern "C"
 {
 #endif
 
+#include "safe_printf.h"
+
 #ifdef LOG_MODULE
 #ifndef LOG_MODULE__
 #define LOG_MODULE__ LOG_MODULE
@@ -33,12 +35,10 @@ extern "C"
 #define LOG_LEVEL_DEBUG 4
 
 #ifdef DEBUG
-#define __LOG__(level, module, fmt, ...) \
-    do                                   \
-    {                                    \
-        printf(level " " module ": ");   \
-        printf(fmt, ##__VA_ARGS__);      \
-        printf("\n");                    \
+#define __LOG__(level, module, fmt, ...)                            \
+    do                                                              \
+    {                                                               \
+        safe_printf(level " " module ": " fmt "\n", ##__VA_ARGS__); \
     } while (0)
 
 #if (LOG_LEVEL__ >= LOG_LEVEL_ERROR)

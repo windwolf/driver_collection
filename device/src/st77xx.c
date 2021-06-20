@@ -1,5 +1,14 @@
 #include "../inc/st77xx/st77xx.h"
 
+static void _st77xx_comand_setup(CommandStruct *cmd)
+{
+    cmd->commandMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_1LINE;
+    cmd->addressMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
+    cmd->altDataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
+    cmd->dataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_1LINE;
+    cmd->dummyCycles = 0;
+}
+
 DEVICE_STATUS st77xx_create(ST77XX *instance, FiveStepCommandClient *cc, Buffer buffer)
 {
     instance->cc = cc;
@@ -35,6 +44,7 @@ void st77xx_command(ST77XX *instance, uint8_t cmdId)
 {
     FiveStepCommandClient *cc = instance->cc;
     CommandStruct *cmd = &instance->command;
+    _st77xx_comand_setup(cmd);
     //LOG("ST77XX-CMD0: S: %x", cmdId)
     cmd->commandId = cmdId;
     cmd->dataSize = 0;
@@ -48,6 +58,7 @@ void st77xx_command_write_8(ST77XX *instance, uint8_t cmdId, uint8_t *data, uint
 {
     FiveStepCommandClient *cc = instance->cc;
     CommandStruct *cmd = &instance->command;
+    _st77xx_comand_setup(cmd);
     cmd->commandId = cmdId;
     cmd->data = data;
     cmd->dataSize = size;
@@ -64,6 +75,7 @@ void st77xx_command_write_16(ST77XX *instance, uint8_t cmdId, uint16_t *data, ui
 {
     FiveStepCommandClient *cc = instance->cc;
     CommandStruct *cmd = &instance->command;
+    _st77xx_comand_setup(cmd);
     cmd->commandId = cmdId;
     cmd->data = data;
     cmd->dataSize = size;
@@ -80,6 +92,7 @@ void st77xx_command_read_8(ST77XX *instance, uint8_t cmdId, uint16_t size)
 {
     FiveStepCommandClient *cc = instance->cc;
     CommandStruct *cmd = &instance->command;
+    _st77xx_comand_setup(cmd);
     cmd->commandId = cmdId;
     cmd->data = instance->buffer.data;
     cmd->dataSize = size;
@@ -96,6 +109,7 @@ void st77xx_command_read_16(ST77XX *instance, uint8_t cmdId, uint16_t size)
 {
     FiveStepCommandClient *cc = instance->cc;
     CommandStruct *cmd = &instance->command;
+    _st77xx_comand_setup(cmd);
     cmd->commandId = cmdId;
     cmd->data = instance->buffer.data;
     cmd->dataSize = size;

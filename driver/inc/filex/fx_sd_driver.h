@@ -32,7 +32,6 @@ extern "C"
 /* Exported constants --------------------------------------------------------*/
 #define DEFAULT_TIMEOUT (10 * TX_TIMER_TICKS_PER_SECOND)
 
-#define SD_INSTANCE 0
 #define DEFAULT_SECTOR_SIZE 512
 
 #define ENABLE_CACHE_MAINTENANCE 1

@@ -13,7 +13,7 @@
 #include "../inc/filex/fx_sd_driver.h"
 #include "bsp_sd.h"
 
-static SdDevice *fx_device;
+static SdDevice *_fx_device;
 
 ALIGN32 UCHAR scratch[DEFAULT_SECTOR_SIZE];
 
@@ -43,6 +43,7 @@ static int32_t check_sd_status(SdDevice *instance)
 
 void fx_sd_driver_device_set(SdDevice *fx_device)
 {
+    _fx_device = fx_device;
 }
 
 /**
@@ -64,7 +65,7 @@ VOID fx_sd_driver(FX_MEDIA *media_ptr)
     /* before performing any operation, check the status of the SDMMC */
     if (is_initialized == 1)
     {
-        if (check_sd_status(SD_INSTANCE) != DEVICE_STATUS_OK)
+        if (check_sd_status(_fx_device) != DEVICE_STATUS_OK)
         {
             media_ptr->fx_media_driver_status = FX_IO_ERROR;
             return;
@@ -197,7 +198,7 @@ VOID fx_sd_driver(FX_MEDIA *media_ptr)
         if (partition_start)
         {
 
-            if (check_sd_status(SD_INSTANCE) != DEVICE_STATUS_OK)
+            if (check_sd_status(_fx_device) != DEVICE_STATUS_OK)
             {
                 media_ptr->fx_media_driver_status = FX_IO_ERROR;
                 break;
@@ -285,7 +286,7 @@ static UINT sd_read_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_secto
         for (i = 0; i < num_sectors; i++)
         {
             /* Start DMA read into the scratch buffer */
-            status = sd_device_block_read(SD_INSTANCE, (uint32_t *)scratch, start_sector++, 1);
+            status = sd_device_block_read(_fx_device, (uint32_t *)scratch, start_sector++, 1);
 
             if (status != DEVICE_STATUS_OK)
             {
@@ -321,7 +322,7 @@ static UINT sd_read_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_secto
     else
     {
 
-        status = sd_device_block_read(SD_INSTANCE, (uint32_t *)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
+        status = sd_device_block_read(_fx_device, (uint32_t *)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
 
         if (status != DEVICE_STATUS_OK)
         {
@@ -384,7 +385,7 @@ static UINT sd_write_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_sect
             SCB_CleanDCache_by_Addr((uint32_t *)scratch, DEFAULT_SECTOR_SIZE);
 #endif
 
-            status = sd_device_block_write(SD_INSTANCE, (uint32_t *)scratch, (uint32_t)start_sector++, 1);
+            status = sd_device_block_write(_fx_device, (uint32_t *)scratch, (uint32_t)start_sector++, 1);
 
             if (status != DEVICE_STATUS_OK)
             {
@@ -414,7 +415,7 @@ static UINT sd_write_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_sect
 #if (ENABLE_CACHE_MAINTENANCE == 1)
         SCB_CleanDCache_by_Addr((uint32_t *)media_ptr->fx_media_driver_buffer, num_sectors * DEFAULT_SECTOR_SIZE);
 #endif
-        status = sd_device_block_write(SD_INSTANCE, (uint32_t *)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
+        status = sd_device_block_write(_fx_device, (uint32_t *)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
 
         if (status != DEVICE_STATUS_OK)
         {

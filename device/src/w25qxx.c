@@ -317,16 +317,16 @@ static inline DEVICE_STATUS _w25qxx_read_cmd(W25QXX *instance, uint8_t *pData, u
     {
         _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_111);
         cmd->commandId = W25QXX_SPI_READ_CMD;
+        cmd->dummyCycles = 0;
     }
     else
     {
         _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_444);
         cmd->commandId = W25QXX_QPI_FAST_READ_CMD;
+        cmd->dummyCycles = instance->dummyCycles;
     }
     cmd->address = readAddr;
     cmd->addressBits = DEVICE_DATAWIDTH_24;
-
-    cmd->dummyCycles = instance->dummyCycles;
 
     cmd->data = pData;
     cmd->dataSize = size;
@@ -529,7 +529,6 @@ static inline DEVICE_STATUS _w25qxx_write_cmd(W25QXX *instance, uint8_t *pData, 
     }
 
     cmd->commandId = W25QXX_SPI_PAGE_PROG_CMD;
-    cmd->addressMode = 1;
     cmd->address = writeAddr;
     cmd->addressBits = DEVICE_DATAWIDTH_24;
     cmd->isWrite = 1;
@@ -663,7 +662,7 @@ DEVICE_STATUS w25qxx_create(W25QXX *instance, FiveStepCommandClient *cc, uint8_t
     tx_event_flags_create(&instance->events, "w25qxx");
     instance->cc = cc;
     instance->command.addressBits = DEVICE_DATAWIDTH_24;
-    instance->command.dummyCycles = 0;
+    instance->command.dummyCycles = 2;
     instance->autoPolling = autoPolling;
     return DEVICE_STATUS_OK;
 };
@@ -673,6 +672,7 @@ DEVICE_STATUS w25qxx_mode_switch(W25QXX *instance, W25QXX_CMD_MODE cmdMode)
     DEVICE_STATUS rst;
     if (cmdMode == W25QXX_CMD_MODE_SPI)
     {
+
         if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
         {
             rst = _w25qxx_qpi_exit_cmd(instance);
@@ -680,6 +680,7 @@ DEVICE_STATUS w25qxx_mode_switch(W25QXX *instance, W25QXX_CMD_MODE cmdMode)
             {
                 return rst;
             }
+
             instance->cmdMode = cmdMode;
         }
     }
@@ -687,6 +688,13 @@ DEVICE_STATUS w25qxx_mode_switch(W25QXX *instance, W25QXX_CMD_MODE cmdMode)
     {
         if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
         {
+            if (instance->dummyCycles != 2 &&
+                instance->dummyCycles != 4 &&
+                instance->dummyCycles != 6 &&
+                instance->dummyCycles != 8)
+            {
+                instance->dummyCycles = 2;
+            }
             rst = _w25qxx_status2_get(instance);
             if (rst != DEVICE_STATUS_OK)
             {
@@ -703,12 +711,12 @@ DEVICE_STATUS w25qxx_mode_switch(W25QXX *instance, W25QXX_CMD_MODE cmdMode)
             {
                 return rst;
             }
+            instance->cmdMode = cmdMode;
             rst = _w25qxx_read_parameter_set(instance);
             if (rst != DEVICE_STATUS_OK)
             {
                 return rst;
             }
-            instance->cmdMode = cmdMode;
         }
     }
     return DEVICE_STATUS_OK;
@@ -723,11 +731,28 @@ DEVICE_STATUS w25qxx_reset(W25QXX *instance)
     {
         return rst;
     }
+    rst = _w25qxx_qpi_exit_cmd(instance);
+    if (rst != DEVICE_STATUS_OK)
+    {
+        return rst;
+    }
     rst = w25qxx_status_get(instance);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
+    instance->status2Bits.QE = 0;
+    rst = _w25qxx_status2_set(instance);
+    if (rst != DEVICE_STATUS_OK)
+    {
+        return rst;
+    }
+    rst = _w25qxx_busy_wait(instance);
+    if (rst != DEVICE_STATUS_OK)
+    {
+        return rst;
+    }
+
     instance->cmdMode = W25QXX_CMD_MODE_SPI;
     return rst;
 };

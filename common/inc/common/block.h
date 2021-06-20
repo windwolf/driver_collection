@@ -102,6 +102,7 @@ extern "C"
     DEVICE_STATUS block_read(Block *block, void *data, uint32_t address, uint32_t size);
     DEVICE_STATUS block_write(Block *block, void *data, uint32_t address, uint32_t size);
     DEVICE_STATUS block_erase(Block *block, uint32_t address, uint32_t size);
+	DEVICE_STATUS _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size);	
 
 #ifdef __cplusplus
 }

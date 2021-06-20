@@ -6,7 +6,7 @@
 #define LOG_MODULE "block"
 #include "log.h"
 
-static DEVICE_STATUS _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size);
+//static DEVICE_STATUS _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size);
 
 DEVICE_STATUS block_create(Block *block, void *instance,
                            uint32_t readBlockSize,
@@ -108,6 +108,7 @@ DEVICE_STATUS block_read(Block *block, void *data, uint32_t address, uint32_t si
 
             remainSize -= sizeInBlock;
             curDataPtr += sizeInBlock;
+			address += sizeInBlock;
         } while (remainSize > 0);
 
         return DEVICE_STATUS_OK;
@@ -118,7 +119,7 @@ DEVICE_STATUS block_read(Block *block, void *data, uint32_t address, uint32_t si
     }
 };
 
-static DEVICE_STATUS _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size)
+DEVICE_STATUS _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size)
 {
     DEVICE_STATUS rst;
     if (block->writeMode == BLOCK_MODE_RANDOM)
@@ -153,6 +154,7 @@ static DEVICE_STATUS _block_write_directly(Block *block, void *data, uint32_t ad
 
             remainSize -= sizeInBlock;
             curDataPtr += sizeInBlock;
+			address += sizeInBlock;
         } while (remainSize > 0);
 
         return DEVICE_STATUS_OK;

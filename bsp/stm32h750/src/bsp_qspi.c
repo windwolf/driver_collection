@@ -46,7 +46,7 @@ static DEVICE_STATUS _fscc_qspi_cmd_begin(FiveStepCommandClientQspi *commandClie
     }
     else
     {
-        DEVICE_STATUS rst = HAL_QSPI_Command_IT((QSPI_HandleTypeDef *)commandClient->instance, &cmdHandler);
+        DEVICE_STATUS rst = HAL_QSPI_Command((QSPI_HandleTypeDef *)commandClient->instance, &cmdHandler, HAL_MAX_DELAY);
         if (rst != HAL_OK)
         {
             return rst;

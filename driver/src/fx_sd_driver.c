@@ -12,10 +12,11 @@
 /* Include necessary system files.  */
 #include "../inc/filex/fx_sd_driver.h"
 #include "bsp_sd.h"
+#include "mem_layout.h"
 
 static SdDevice *_fx_device;
 
-ALIGN32 UCHAR scratch[DEFAULT_SECTOR_SIZE];
+AXI_BUFFER UCHAR scratch[DEFAULT_SECTOR_SIZE];
 
 UINT _fx_partition_offset_calculate(void *partition_sector, UINT partition, ULONG *partition_start, ULONG *partition_size);
 
@@ -41,8 +42,40 @@ static int32_t check_sd_status(SdDevice *instance)
     return DEVICE_STATUS_BUSY;
 }
 
+/**
+  * @brief BSP Tx Transfer completed callbacks
+  * @param Instance the SD instance
+  * @retval None
+  */
+void BSP_SD_WriteCpltCallback(uint32_t Instance)
+{
+    tx_semaphore_put(&transfer_semaphore);
+}
+
+/**
+  * @brief BSP Rx Transfer completed callbacks
+  * @param Instance the sd instance
+  * @retval None
+  */
+void BSP_SD_ReadCpltCallback(uint32_t Instance)
+{
+    tx_semaphore_put(&transfer_semaphore);
+}
+
+/**
+  * @brief BSP Rx Transfer completed callbacks
+  * @param Instance the sd instance
+  * @retval None
+  */
+void BSP_SD_ErrCallback(uint32_t Instance)
+{
+    tx_semaphore_put(&transfer_semaphore);
+}
+
 void fx_sd_driver_device_set(SdDevice *fx_device)
 {
+    _sd_device_register(fx_device, NULL, &BSP_SD_WriteCpltCallback, &BSP_SD_ReadCpltCallback, &BSP_SD_ErrCallback);
+    HAL_SD_InitCard(fx_device->base.instance);
     _fx_device = fx_device;
 }
 
@@ -169,7 +202,7 @@ VOID fx_sd_driver(FX_MEDIA *media_ptr)
         unaligned_buffer = (UINT)(media_ptr->fx_media_driver_buffer) & 0x3;
 
         /* the boot sector is the sector zero */
-        status = sd_read_data(media_ptr, 0, media_ptr->fx_media_driver_sectors, unaligned_buffer);
+        status = sd_read_data(media_ptr, 0, 1, unaligned_buffer);
 
         if (status != FX_SUCCESS)
         {
@@ -205,7 +238,7 @@ VOID fx_sd_driver(FX_MEDIA *media_ptr)
             }
 
             /* Yes, now lets read the actual boot record.  */
-            status = sd_read_data(media_ptr, partition_start, media_ptr->fx_media_driver_sectors, unaligned_buffer);
+            status = sd_read_data(media_ptr, partition_start, 1, unaligned_buffer);
 
             if (status != FX_SUCCESS)
             {
@@ -223,7 +256,7 @@ VOID fx_sd_driver(FX_MEDIA *media_ptr)
     {
         unaligned_buffer = (UINT)(media_ptr->fx_media_driver_buffer) & 0x3;
 
-        status = sd_write_data(media_ptr, 0, media_ptr->fx_media_driver_sectors, unaligned_buffer);
+        status = sd_write_data(media_ptr, 0, 1, unaligned_buffer);
 
         media_ptr->fx_media_driver_status = status;
 
@@ -236,26 +269,6 @@ VOID fx_sd_driver(FX_MEDIA *media_ptr)
         break;
     }
     }
-}
-
-/**
-  * @brief BSP Tx Transfer completed callbacks
-  * @param Instance the SD instance
-  * @retval None
-  */
-void BSP_SD_WriteCpltCallback(uint32_t Instance)
-{
-    tx_semaphore_put(&transfer_semaphore);
-}
-
-/**
-  * @brief BSP Rx Transfer completed callbacks
-  * @param Instance the sd instance
-  * @retval None
-  */
-void BSP_SD_ReadCpltCallback(uint32_t Instance)
-{
-    tx_semaphore_put(&transfer_semaphore);
 }
 
 /**
@@ -286,7 +299,7 @@ static UINT sd_read_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_secto
         for (i = 0; i < num_sectors; i++)
         {
             /* Start DMA read into the scratch buffer */
-            status = sd_device_block_read(_fx_device, (uint32_t *)scratch, start_sector++, 1);
+            status = sd_device_read(_fx_device, (uint32_t *)scratch, start_sector++, 1);
 
             if (status != DEVICE_STATUS_OK)
             {
@@ -300,10 +313,6 @@ static UINT sd_read_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_secto
             {
                 return FX_ACCESS_ERROR;
             }
-
-#if (ENABLE_CACHE_MAINTENANCE == 1)
-            SCB_InvalidateDCache_by_Addr((uint32_t *)scratch, DEFAULT_SECTOR_SIZE);
-#endif
 
             _fx_utility_memory_copy(scratch, read_addr, DEFAULT_SECTOR_SIZE);
             read_addr += DEFAULT_SECTOR_SIZE;
@@ -322,7 +331,7 @@ static UINT sd_read_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_secto
     else
     {
 
-        status = sd_device_block_read(_fx_device, (uint32_t *)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
+        status = sd_device_read(_fx_device, (uint32_t *)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
 
         if (status != DEVICE_STATUS_OK)
         {
@@ -336,10 +345,6 @@ static UINT sd_read_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_secto
         {
             return FX_ACCESS_ERROR;
         }
-
-#if (ENABLE_CACHE_MAINTENANCE == 1)
-        SCB_InvalidateDCache_by_Addr((uint32_t *)media_ptr->fx_media_driver_buffer, num_sectors * DEFAULT_SECTOR_SIZE);
-#endif
 
         status = FX_SUCCESS;
     }
@@ -380,12 +385,7 @@ static UINT sd_write_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_sect
             _fx_utility_memory_copy(write_addr, scratch, DEFAULT_SECTOR_SIZE);
             write_addr += DEFAULT_SECTOR_SIZE;
 
-#if (ENABLE_CACHE_MAINTENANCE == 1)
-            /* Clean the DCache to make the SD DMA see the actual content of the scratch buffer */
-            SCB_CleanDCache_by_Addr((uint32_t *)scratch, DEFAULT_SECTOR_SIZE);
-#endif
-
-            status = sd_device_block_write(_fx_device, (uint32_t *)scratch, (uint32_t)start_sector++, 1);
+            status = sd_device_write(_fx_device, (uint32_t *)scratch, (uint32_t)start_sector++, 1);
 
             if (status != DEVICE_STATUS_OK)
             {
@@ -412,10 +412,7 @@ static UINT sd_write_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_sect
     }
     else
     {
-#if (ENABLE_CACHE_MAINTENANCE == 1)
-        SCB_CleanDCache_by_Addr((uint32_t *)media_ptr->fx_media_driver_buffer, num_sectors * DEFAULT_SECTOR_SIZE);
-#endif
-        status = sd_device_block_write(_fx_device, (uint32_t *)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
+        status = sd_device_write(_fx_device, (uint32_t *)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
 
         if (status != DEVICE_STATUS_OK)
         {

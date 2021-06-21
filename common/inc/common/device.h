@@ -202,11 +202,16 @@ extern "C"
 
     } SdDevice;
 
+    void _sd_device_register(SdDevice *device, void *parent,
+                             SdDeviceEventHandlerFuncType onTxComplete,
+                             SdDeviceEventHandlerFuncType onRxComplete,
+                             DeviceBaseEventHandlerFuncType onError);
+
     DEVICE_STATUS sd_device_init(SdDevice *device);
     DEVICE_STATUS sd_device_deinit(SdDevice *device);
-    DEVICE_STATUS sd_device_block_read(SdDevice *device, void *data, uint32_t num, uint32_t count);
-    DEVICE_STATUS sd_device_block_write(SdDevice *device, void *data, uint32_t num, uint32_t count);
-    DEVICE_STATUS sd_device_block_erase(SdDevice *device, uint32_t num, uint32_t count);
+    DEVICE_STATUS sd_device_read(SdDevice *device, void *data, uint32_t num, uint32_t count);
+    DEVICE_STATUS sd_device_write(SdDevice *device, void *data, uint32_t num, uint32_t count);
+    DEVICE_STATUS sd_device_erase(SdDevice *device, uint32_t num, uint32_t count);
 
     DEVICE_STATUS sd_device_query_status(SdDevice *device);
 

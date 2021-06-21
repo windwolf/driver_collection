@@ -1,33 +1,46 @@
 #include "../inc/bsp_sd.h"
+#include "../inc/bsp_shared.h"
 
-SdDevice *_device;
+typedef enum SD_INDEX
+{
+    SD1_INDEX = 0,
+    SD2_INDEX,
+    SD_COUNT,
+} SD_INDEX;
+
+DEFINE_DEVICE_REGISTER_BEGIN(SD, SD_COUNT)
+DEFINE_DEVICE_REGISTER_ITEM(SDMMC1_BASE, SD1_INDEX)
+DEFINE_DEVICE_REGISTER_ITEM(SDMMC2_BASE, SD2_INDEX)
+DEFINE_DEVICE_REGISTER_END(SD)
 
 static void _sd_tx_cplt_cb(SD_HandleTypeDef *handle)
 {
-    if (_device->onTxComplete)
+    SdDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
+    if (device->onTxComplete)
     {
-        _device->onTxComplete(_device);
+        device->onTxComplete(device);
     }
 };
 
 static void _sd_rx_cplt_cb(SD_HandleTypeDef *handle)
 {
-    SCB_InvalidateDCache_by_Addr(_device->_rxBuffer.data, _device->_rxBuffer.size);
+    SdDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
+    SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
 
-    if (_device->onRxComplete)
+    if (device->onRxComplete)
     {
-        _device->onRxComplete(_device);
+        device->onRxComplete(device);
     }
 }
 
 static void _sd_err_cb(SD_HandleTypeDef *handle)
 {
+    SdDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
+    SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
 
-    SCB_InvalidateDCache_by_Addr(_device->_rxBuffer.data, _device->_rxBuffer.size);
-
-    if (_device->base.onError)
+    if (device->base.onError)
     {
-        _device->base.onError((DeviceBase *)_device, handle->ErrorCode);
+        device->base.onError((DeviceBase *)device, handle->ErrorCode);
     }
 };
 
@@ -43,22 +56,21 @@ DEVICE_STATUS sd_device_create(SdDevice *device, SD_HandleTypeDef *instance, uin
     HAL_SD_RegisterCallback(instance, HAL_SD_RX_CPLT_CB_ID, &_sd_rx_cplt_cb);
     HAL_SD_RegisterCallback(instance, HAL_SD_TX_CPLT_CB_ID, &_sd_tx_cplt_cb);
     HAL_SD_RegisterCallback(instance, HAL_SD_ERROR_CB_ID, &_sd_err_cb);
-    _device = device;
+    DEVICE_INSTANCE_REGISTER(device, instance->Instance);
     return DEVICE_STATUS_OK;
 };
 
 DEVICE_STATUS sd_device_init(SdDevice *device)
 {
     SD_HandleTypeDef *handle = (SD_HandleTypeDef *)(device->base.instance);
-    HAL_SD_InitCard(handle);
-    return DEVICE_STATUS_OK;
+    return HAL_SD_InitCard(handle);
 };
 DEVICE_STATUS sd_device_deinit(SdDevice *device)
 {
     //SD_HandleTypeDef *handle = (SD_HandleTypeDef *)(device->base.instance);
     return DEVICE_STATUS_OK;
 };
-DEVICE_STATUS sd_device_block_read(SdDevice *device, void *data, uint32_t num, uint32_t count)
+DEVICE_STATUS sd_device_read(SdDevice *device, void *data, uint32_t num, uint32_t count)
 {
     SD_HandleTypeDef *handle = (SD_HandleTypeDef *)(device->base.instance);
 
@@ -67,7 +79,7 @@ DEVICE_STATUS sd_device_block_read(SdDevice *device, void *data, uint32_t num, u
     return HAL_SD_WriteBlocks_DMA(handle, (uint8_t *)data, num, count);
 };
 
-DEVICE_STATUS sd_device_block_write(SdDevice *device, void *data, uint32_t num, uint32_t count)
+DEVICE_STATUS sd_device_write(SdDevice *device, void *data, uint32_t num, uint32_t count)
 {
     SD_HandleTypeDef *handle = (SD_HandleTypeDef *)(device->base.instance);
 
@@ -75,7 +87,7 @@ DEVICE_STATUS sd_device_block_write(SdDevice *device, void *data, uint32_t num, 
     return HAL_SD_ReadBlocks_DMA(handle, data, num, count);
 };
 
-DEVICE_STATUS sd_device_block_erase(SdDevice *device, uint32_t num, uint32_t count)
+DEVICE_STATUS sd_device_erase(SdDevice *device, uint32_t num, uint32_t count)
 {
     SD_HandleTypeDef *handle = (SD_HandleTypeDef *)(device->base.instance);
     return HAL_SD_Erase(handle, num, num + count);
@@ -89,20 +101,29 @@ DEVICE_STATUS sd_device_query_status(SdDevice *device)
 
 DEVICE_STATUS sd_device_block_create(SdDevice *device, Block *block, Buffer buffer)
 {
-    block_create(block, device,
-                 device->blockSize, device->blockSize, device->blockSize,
-                 false,
-                 BLOCK_MODE_BLOCK, BLOCK_MODE_BLOCK, BLOCK_MODE_BLOCK,
-                 buffer,
-                 &sd_device_block_read, &sd_device_block_write, &sd_device_block_erase);
-    return DEVICE_STATUS_OK;
+    return block_create(block, device,
+                        device->blockSize, device->blockSize, device->blockSize,
+                        false,
+                        BLOCK_MODE_BLOCK, BLOCK_MODE_BLOCK, BLOCK_MODE_BLOCK,
+                        buffer,
+                        &sd_device_read, &sd_device_write, &sd_device_erase);
 }
 
 DEVICE_STATUS sd_device_card_init(SdDevice *device)
 {
     SD_HandleTypeDef *handle = (SD_HandleTypeDef *)(device->base.instance);
     HAL_SD_CardInfoTypeDef cardInfo;
-    HAL_SD_GetCardInfo(handle, &cardInfo);
+    DEVICE_STATUS rst;
+    rst = HAL_SD_InitCard(handle);
+    if (rst != DEVICE_STATUS_OK)
+    {
+        return rst;
+    }
+    rst = HAL_SD_GetCardInfo(handle, &cardInfo);
+    if (rst != DEVICE_STATUS_OK)
+    {
+        return rst;
+    }
     device->blockSize = cardInfo.BlockSize;
     device->blockNbr = cardInfo.BlockNbr;
     device->cardSpeed = cardInfo.CardSpeed;
@@ -112,5 +133,6 @@ DEVICE_STATUS sd_device_card_init(SdDevice *device)
     device->logBlockSize = cardInfo.LogBlockSize;
     device->logBlockNbr = cardInfo.LogBlockNbr;
     device->relCardAdd = cardInfo.RelCardAdd;
+
     return DEVICE_STATUS_OK;
 }

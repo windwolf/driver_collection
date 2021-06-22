@@ -8,8 +8,6 @@ extern "C"
 
 #include "../../../common/inc/common/device.h"
 #include "stm32h7xx_hal.h"
-#include "stm32h7xx_hal_spi.h"
-#include "stm32h7xx_hal_spi_ex.h"
 #include "stm32h7xx_ll_spi.h"
 #include "stm32h7xx_ll_dma.h"
     DEVICE_STATUS spi_device_create(SpiDevice *device, SPI_HandleTypeDef *instance, uint16_t dmaThershold);

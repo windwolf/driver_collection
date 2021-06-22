@@ -8,8 +8,6 @@ extern "C"
 #include "../../../common/inc/common/device.h"
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx_ll_dma.h"
-#include "stm32h7xx_hal_i2c.h"
-#include "stm32h7xx_hal_i2c_ex.h"
 
     DEVICE_STATUS i2c_mem_device_create(I2CMemDevice *device, I2C_HandleTypeDef *instance, uint16_t dmaThershold);
 

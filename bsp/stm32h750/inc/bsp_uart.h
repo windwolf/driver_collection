@@ -8,8 +8,6 @@ extern "C"
 
 #include "../../../common/inc/common/device.h"
 #include "stm32h7xx_hal.h"
-#include "stm32h7xx_hal_uart.h"
-#include "stm32h7xx_hal_uart_ex.h"
 #include "stm32h7xx_ll_usart.h"
 #include "stm32h7xx_ll_dma.h"
 

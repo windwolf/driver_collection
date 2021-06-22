@@ -9,7 +9,6 @@ extern "C"
 #include "../../../common/inc/common/device.h"
 #include "../../../common/inc/common/fscc.h"
 #include "stm32h7xx_hal.h"
-#include "stm32h7xx_hal_qspi.h"
 
 #define FSCCAutoPollingTypeDef QSPI_AutoPollingTypeDef
 #define FSCC_EVENT_AUTO_POLLING_CPLT 0x08000000

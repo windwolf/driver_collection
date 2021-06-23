@@ -1,5 +1,5 @@
-#ifndef __BASIC_DEVICE_H__
-#define __BASIC_DEVICE_H__
+#ifndef __DEVICE_H__
+#define __DEVICE_H__
 
 #ifdef __cplusplus
 extern "C"
@@ -221,4 +221,4 @@ extern "C"
 }
 #endif
 
-#endif // __BASIC_DEVICE_H__
+#endif // __DEVICE_H__

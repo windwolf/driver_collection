@@ -34,57 +34,57 @@ static DEVICE_STATUS _w25qxx_block_erase_wrap(W25QXX *instance, uint32_t addr, u
     return DEVICE_STATUS_OK;
 }
 
-static inline void _w25qxx_cmd_line_cfg(CommandStruct *cmd, W25QXX_CMD_LINE_MODE lineMode)
+static inline void _w25qxx_cmd_line_cfg(CommandFrame *cmd, W25QXX_CMD_LINE_MODE lineMode)
 {
     switch (lineMode)
     {
     case W25QXX_CMD_LINE_MODE_111:
-        cmd->commandMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_1LINE;
-        cmd->addressMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_1LINE;
-        cmd->altDataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
-        cmd->dataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_1LINE;
+        cmd->commandMode = COMMAND_FRAME_MODE_1LINE;
+        cmd->addressMode = COMMAND_FRAME_MODE_1LINE;
+        cmd->altDataMode = COMMAND_FRAME_MODE_SKIP;
+        cmd->dataMode = COMMAND_FRAME_MODE_1LINE;
         break;
     case W25QXX_CMD_LINE_MODE_110:
-        cmd->commandMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_1LINE;
-        cmd->addressMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_1LINE;
-        cmd->altDataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
-        cmd->dataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
+        cmd->commandMode = COMMAND_FRAME_MODE_1LINE;
+        cmd->addressMode = COMMAND_FRAME_MODE_1LINE;
+        cmd->altDataMode = COMMAND_FRAME_MODE_SKIP;
+        cmd->dataMode = COMMAND_FRAME_MODE_SKIP;
         break;
     case W25QXX_CMD_LINE_MODE_101:
-        cmd->commandMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_1LINE;
-        cmd->addressMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
-        cmd->altDataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
-        cmd->dataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_1LINE;
+        cmd->commandMode = COMMAND_FRAME_MODE_1LINE;
+        cmd->addressMode = COMMAND_FRAME_MODE_SKIP;
+        cmd->altDataMode = COMMAND_FRAME_MODE_SKIP;
+        cmd->dataMode = COMMAND_FRAME_MODE_1LINE;
         break;
     case W25QXX_CMD_LINE_MODE_100:
-        cmd->commandMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_1LINE;
-        cmd->addressMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
-        cmd->altDataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
-        cmd->dataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
+        cmd->commandMode = COMMAND_FRAME_MODE_1LINE;
+        cmd->addressMode = COMMAND_FRAME_MODE_SKIP;
+        cmd->altDataMode = COMMAND_FRAME_MODE_SKIP;
+        cmd->dataMode = COMMAND_FRAME_MODE_SKIP;
         break;
     case W25QXX_CMD_LINE_MODE_444:
-        cmd->commandMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_4LINE;
-        cmd->addressMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_4LINE;
-        cmd->altDataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
-        cmd->dataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_4LINE;
+        cmd->commandMode = COMMAND_FRAME_MODE_4LINE;
+        cmd->addressMode = COMMAND_FRAME_MODE_4LINE;
+        cmd->altDataMode = COMMAND_FRAME_MODE_SKIP;
+        cmd->dataMode = COMMAND_FRAME_MODE_4LINE;
         break;
     case W25QXX_CMD_LINE_MODE_440:
-        cmd->commandMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_4LINE;
-        cmd->addressMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_4LINE;
-        cmd->altDataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
-        cmd->dataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
+        cmd->commandMode = COMMAND_FRAME_MODE_4LINE;
+        cmd->addressMode = COMMAND_FRAME_MODE_4LINE;
+        cmd->altDataMode = COMMAND_FRAME_MODE_SKIP;
+        cmd->dataMode = COMMAND_FRAME_MODE_SKIP;
         break;
     case W25QXX_CMD_LINE_MODE_404:
-        cmd->commandMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_4LINE;
-        cmd->addressMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
-        cmd->altDataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
-        cmd->dataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_4LINE;
+        cmd->commandMode = COMMAND_FRAME_MODE_4LINE;
+        cmd->addressMode = COMMAND_FRAME_MODE_SKIP;
+        cmd->altDataMode = COMMAND_FRAME_MODE_SKIP;
+        cmd->dataMode = COMMAND_FRAME_MODE_4LINE;
         break;
     case W25QXX_CMD_LINE_MODE_400:
-        cmd->commandMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_4LINE;
-        cmd->addressMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
-        cmd->altDataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
-        cmd->dataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
+        cmd->commandMode = COMMAND_FRAME_MODE_4LINE;
+        cmd->addressMode = COMMAND_FRAME_MODE_SKIP;
+        cmd->altDataMode = COMMAND_FRAME_MODE_SKIP;
+        cmd->dataMode = COMMAND_FRAME_MODE_SKIP;
         break;
     default:
         break;
@@ -115,8 +115,8 @@ static inline DEVICE_STATUS _w25qxx_op_busy_check(W25QXX *instance)
 static DEVICE_STATUS _w25qxx_status1_get(W25QXX *instance)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
     {
         // QPI
@@ -133,19 +133,19 @@ static DEVICE_STATUS _w25qxx_status1_get(W25QXX *instance)
     cmd->isWrite = 0;
     cmd->data = &instance->status1;
 
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    return five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
 static DEVICE_STATUS _w25qxx_status2_get(W25QXX *instance)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
     {
         // QPI
@@ -162,19 +162,19 @@ static DEVICE_STATUS _w25qxx_status2_get(W25QXX *instance)
     cmd->isWrite = 0;
     cmd->data = &instance->status2;
 
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    return five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
 static DEVICE_STATUS _w25qxx_status3_get(W25QXX *instance)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
     {
         // QPI
@@ -191,19 +191,19 @@ static DEVICE_STATUS _w25qxx_status3_get(W25QXX *instance)
     cmd->isWrite = 0;
     cmd->data = &instance->status3;
 
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    return five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
 static DEVICE_STATUS _w25qxx_status1_set(W25QXX *instance)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
     {
         // QPI
@@ -220,19 +220,19 @@ static DEVICE_STATUS _w25qxx_status1_set(W25QXX *instance)
     cmd->isWrite = 1;
     cmd->data = &instance->status1;
 
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    return five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
 static DEVICE_STATUS _w25qxx_status2_set(W25QXX *instance)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
     {
         // QPI
@@ -249,19 +249,19 @@ static DEVICE_STATUS _w25qxx_status2_set(W25QXX *instance)
     cmd->isWrite = 1;
     cmd->data = &instance->status2;
 
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    return five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
 static DEVICE_STATUS _w25qxx_status3_set(W25QXX *instance)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
     {
         // QPI
@@ -278,12 +278,12 @@ static DEVICE_STATUS _w25qxx_status3_set(W25QXX *instance)
     cmd->isWrite = 1;
     cmd->data = &instance->status3;
 
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    return five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
 static DEVICE_STATUS _w25qxx_busy_wait(W25QXX *instance)
@@ -311,8 +311,8 @@ static DEVICE_STATUS _w25qxx_busy_wait(W25QXX *instance)
 static inline DEVICE_STATUS _w25qxx_read_cmd(W25QXX *instance, uint8_t *pData, uint32_t readAddr, uint32_t size)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
     {
         _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_111);
@@ -333,20 +333,20 @@ static inline DEVICE_STATUS _w25qxx_read_cmd(W25QXX *instance, uint8_t *pData, u
     cmd->dataBits = DEVICE_DATAWIDTH_8;
     cmd->isWrite = 0;
 
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    rst = five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    rst = command_cplt_wait(cc, TX_WAIT_FOREVER);
     return rst;
 }
 
 static DEVICE_STATUS _w25qxx_read_parameter_set(W25QXX *instance)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
     {
         // QPI
@@ -375,12 +375,12 @@ static DEVICE_STATUS _w25qxx_read_parameter_set(W25QXX *instance)
         cmd->dataBits = DEVICE_DATAWIDTH_8;
         cmd->isWrite = 1;
         cmd->data = &params;
-        rst = five_step_command_client_send(cc, cmd);
+        rst = command_send(cc, cmd);
         if (rst != DEVICE_STATUS_OK)
         {
             return rst;
         }
-        return five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+        return command_cplt_wait(cc, TX_WAIT_FOREVER);
     }
     else
     {
@@ -392,8 +392,8 @@ static DEVICE_STATUS _w25qxx_read_parameter_set(W25QXX *instance)
 static inline DEVICE_STATUS _w25qxx_4k_sector_erase_cmd(W25QXX *instance, uint32_t address)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
     {
         _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_110);
@@ -406,20 +406,20 @@ static inline DEVICE_STATUS _w25qxx_4k_sector_erase_cmd(W25QXX *instance, uint32
     cmd->address = address;
     cmd->addressBits = DEVICE_DATAWIDTH_24;
 
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    rst = five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    rst = command_cplt_wait(cc, TX_WAIT_FOREVER);
     return rst;
 };
 
 static inline DEVICE_STATUS _w25qxx_32k_block_erase_cmd(W25QXX *instance, uint32_t address)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
     {
         _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_110);
@@ -432,20 +432,20 @@ static inline DEVICE_STATUS _w25qxx_32k_block_erase_cmd(W25QXX *instance, uint32
     cmd->address = address;
     cmd->addressBits = DEVICE_DATAWIDTH_24;
 
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    rst = five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    rst = command_cplt_wait(cc, TX_WAIT_FOREVER);
     return rst;
 }
 
 static inline DEVICE_STATUS _w25qxx_64k_block_erase_cmd(W25QXX *instance, uint32_t address)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
     {
         _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_110);
@@ -458,20 +458,20 @@ static inline DEVICE_STATUS _w25qxx_64k_block_erase_cmd(W25QXX *instance, uint32
     cmd->address = address;
     cmd->addressBits = DEVICE_DATAWIDTH_24;
 
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    rst = five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    rst = command_cplt_wait(cc, TX_WAIT_FOREVER);
     return rst;
 }
 
 static inline DEVICE_STATUS _w25qxx_chip_erase_cmd(W25QXX *instance)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
     {
         _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_100);
@@ -482,20 +482,20 @@ static inline DEVICE_STATUS _w25qxx_chip_erase_cmd(W25QXX *instance)
     }
     cmd->commandId = W25QXX_SPI_CHIP_ERASE_CMD;
 
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    rst = five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    rst = command_cplt_wait(cc, TX_WAIT_FOREVER);
     return rst;
 }
 
 static inline DEVICE_STATUS _w25qxx_write_enable_cmd(W25QXX *instance)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
     {
         _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_100);
@@ -506,19 +506,19 @@ static inline DEVICE_STATUS _w25qxx_write_enable_cmd(W25QXX *instance)
     }
     cmd->commandId = W25QXX_SPI_WRITE_ENABLE_CMD;
 
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    return five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
 static inline DEVICE_STATUS _w25qxx_write_cmd(W25QXX *instance, uint8_t *pData, uint32_t writeAddr, uint32_t size)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
     {
         _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_111);
@@ -536,49 +536,49 @@ static inline DEVICE_STATUS _w25qxx_write_cmd(W25QXX *instance, uint8_t *pData, 
     cmd->dataSize = size;
     cmd->dataBits = DEVICE_DATAWIDTH_8;
 
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    return five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    return command_cplt_wait(cc, TX_WAIT_FOREVER);
 }
 
 static inline DEVICE_STATUS _w25qxx_qpi_enter_cmd(W25QXX *instance)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_100);
     instance->command.commandId = W25QXX_SPI_ENTER_QPI_MODE_CMD;
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    return five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
 static inline DEVICE_STATUS _w25qxx_qpi_exit_cmd(W25QXX *instance)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_400);
     cmd->commandId = W25QXX_QPI_EXIT_QPI_MODE_CMD;
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    return five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
 static inline DEVICE_STATUS _w25qxx_reset_cmd(W25QXX *instance)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
     {
         _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_100);
@@ -589,23 +589,23 @@ static inline DEVICE_STATUS _w25qxx_reset_cmd(W25QXX *instance)
     }
 
     cmd->commandId = W25QXX_QPI_ENABLE_RESET_CMD;
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    rst = five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    rst = command_cplt_wait(cc, TX_WAIT_FOREVER);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
     cmd->commandId = W25QXX_QPI_RESET_DEVICE_CMD;
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    return five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
 // static inline DEVICE_STATUS _w25qxx_spi_write(W25QXX *instance, uint8_t *pData, uint32_t writeAddr, uint32_t size)
@@ -657,7 +657,7 @@ static inline DEVICE_STATUS _w25qxx_reset_cmd(W25QXX *instance)
 //     return DEVICE_STATUS_OK;
 // };
 
-DEVICE_STATUS w25qxx_create(W25QXX *instance, FiveStepCommandClient *cc, uint8_t autoPolling)
+DEVICE_STATUS w25qxx_create(W25QXX *instance, Command *cc, uint8_t autoPolling)
 {
     tx_event_flags_create(&instance->events, "w25qxx");
     instance->cc = cc;
@@ -812,8 +812,8 @@ DEVICE_STATUS w25qxx_status_set(W25QXX *instance)
 DEVICE_STATUS w25qxx_id_read(W25QXX *instance)
 {
     DEVICE_STATUS rst;
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
     {
         _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_111);
@@ -828,12 +828,12 @@ DEVICE_STATUS w25qxx_id_read(W25QXX *instance)
     cmd->data = &instance->mdId;
     cmd->dataBits = DEVICE_DATAWIDTH_8;
     cmd->dataSize = 2;
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    rst = five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    rst = command_cplt_wait(cc, TX_WAIT_FOREVER);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
@@ -851,12 +851,12 @@ DEVICE_STATUS w25qxx_id_read(W25QXX *instance)
     cmd->data = &instance->jedecId;
     cmd->dataBits = DEVICE_DATAWIDTH_8;
     cmd->dataSize = 3;
-    rst = five_step_command_client_send(cc, cmd);
+    rst = command_send(cc, cmd);
     if (rst != DEVICE_STATUS_OK)
     {
         return rst;
     }
-    return five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
 DEVICE_STATUS w25qxx_read(W25QXX *instance, uint8_t *pData, uint32_t readAddr, uint32_t size)

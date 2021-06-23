@@ -1,15 +1,15 @@
 #include "../inc/st77xx/st77xx.h"
 
-static void _st77xx_comand_setup(CommandStruct *cmd)
+static void _st77xx_comand_setup(CommandFrame *cmd)
 {
-    cmd->commandMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_1LINE;
-    cmd->addressMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
-    cmd->altDataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP;
-    cmd->dataMode = FIVE_STEP_COMMAND_CLIENT_STEP_MODE_1LINE;
+    cmd->commandMode = COMMAND_FRAME_MODE_1LINE;
+    cmd->addressMode = COMMAND_FRAME_MODE_SKIP;
+    cmd->altDataMode = COMMAND_FRAME_MODE_SKIP;
+    cmd->dataMode = COMMAND_FRAME_MODE_1LINE;
     cmd->dummyCycles = 0;
 }
 
-DEVICE_STATUS st77xx_create(ST77XX *instance, FiveStepCommandClient *cc, Buffer buffer)
+DEVICE_STATUS st77xx_create(ST77XX *instance, Command *cc, Buffer buffer)
 {
     instance->cc = cc;
     instance->buffer = buffer;
@@ -42,22 +42,22 @@ void st77xx_unlock(ST77XX *instance)
 
 void st77xx_command(ST77XX *instance, uint8_t cmdId)
 {
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     _st77xx_comand_setup(cmd);
     //LOG("ST77XX-CMD0: S: %x", cmdId)
     cmd->commandId = cmdId;
     cmd->dataSize = 0;
-    five_step_command_client_send(cc, cmd);
+    command_send(cc, cmd);
     //LOG("ST77XX-CMD0: W: %x", cmdId)
-    five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    command_cplt_wait(cc, TX_WAIT_FOREVER);
     //LOG("ST77XX-CMD0: WC: %x", cmdId)
 }
 
 void st77xx_command_write_8(ST77XX *instance, uint8_t cmdId, uint8_t *data, uint16_t size)
 {
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     _st77xx_comand_setup(cmd);
     cmd->commandId = cmdId;
     cmd->data = data;
@@ -65,16 +65,16 @@ void st77xx_command_write_8(ST77XX *instance, uint8_t cmdId, uint8_t *data, uint
     cmd->isWrite = 1;
     cmd->dataBits = DEVICE_DATAWIDTH_8;
     //LOG("ST77XX-DATA8: S: %x", cmdId)
-    five_step_command_client_send(cc, cmd);
+    command_send(cc, cmd);
     //LOG("ST77XX-DATA8: W: %x", cmdId)
-    five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    command_cplt_wait(cc, TX_WAIT_FOREVER);
     //LOG("ST77XX-DATA8: WC: %x", cmdId)
 }
 
 void st77xx_command_write_16(ST77XX *instance, uint8_t cmdId, uint16_t *data, uint16_t size)
 {
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     _st77xx_comand_setup(cmd);
     cmd->commandId = cmdId;
     cmd->data = data;
@@ -82,16 +82,16 @@ void st77xx_command_write_16(ST77XX *instance, uint8_t cmdId, uint16_t *data, ui
     cmd->isWrite = 1;
     cmd->dataBits = DEVICE_DATAWIDTH_16;
     //LOG("ST77XX-DATA16: S: %x", cmdId)
-    five_step_command_client_send(cc, cmd);
+    command_send(cc, cmd);
     //LOG("ST77XX-DATA16: W: %x", cmdId)
-    five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    command_cplt_wait(cc, TX_WAIT_FOREVER);
     //LOG("ST77XX-DATA16: WC: %x", cmdId)
 }
 
 void st77xx_command_read_8(ST77XX *instance, uint8_t cmdId, uint16_t size)
 {
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     _st77xx_comand_setup(cmd);
     cmd->commandId = cmdId;
     cmd->data = instance->buffer.data;
@@ -99,16 +99,16 @@ void st77xx_command_read_8(ST77XX *instance, uint8_t cmdId, uint16_t size)
     cmd->isWrite = 0;
     cmd->dataBits = DEVICE_DATAWIDTH_8;
     //LOG("ST77XX-DATA8: S: %x", cmdId)
-    five_step_command_client_send(cc, cmd);
+    command_send(cc, cmd);
     //LOG("ST77XX-DATA8: W: %x", cmdId)
-    five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    command_cplt_wait(cc, TX_WAIT_FOREVER);
     //LOG("ST77XX-DATA8: WC: %x", cmdId)
 }
 
 void st77xx_command_read_16(ST77XX *instance, uint8_t cmdId, uint16_t size)
 {
-    FiveStepCommandClient *cc = instance->cc;
-    CommandStruct *cmd = &instance->command;
+    Command *cc = instance->cc;
+    CommandFrame *cmd = &instance->command;
     _st77xx_comand_setup(cmd);
     cmd->commandId = cmdId;
     cmd->data = instance->buffer.data;
@@ -116,8 +116,8 @@ void st77xx_command_read_16(ST77XX *instance, uint8_t cmdId, uint16_t size)
     cmd->isWrite = 0;
     cmd->dataBits = DEVICE_DATAWIDTH_16;
     //LOG("ST77XX-DATA16: S: %x", cmdId)
-    five_step_command_client_send(cc, cmd);
+    command_send(cc, cmd);
     //LOG("ST77XX-DATA16: W: %x", cmdId)
-    five_step_command_client_cplt_wait(cc, TX_WAIT_FOREVER);
+    command_cplt_wait(cc, TX_WAIT_FOREVER);
     //LOG("ST77XX-DATA16: WC: %x", cmdId)
 }

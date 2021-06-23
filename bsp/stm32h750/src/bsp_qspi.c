@@ -1,17 +1,17 @@
 #include "../inc/bsp_qspi.h"
 
-static FiveStepCommandClientQspi *_cc;
+static CommandQspi *_cc;
 
-static DEVICE_STATUS _fscc_qspi_cmd_begin(FiveStepCommandClientQspi *commandClient);
-static void _fscc_qspi_cmd_data_end(FiveStepCommandClientQspi *commandClient);
+static DEVICE_STATUS _command_qspi_cmd_begin(CommandQspi *command);
+static void _command_qspi_cmd_data_end(CommandQspi *command);
 
-static inline BOOL _fscc_qspi_is_busy(FiveStepCommandClientQspi *commandClient)
+static inline BOOL _command_qspi_is_busy(CommandQspi *command)
 {
     ULONG actualFlags;
-    return tx_event_flags_get(&commandClient->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY, TX_OR, &actualFlags, TX_NO_WAIT) == TX_SUCCESS;
+    return tx_event_flags_get(&command->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY, TX_OR, &actualFlags, TX_NO_WAIT) == TX_SUCCESS;
 };
 
-static void _fscc_qspi_cmd_tranlate(CommandStruct *cmd, QSPI_CommandTypeDef *cmdhandler)
+static void _command_qspi_cmd_tranlate(CommandFrame *cmd, QSPI_CommandTypeDef *cmdhandler)
 {
     cmdhandler->Instruction = cmd->commandId;
     cmdhandler->InstructionMode = cmd->commandMode << QUADSPI_CCR_IMODE_Pos;
@@ -34,19 +34,19 @@ static void _fscc_qspi_cmd_tranlate(CommandStruct *cmd, QSPI_CommandTypeDef *cmd
     cmdhandler->SIOOMode = QSPI_SIOO_INST_EVERY_CMD;
 };
 
-static DEVICE_STATUS _fscc_qspi_cmd_begin(FiveStepCommandClientQspi *commandClient)
+static DEVICE_STATUS _command_qspi_cmd_begin(CommandQspi *command)
 {
     QSPI_CommandTypeDef cmdHandler;
-    CommandStruct *cmd = commandClient->base._curCmd;
-    _fscc_qspi_cmd_tranlate(cmd, &cmdHandler);
+    CommandFrame *cmd = command->base._curFrame;
+    _command_qspi_cmd_tranlate(cmd, &cmdHandler);
 
-    if (cmd->dataMode == FIVE_STEP_COMMAND_CLIENT_STEP_MODE_SKIP)
+    if (cmd->dataMode == COMMAND_FRAME_MODE_SKIP)
     {
-        return HAL_QSPI_Command_IT((QSPI_HandleTypeDef *)commandClient->instance, &cmdHandler);
+        return HAL_QSPI_Command_IT((QSPI_HandleTypeDef *)command->instance, &cmdHandler);
     }
     else
     {
-        DEVICE_STATUS rst = HAL_QSPI_Command((QSPI_HandleTypeDef *)commandClient->instance, &cmdHandler, HAL_MAX_DELAY);
+        DEVICE_STATUS rst = HAL_QSPI_Command((QSPI_HandleTypeDef *)command->instance, &cmdHandler, HAL_MAX_DELAY);
         if (rst != HAL_OK)
         {
             return rst;
@@ -54,56 +54,56 @@ static DEVICE_STATUS _fscc_qspi_cmd_begin(FiveStepCommandClientQspi *commandClie
 
         if (cmd->isWrite)
         {
-            if (cmd->dataSize > commandClient->dmaThreshold)
+            if (cmd->dataSize > command->dmaThreshold)
             {
-                commandClient->_status.isDmaTx = 1;
+                command->_status.isDmaTx = 1;
                 SCB_CleanDCache_by_Addr((uint32_t *)cmd->data, cmd->dataSize << cmd->dataBits);
-                return HAL_QSPI_Transmit_DMA(commandClient->instance, cmd->data);
+                return HAL_QSPI_Transmit_DMA(command->instance, cmd->data);
             }
             else
             {
-                commandClient->_status.isDmaTx = 0;
-                return HAL_QSPI_Transmit_IT(commandClient->instance, cmd->data);
+                command->_status.isDmaTx = 0;
+                return HAL_QSPI_Transmit_IT(command->instance, cmd->data);
             }
         }
         else
         {
-            if (cmd->dataSize > commandClient->dmaThreshold)
+            if (cmd->dataSize > command->dmaThreshold)
             {
-                commandClient->_status.isDmaRx = 1;
-                commandClient->_rxBuffer.data = cmd->data;
-                commandClient->_rxBuffer.size = cmd->dataSize << cmd->dataBits;
-                return HAL_QSPI_Receive_DMA(commandClient->instance, cmd->data);
+                command->_status.isDmaRx = 1;
+                command->_rxBuffer.data = cmd->data;
+                command->_rxBuffer.size = cmd->dataSize << cmd->dataBits;
+                return HAL_QSPI_Receive_DMA(command->instance, cmd->data);
             }
             else
             {
-                commandClient->_status.isDmaRx = 0;
-                return HAL_QSPI_Receive_IT(commandClient->instance, cmd->data);
+                command->_status.isDmaRx = 0;
+                return HAL_QSPI_Receive_IT(command->instance, cmd->data);
             }
         }
     }
 };
 
-static void _fscc_qspi_cmd_data_end(FiveStepCommandClientQspi *commandClient)
+static void _command_qspi_cmd_data_end(CommandQspi *command)
 {
-    commandClient->_rxBuffer.data = 0;
-    commandClient->_rxBuffer.size = 0;
-    EVENTS_RESET_FLAGS(commandClient->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
-    EVENTS_SET_FLAGS(commandClient->base.events, FIVE_STEP_COMMAND_EVENT_CMD_COMPLETE);
+    command->_rxBuffer.data = 0;
+    command->_rxBuffer.size = 0;
+    EVENTS_RESET_FLAGS(command->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
+    EVENTS_SET_FLAGS(command->base.events, FIVE_STEP_COMMAND_EVENT_CMD_COMPLETE);
 };
 
-static DEVICE_STATUS _fscc_qspi_send(FiveStepCommandClient *cc, CommandStruct *command)
+static DEVICE_STATUS _command_qspi_send(Command *cc, CommandFrame *commandStep)
 {
-    FiveStepCommandClientQspi *commandClient = (FiveStepCommandClientQspi *)cc;
-    if (_fscc_qspi_is_busy(commandClient))
+    CommandQspi *command = (CommandQspi *)cc;
+    if (_command_qspi_is_busy(command))
     {
         return DEVICE_STATUS_BUSY;
     }
 
-    EVENTS_CLEAR_FLAGS(commandClient->base.events);
-    EVENTS_SET_FLAGS(commandClient->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
-    commandClient->base._curCmd = command;
-    return _fscc_qspi_cmd_begin(commandClient);
+    EVENTS_CLEAR_FLAGS(command->base.events);
+    EVENTS_SET_FLAGS(command->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
+    command->base._curFrame = commandStep;
+    return _command_qspi_cmd_begin(command);
 };
 
 static void _qspi_cmd_cplt(QSPI_HandleTypeDef *instance)
@@ -111,13 +111,13 @@ static void _qspi_cmd_cplt(QSPI_HandleTypeDef *instance)
     // 这个中断进来, 说明后续没有数据;
     DEVICE_STATUS rst;
 
-    _fscc_qspi_cmd_data_end(_cc);
+    _command_qspi_cmd_data_end(_cc);
 };
 
 static void _qspi_tx_cplt(QSPI_HandleTypeDef *instance)
 {
     DEVICE_STATUS rst;
-    _fscc_qspi_cmd_data_end(_cc);
+    _command_qspi_cmd_data_end(_cc);
 };
 
 static void _qspi_rx_cplt(QSPI_HandleTypeDef *instance)
@@ -128,23 +128,23 @@ static void _qspi_rx_cplt(QSPI_HandleTypeDef *instance)
     {
         SCB_InvalidateDCache_by_Addr(_cc->_rxBuffer.data, _cc->_rxBuffer.size);
     }
-    _fscc_qspi_cmd_data_end(_cc);
+    _command_qspi_cmd_data_end(_cc);
 };
 
 static void _qspi_error(QSPI_HandleTypeDef *instance)
 {
-    if (_fscc_qspi_is_busy(_cc))
+    if (_command_qspi_is_busy(_cc))
     {
         EVENTS_RESET_FLAGS(_cc->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
         EVENTS_SET_FLAGS(_cc->base.events, FIVE_STEP_COMMAND_EVENT_CMD_COMPLETE);
     }
     if (_cc->base.onError)
     {
-        _cc->base.onError((FiveStepCommandClient *)_cc, instance->ErrorCode);
+        _cc->base.onError((Command *)_cc, instance->ErrorCode);
     }
 };
 
-static void _fscc_qspi_result_match(QSPI_HandleTypeDef *instance)
+static void _command_qspi_result_match(QSPI_HandleTypeDef *instance)
 {
     EVENTS_SET_FLAGS(_cc->base.events, FSCC_EVENT_AUTO_POLLING_CPLT);
     if (_cc->onStatusPollingResult)
@@ -153,45 +153,45 @@ static void _fscc_qspi_result_match(QSPI_HandleTypeDef *instance)
     }
 };
 
-DEVICE_STATUS fscc_qspi_auto_polling_wait(FiveStepCommandClientQspi *commandClient)
+DEVICE_STATUS command_qspi_auto_polling_wait(CommandQspi *command)
 {
     ULONG actualFlags;
-    return tx_event_flags_get(&commandClient->base.events, FSCC_EVENT_AUTO_POLLING_CPLT, TX_OR, &actualFlags, TX_WAIT_FOREVER);
+    return tx_event_flags_get(&command->base.events, FSCC_EVENT_AUTO_POLLING_CPLT, TX_OR, &actualFlags, TX_WAIT_FOREVER);
 };
 
-DEVICE_STATUS fscc_qspi_autopolling(FiveStepCommandClientQspi *commandClient, CommandStruct *pollingCommand, FSCCAutoPollingTypeDef *cfg)
+DEVICE_STATUS command_qspi_autopolling(CommandQspi *command, CommandFrame *pollingCommand, FSCCAutoPollingTypeDef *cfg)
 {
     QSPI_CommandTypeDef cmdHandler;
-    _fscc_qspi_cmd_tranlate(pollingCommand, &cmdHandler);
-    EVENTS_RESET_FLAGS(commandClient->base.events, FSCC_EVENT_AUTO_POLLING_CPLT);
-    return HAL_QSPI_AutoPolling((QSPI_HandleTypeDef *)commandClient->instance, &cmdHandler, cfg, HAL_MAX_DELAY);
+    _command_qspi_cmd_tranlate(pollingCommand, &cmdHandler);
+    EVENTS_RESET_FLAGS(command->base.events, FSCC_EVENT_AUTO_POLLING_CPLT);
+    return HAL_QSPI_AutoPolling((QSPI_HandleTypeDef *)command->instance, &cmdHandler, cfg, HAL_MAX_DELAY);
 };
 
-DEVICE_STATUS five_step_command_client_qspi_create(FiveStepCommandClientQspi *commandClient,
+DEVICE_STATUS command_qspi_create(CommandQspi *command,
                                                    QSPI_HandleTypeDef *instance,
                                                    uint32_t dmaThreshold)
 {
-    five_step_command_client_create((FiveStepCommandClient *)commandClient, &_fscc_qspi_send);
-    commandClient->instance = instance;
-    commandClient->dmaThreshold = dmaThreshold;
-    commandClient->_rxBuffer.data = NULL;
-    commandClient->_rxBuffer.size = 0;
-    commandClient->_status.isDmaRx = 0;
-    commandClient->_status.isDmaTx = 0;
+    command_create((Command *)command, &_command_qspi_send);
+    command->instance = instance;
+    command->dmaThreshold = dmaThreshold;
+    command->_rxBuffer.data = NULL;
+    command->_rxBuffer.size = 0;
+    command->_status.isDmaRx = 0;
+    command->_status.isDmaTx = 0;
     HAL_QSPI_RegisterCallback(instance, HAL_QSPI_TX_CPLT_CB_ID, &_qspi_tx_cplt);
     HAL_QSPI_RegisterCallback(instance, HAL_QSPI_RX_CPLT_CB_ID, &_qspi_rx_cplt);
     HAL_QSPI_RegisterCallback(instance, HAL_QSPI_CMD_CPLT_CB_ID, &_qspi_cmd_cplt);
-    HAL_QSPI_RegisterCallback(instance, HAL_QSPI_STATUS_MATCH_CB_ID, &_fscc_qspi_result_match);
+    HAL_QSPI_RegisterCallback(instance, HAL_QSPI_STATUS_MATCH_CB_ID, &_command_qspi_result_match);
     HAL_QSPI_RegisterCallback(instance, HAL_QSPI_ERROR_CB_ID, &_qspi_error);
-    _cc = commandClient;
+    _cc = command;
     return DEVICE_STATUS_OK;
 };
 
-void _five_step_command_client_qspi_register(FiveStepCommandClientQspi *commandClient, void *parent,
-                                             FiveStepCommandClientErrorHandleFuncType onError,
-                                             FiveStepCommandClientQspiEventHandleFuncType onStatusPollingResult)
+void _command_qspi_register(CommandQspi *command, void *parent,
+                                             CommandErrorHandleFuncType onError,
+                                             CommandQspiEventHandleFuncType onStatusPollingResult)
 {
-    commandClient->parent = parent;
-    commandClient->base.onError = onError;
-    commandClient->onStatusPollingResult = onStatusPollingResult;
+    command->parent = parent;
+    command->base.onError = onError;
+    command->onStatusPollingResult = onStatusPollingResult;
 };

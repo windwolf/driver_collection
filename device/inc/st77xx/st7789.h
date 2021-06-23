@@ -6,7 +6,7 @@ extern "C"
 {
 #endif
 
-#include "../../../common/inc/common/fscc.h"
+#include "../../../common/inc/common/command.h"
 #include "tx_api.h"
 #include "stdint.h"
 #include "../../../common/inc/common/device.h"

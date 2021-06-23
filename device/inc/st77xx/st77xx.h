@@ -6,7 +6,7 @@ extern "C"
 {
 #endif
 
-#include "../../../common/inc/common/fscc.h"
+#include "../../../common/inc/common/command.h"
 #include "tx_api.h"
 #include "stdint.h"
 #include "../../../common/inc/common/device.h"
@@ -20,8 +20,8 @@ extern "C"
 
     typedef struct ST77XX
     {
-        FiveStepCommandClient *cc;
-        CommandStruct command;
+        Command *cc;
+        CommandFrame command;
         TX_EVENT_FLAGS_GROUP events;
         Buffer buffer; //48114;
         uint8_t cmdData[16];
@@ -38,7 +38,7 @@ extern "C"
 
     } ST77XX;
 
-    DEVICE_STATUS st77xx_create(ST77XX *instance, FiveStepCommandClient *cc, Buffer buffer);
+    DEVICE_STATUS st77xx_create(ST77XX *instance, Command *cc, Buffer buffer);
 
     int st77xx_is_busy(ST77XX *instance);
 

@@ -7,21 +7,21 @@ extern "C"
 #endif
 
 #include "../../../common/inc/common/device.h"
-#include "../../../common/inc/common/fscc.h"
+#include "../../../common/inc/common/command.h"
 #include "stm32h7xx_hal.h"
 
 #define FSCCAutoPollingTypeDef QSPI_AutoPollingTypeDef
 #define FSCC_EVENT_AUTO_POLLING_CPLT 0x08000000
-struct FiveStepCommandClientQspi;
-    typedef void (*FiveStepCommandClientQspiEventHandleFuncType)(struct FiveStepCommandClientQspi *instance);
-    typedef struct FiveStepCommandClientQspi
+struct CommandQspi;
+    typedef void (*CommandQspiEventHandleFuncType)(struct CommandQspi *instance);
+    typedef struct CommandQspi
     {
-        FiveStepCommandClient base;
+        Command base;
         void *instance;
         uint32_t dmaThreshold;
 
         void* parent;
-        FiveStepCommandClientQspiEventHandleFuncType onStatusPollingResult;
+        CommandQspiEventHandleFuncType onStatusPollingResult;
 
         Buffer _rxBuffer;
         struct
@@ -29,17 +29,17 @@ struct FiveStepCommandClientQspi;
             uint8_t isDmaTx : 1;
             uint8_t isDmaRx : 1;
         } _status;
-    } FiveStepCommandClientQspi;
+    } CommandQspi;
 
-    void _five_step_command_client_qspi_register(FiveStepCommandClientQspi *commandClient, void *parent,
-                                                 FiveStepCommandClientErrorHandleFuncType onError,
-                                                 FiveStepCommandClientQspiEventHandleFuncType onStatusPollingResult);
+    void _command_qspi_register(CommandQspi *command, void *parent,
+                                                 CommandErrorHandleFuncType onError,
+                                                 CommandQspiEventHandleFuncType onStatusPollingResult);
 
-    DEVICE_STATUS five_step_command_client_qspi_create(FiveStepCommandClientQspi *commandClient,
+    DEVICE_STATUS command_qspi_create(CommandQspi *command,
                                                        QSPI_HandleTypeDef *instance,
                                                        uint32_t dmaThreshold);
 
-    DEVICE_STATUS fscc_qspi_autopolling(FiveStepCommandClientQspi *commandClient, CommandStruct* pollingCommand, FSCCAutoPollingTypeDef *autoPolling);
+    DEVICE_STATUS command_qspi_autopolling(CommandQspi *command, CommandFrame* pollingCommandStep, FSCCAutoPollingTypeDef *autoPolling);
 
 #ifdef __cplusplus
 }

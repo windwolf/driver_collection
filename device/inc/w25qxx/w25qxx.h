@@ -8,7 +8,7 @@ extern "C"
 
 #include "../../../common/inc/common/device.h"
 #include "../../../common/inc/common/buffer.h"
-#include "../../../common/inc/common/fscc.h"
+#include "../../../common/inc/common/command.h"
 #include "../../../common/inc/common/block.h"
 #include "stdint.h"
 #include "tx_api.h"
@@ -191,8 +191,8 @@ extern "C"
                 uint8_t HOLD_RST : 1;
             } status3Bits;
         };
-        FiveStepCommandClient *cc;
-        CommandStruct command;
+        Command *cc;
+        CommandFrame command;
         union
         {
             uint32_t options;
@@ -204,7 +204,7 @@ extern "C"
         };
     } W25QXX;
 
-    DEVICE_STATUS w25qxx_create(W25QXX *instance, FiveStepCommandClient *cc, uint8_t autoPolling);
+    DEVICE_STATUS w25qxx_create(W25QXX *instance, Command *cc, uint8_t autoPolling);
     DEVICE_STATUS w25qxx_reset(W25QXX *instance);
     DEVICE_STATUS w25qxx_status_get(W25QXX *instance);
     DEVICE_STATUS w25qxx_status_set(W25QXX *instance);

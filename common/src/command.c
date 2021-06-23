@@ -13,7 +13,7 @@ DEVICE_STATUS command_create(Command *command, CommandDeviceSendFuncType deviceS
 DEVICE_STATUS command_cplt_wait(Command *command, ULONG timeout)
 {
     ULONG actualFlags;
-    tx_event_flags_get(&command->events, FIVE_STEP_COMMAND_EVENT_CMD_COMPLETE, TX_AND_CLEAR, &actualFlags, TX_WAIT_FOREVER);
+    tx_event_flags_get(&command->events, FIVE_STEP_COMMAND_EVENT_CMD_COMPLETE, TX_AND_CLEAR, &actualFlags, timeout);
     return command->hasError ? DEVICE_STATUS_GENERAL_ERROR : DEVICE_STATUS_OK;
 };
 

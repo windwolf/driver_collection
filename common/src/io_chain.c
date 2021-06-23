@@ -108,6 +108,6 @@ DEVICE_STATUS io_chain_send(IoChain *ioChain, IoChainFrame *ioChainFrame, uint32
 DEVICE_STATUS io_chain_cplt_wait(IoChain *ioChain, ULONG timeout)
 {
     ULONG actualFlags;
-    tx_event_flags_get(&ioChain->events, IO_CHAIN_EVENT_CMD_COMPLETE, TX_AND_CLEAR, &actualFlags, TX_WAIT_FOREVER);
+    tx_event_flags_get(&ioChain->events, IO_CHAIN_EVENT_CMD_COMPLETE, TX_AND_CLEAR, &actualFlags, timeout);
     return ioChain->hasError ? DEVICE_STATUS_GENERAL_ERROR : DEVICE_STATUS_OK;
 };

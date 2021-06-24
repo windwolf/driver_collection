@@ -29,7 +29,7 @@ void _spi_device_register(SpiDevice *device, void *parent,
     device->onRxComplete = onRxComplete;
 };
 
-void _i2c_device_register(I2CMemDevice *device, void *parent,
+void _i2c_device_register(I2CDevice *device, void *parent,
                           I2CMemDeviceEventHandlerFuncType onWriteComplete,
                           I2CMemDeviceEventHandlerFuncType onReadComplete,
                           DeviceBaseEventHandlerFuncType onError)

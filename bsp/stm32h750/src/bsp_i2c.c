@@ -1,4 +1,4 @@
-#include "../inc/bsp_i2c_mem.h"
+#include "../inc/bsp_i2c.h"
 #include "../inc/bsp_shared.h"
 
 typedef enum I2C_INDEX
@@ -19,7 +19,7 @@ DEFINE_DEVICE_REGISTER_END(I2C)
 
 static void I2C_TxCpltCallback__(I2C_HandleTypeDef *handle)
 {
-    I2CMemDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
+    I2CDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
     if (device->onWriteComplete)
     {
         device->onWriteComplete(device);
@@ -28,7 +28,7 @@ static void I2C_TxCpltCallback__(I2C_HandleTypeDef *handle)
 
 static void I2C_RxCpltCallback__(I2C_HandleTypeDef *handle)
 {
-    I2CMemDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
+    I2CDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
     if (device->_status.isDmaRx)
     {
         SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
@@ -41,7 +41,7 @@ static void I2C_RxCpltCallback__(I2C_HandleTypeDef *handle)
 
 static void I2C_ErrCallback__(I2C_HandleTypeDef *handle)
 {
-    I2CMemDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
+    I2CDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
     if (device->_status.isDmaRx)
     {
         SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
@@ -52,7 +52,7 @@ static void I2C_ErrCallback__(I2C_HandleTypeDef *handle)
     }
 };
 
-DEVICE_STATUS i2c_mem_device_create(I2CMemDevice *device, I2C_HandleTypeDef *instance, uint16_t dmaThershold)
+DEVICE_STATUS i2c_device_create(I2CDevice *device, I2C_HandleTypeDef *instance, uint16_t dmaThershold)
 {
     device_base_create((DeviceBase *)device);
     device->base.instance = instance;
@@ -68,10 +68,64 @@ DEVICE_STATUS i2c_mem_device_create(I2CMemDevice *device, I2C_HandleTypeDef *ins
     return DEVICE_STATUS_OK;
 };
 
-DEVICE_STATUS i2c_device_init(I2CMemDevice *device) { return DEVICE_STATUS_OK; };
-DEVICE_STATUS i2c_device_deinit(I2CMemDevice *device) { return DEVICE_STATUS_OK; };
+DEVICE_STATUS i2c_device_init(I2CDevice *device) { return DEVICE_STATUS_OK; };
+DEVICE_STATUS i2c_device_deinit(I2CDevice *device) { return DEVICE_STATUS_OK; };
 
-DEVICE_STATUS i2c_device_write(I2CMemDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width)
+DEVICE_STATUS i2c_device_read(I2CDevice *device, uint16_t deviceAddress, void *data, uint32_t size, DeviceDataWidth width)
+{
+    if (width > DEVICE_DATAWIDTH_16)
+    {
+        return DEVICE_STATUS_NOT_SUPPORT;
+    }
+    device->_rxBuffer.data = data;
+    device->_rxBuffer.size = size * (width - 1);
+    if (size > device->dmaThershold)
+    {
+        device->_status.isDmaRx = 1;
+        return HAL_I2C_Read_DMA((I2C_HandleTypeDef *)device->base.instance,
+                                deviceAddress,
+                                width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
+                                (uint8_t *)data,
+                                size /*TODO: 确认要不要x2 */);
+    }
+    else
+    {
+        device->_status.isDmaRx = 0;
+        return HAL_I2C_Read_DMA((I2C_HandleTypeDef *)device->base.instance,
+                                deviceAddress,
+                                width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
+                                (uint8_t *)data,
+                                size /*TODO: 确认要不要x2 */);
+    }
+};
+DEVICE_STATUS i2c_device_write(I2CDevice *device, uint16_t deviceAddress, void *data, uint32_t size, DeviceDataWidth width)
+{
+    if (width > DEVICE_DATAWIDTH_16)
+    {
+        return DEVICE_STATUS_NOT_SUPPORT;
+    }
+    if (size > device->dmaThershold)
+    {
+        device->_status.isDmaTx = 1;
+        SCB_CleanDCache_by_Addr((uint32_t *)data, size * (width - 1));
+        return HAL_I2C_Write_DMA((I2C_HandleTypeDef *)device->base.instance,
+                                 deviceAddress,
+                                 width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
+                                 (uint8_t *)data,
+                                 size /*TODO: 确认要不要x2 */);
+    }
+    else
+    {
+        device->_status.isDmaTx = 0;
+        return HAL_I2C_Write_IT((I2C_HandleTypeDef *)device->base.instance,
+                                deviceAddress,
+                                width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
+                                (uint8_t *)data,
+                                size /*TODO: 确认要不要x2 */);
+    }
+};
+
+DEVICE_STATUS i2c_device_mem_write(I2CDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width)
 {
     if (width > DEVICE_DATAWIDTH_16)
     {
@@ -98,7 +152,7 @@ DEVICE_STATUS i2c_device_write(I2CMemDevice *device, uint16_t deviceAddress, uin
     }
 };
 
-DEVICE_STATUS i2c_device_read(I2CMemDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width)
+DEVICE_STATUS i2c_device_mem_read(I2CDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width)
 {
     if (width > DEVICE_DATAWIDTH_16)
     {
@@ -118,10 +172,10 @@ DEVICE_STATUS i2c_device_read(I2CMemDevice *device, uint16_t deviceAddress, uint
     else
     {
         device->_status.isDmaRx = 0;
-        return HAL_I2C_Mem_Read_DMA((I2C_HandleTypeDef *)device->base.instance,
-                                    deviceAddress, memAddress,
-                                    width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
-                                    (uint8_t *)data,
-                                    size /*TODO: 确认要不要x2 */);
+        return HAL_I2C_Mem_Read_IT((I2C_HandleTypeDef *)device->base.instance,
+                                   deviceAddress, memAddress,
+                                   width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
+                                   (uint8_t *)data,
+                                   size /*TODO: 确认要不要x2 */);
     }
 };

@@ -111,9 +111,9 @@ extern "C"
     DEVICE_STATUS spi_device_rx(SpiDevice *device, void *data, uint32_t size, DeviceDataWidth width, uint8_t dummyCycleCount);
 
     /* i2c mem device */
-    struct I2CMemDevice;
-    typedef void (*I2CMemDeviceEventHandlerFuncType)(struct I2CMemDevice *device);
-    typedef struct I2CMemDevice
+    struct I2CDevice;
+    typedef void (*I2CMemDeviceEventHandlerFuncType)(struct I2CDevice *device);
+    typedef struct I2CDevice
     {
         DeviceBase base;
         uint16_t dmaThershold;
@@ -128,18 +128,21 @@ extern "C"
             uint8_t isDmaTx : 1;
             uint8_t isDmaRx : 1;
         } _status;
-    } I2CMemDevice;
+    } I2CDevice;
 
-    void _i2c_device_register(I2CMemDevice *device, void *parent,
+    void _i2c_device_register(I2CDevice *device, void *parent,
                               I2CMemDeviceEventHandlerFuncType onWriteComplete,
                               I2CMemDeviceEventHandlerFuncType onReadComplete,
                               DeviceBaseEventHandlerFuncType onError);
 
-    DEVICE_STATUS i2c_device_init(I2CMemDevice *device);
-    DEVICE_STATUS i2c_device_deinit(I2CMemDevice *device);
+    DEVICE_STATUS i2c_device_init(I2CDevice *device);
+    DEVICE_STATUS i2c_device_deinit(I2CDevice *device);
 
-    DEVICE_STATUS i2c_device_read(I2CMemDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width);
-    DEVICE_STATUS i2c_device_write(I2CMemDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width);
+    DEVICE_STATUS i2c_device_read(I2CDevice *device, uint16_t deviceAddress, void *data, uint32_t size, DeviceDataWidth width);
+    DEVICE_STATUS i2c_device_write(I2CDevice *device, uint16_t deviceAddress, void *data, uint32_t size, DeviceDataWidth width);
+
+    DEVICE_STATUS i2c_device_mem_read(I2CDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width);
+    DEVICE_STATUS i2c_device_mem_write(I2CDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width);
 
     /* uart device */
     struct UartDevice;

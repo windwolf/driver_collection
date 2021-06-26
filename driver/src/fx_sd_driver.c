@@ -15,6 +15,7 @@
 #include "mem_layout.h"
 
 static SdDevice *_fx_device;
+AXI_BUFFER unsigned char test_read[512];
 
 UINT _fx_partition_offset_calculate(void *partition_sector, UINT partition, ULONG *partition_start, ULONG *partition_size);
 

@@ -76,7 +76,7 @@ DEVICE_STATUS sd_device_read(SdDevice *device, void *data, uint32_t num, uint32_
 
     device->_rxBuffer.data = data;
     device->_rxBuffer.size = device->blockSize * count;
-    return HAL_SD_WriteBlocks_DMA(handle, (uint8_t *)data, num, count);
+    return HAL_SD_ReadBlocks_DMA(handle, (uint8_t *)data, num, count);
 };
 
 DEVICE_STATUS sd_device_write(SdDevice *device, void *data, uint32_t num, uint32_t count)
@@ -84,7 +84,7 @@ DEVICE_STATUS sd_device_write(SdDevice *device, void *data, uint32_t num, uint32
     SD_HandleTypeDef *handle = (SD_HandleTypeDef *)(device->base.instance);
 
     SCB_CleanDCache_by_Addr((uint32_t *)data, device->blockSize * count);
-    return HAL_SD_ReadBlocks_DMA(handle, data, num, count);
+    return HAL_SD_WriteBlocks_DMA(handle, data, num, count);
 };
 
 DEVICE_STATUS sd_device_erase(SdDevice *device, uint32_t num, uint32_t count)

@@ -177,18 +177,19 @@ DEVICE_STATUS st7735_display(ST77XX *instance, uint8_t on)
     return DEVICE_STATUS_OK;
 }
 
-DEVICE_STATUS st7735_display_window_set(ST77XX *instance, uint16_t x, uint16_t y, uint16_t width, uint16_t height)
+DEVICE_STATUS st7735_display_window_set(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 {
     uint16_t *buffer = (uint16_t *)instance->buffer.data;
-    x += instance->xOffset;
-    y += instance->yOffset;
-
-    buffer[0] = x;
-    buffer[1] = x + width - 1;
+    x1 += instance->xOffset;
+    x2 += instance->xOffset;
+    y1 += instance->yOffset;
+    y2 += instance->yOffset;
+    buffer[0] = x1;
+    buffer[1] = x2;
 
     st77xx_command_write_16(instance, ST7735_CMD_COLUMN_ADDRESS_SET, buffer, 2);
-    buffer[0] = y;
-    buffer[1] = y + height - 1;
+    buffer[0] = y1;
+    buffer[1] = y2;
     st77xx_command_write_16(instance, ST7735_CMD_ROW_ADDRESS_SET, buffer, 2);
     return DEVICE_STATUS_OK;
 }
@@ -227,73 +228,73 @@ DEVICE_STATUS st7735_pixel_set(ST77XX *instance, uint16_t x, uint16_t y, uint32_
     return DEVICE_STATUS_OK;
 }
 
-DEVICE_STATUS st7735_hline_draw(ST77XX *instance, uint32_t x, uint32_t y, uint32_t length, uint32_t color)
+DEVICE_STATUS st7735_hline_draw(ST77XX *instance, uint32_t x1, uint32_t y, uint32_t x2, uint32_t color)
 {
 
     DEVICE_STATUS ret = DEVICE_STATUS_OK;
 
-    if ((x + length) > instance->width)
+    if ((x1 > instance->width) || (x2 > instance->width))
     {
         return DEVICE_STATUS_GENERAL_ERROR;
     }
 
-    ret = st7735_cursor_set(instance, x, y);
+    ret = st7735_cursor_set(instance, x1, y);
 
     if (ret != DEVICE_STATUS_OK)
     {
         return ret;
     }
     uint16_t *buf = (uint16_t *)(instance->buffer.data);
-    for (uint32_t i = 0; i < length; i++)
+    for (uint32_t i = 0; i < (x2 - x1 + 1); i++)
     {
         buf[i] = (uint16_t)(color);
     }
 
-    st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, buf, length);
+    st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, buf, x2 - x1 + 1);
 
     return ret;
 }
 
-DEVICE_STATUS st7735_vline_draw(ST77XX *instance, uint16_t x, uint16_t y, uint16_t length, uint32_t color)
+DEVICE_STATUS st7735_vline_draw(ST77XX *instance, uint16_t x, uint16_t y1, uint16_t y2, uint32_t color)
 {
     DEVICE_STATUS ret = DEVICE_STATUS_OK;
     uint16_t *buf = (uint16_t *)(instance->buffer.data);
 
-    if ((y + length) > instance->height)
+    if ((y1 > instance->height) || (y2 > instance->height))
     {
         return DEVICE_STATUS_GENERAL_ERROR;
     }
 
-    ret = st7735_display_window_set(instance, x, y, 1, length);
+    ret = st7735_display_window_set(instance, x, y1, x, y2);
 
     if (ret != DEVICE_STATUS_OK)
     {
         return ret;
     }
-    for (uint32_t i = 0; i < length; i++)
+    for (uint32_t i = 0; i < (y2 - y1 + 1); i++)
     {
         buf[i] = (uint16_t)(color);
     }
 
-    st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, buf, length);
+    st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, buf, y2 - y1 + 1);
 
     return ret;
 }
 
-DEVICE_STATUS st7735_rect_draw(ST77XX *instance, uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color)
+DEVICE_STATUS st7735_rect_draw(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 {
     DEVICE_STATUS ret = DEVICE_STATUS_OK;
 
-    if ((x + width) > instance->width)
+    if (x1 > instance->width || x2 > instance->width)
     {
         return DEVICE_STATUS_GENERAL_ERROR;
     }
-    if ((y + height) > instance->height)
+    if (y1 > instance->height || y2 > instance->height)
     {
         return DEVICE_STATUS_GENERAL_ERROR;
     }
 
-    ret = st7735_display_window_set(instance, x, y, width, height);
+    ret = st7735_display_window_set(instance, x1, y1, x2, y2);
 
     if (ret != DEVICE_STATUS_OK)
     {
@@ -301,7 +302,34 @@ DEVICE_STATUS st7735_rect_draw(ST77XX *instance, uint16_t x, uint16_t y, uint16_
     }
     // uint8_t *buf = (uint8_t *)(instance->buffer);
     uint16_t *buf = (uint16_t *)(instance->buffer.data);
-    uint32_t size = width * height;
+    uint32_t size = (x2 - x1 + 1) * (y2 - y1 + 1);
+    st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, buf, size);
+    // st77xx_command_write_8(instance, ST7735_CMD_MEMORY_WRITE, buf, size * 2);
+    return ret;
+}
+
+DEVICE_STATUS st7735_rect_fill(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color)
+{
+    DEVICE_STATUS ret = DEVICE_STATUS_OK;
+
+    if (x1 > instance->width || x2 > instance->width)
+    {
+        return DEVICE_STATUS_GENERAL_ERROR;
+    }
+    if (y1 > instance->height || y2 > instance->height)
+    {
+        return DEVICE_STATUS_GENERAL_ERROR;
+    }
+
+    ret = st7735_display_window_set(instance, x1, y1, x2, y2);
+
+    if (ret != DEVICE_STATUS_OK)
+    {
+        return ret;
+    }
+    // uint8_t *buf = (uint8_t *)(instance->buffer);
+    uint16_t *buf = (uint16_t *)(instance->buffer.data);
+    uint32_t size = (x2 - x1 + 1) * (y2 - y1 + 1);
     for (uint32_t i = 0; i < size; i++)
     {
         buf[i] = color;

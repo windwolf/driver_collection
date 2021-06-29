@@ -9,7 +9,7 @@ extern "C"
 #include "../../device/inc/st77xx/st7735.h"
 #include "../../../../guix/common/inc/gx_api.h"
 
-    void st7735_graphics_driver_set(ST77XX *st7735);
+    void st7735_graphics_driver_rgb565_instance_set(ST77XX *instance);
 
     UINT st7735_graphics_driver_rgb565_setup(GX_DISPLAY *display);
 

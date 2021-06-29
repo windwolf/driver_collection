@@ -23,7 +23,6 @@ extern "C"
         Command *cc;
         CommandFrame command;
         TX_EVENT_FLAGS_GROUP events;
-        Buffer buffer; //48114;
         uint8_t cmdData[16];
 
         uint8_t pvGamma[16];
@@ -38,7 +37,7 @@ extern "C"
 
     } ST77XX;
 
-    DEVICE_STATUS st77xx_create(ST77XX *instance, Command *cc, Buffer buffer);
+    DEVICE_STATUS st77xx_create(ST77XX *instance, Command *cc);
 
     int st77xx_is_busy(ST77XX *instance);
 
@@ -50,8 +49,8 @@ extern "C"
     // void ST77XX_Command_Write16xN(ST77XX *instance, uint8_t cmdId, uint16_t data1, uint16_t data2, uint8_t size);
     void st77xx_command_write_8(ST77XX *instance, uint8_t cmdId, uint8_t *data, uint16_t size);
     void st77xx_command_write_16(ST77XX *instance, uint8_t cmdId, uint16_t *data, uint16_t size);
-    void st77xx_command_read_8(ST77XX *instance, uint8_t cmdId, uint16_t size);
-    void st77xx_command_read_16(ST77XX *instance, uint8_t cmdId, uint16_t size);
+    void st77xx_command_read_8(ST77XX *instance, uint8_t cmdId, uint8_t *buffer, uint16_t size);
+    void st77xx_command_read_16(ST77XX *instance, uint8_t cmdId, uint16_t *buffer, uint16_t size);
 
 #ifdef __cplusplus
 }

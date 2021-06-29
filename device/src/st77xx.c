@@ -9,10 +9,9 @@ static void _st77xx_comand_setup(CommandFrame *cmd)
     cmd->dummyCycles = 0;
 }
 
-DEVICE_STATUS st77xx_create(ST77XX *instance, Command *cc, Buffer buffer)
+DEVICE_STATUS st77xx_create(ST77XX *instance, Command *cc)
 {
     instance->cc = cc;
-    instance->buffer = buffer;
     tx_event_flags_create(&instance->events, "st77xx");
     return DEVICE_STATUS_OK;
 }
@@ -88,13 +87,13 @@ void st77xx_command_write_16(ST77XX *instance, uint8_t cmdId, uint16_t *data, ui
     //LOG("ST77XX-DATA16: WC: %x", cmdId)
 }
 
-void st77xx_command_read_8(ST77XX *instance, uint8_t cmdId, uint16_t size)
+void st77xx_command_read_8(ST77XX *instance, uint8_t cmdId, uint8_t *buffer, uint16_t size)
 {
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     _st77xx_comand_setup(cmd);
     cmd->commandId = cmdId;
-    cmd->data = instance->buffer.data;
+    cmd->data = buffer;
     cmd->dataSize = size;
     cmd->isWrite = 0;
     cmd->dataBits = DEVICE_DATAWIDTH_8;
@@ -105,13 +104,13 @@ void st77xx_command_read_8(ST77XX *instance, uint8_t cmdId, uint16_t size)
     //LOG("ST77XX-DATA8: WC: %x", cmdId)
 }
 
-void st77xx_command_read_16(ST77XX *instance, uint8_t cmdId, uint16_t size)
+void st77xx_command_read_16(ST77XX *instance, uint8_t cmdId, uint16_t *buffer, uint16_t size)
 {
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     _st77xx_comand_setup(cmd);
     cmd->commandId = cmdId;
-    cmd->data = instance->buffer.data;
+    cmd->data = buffer;
     cmd->dataSize = size;
     cmd->isWrite = 0;
     cmd->dataBits = DEVICE_DATAWIDTH_16;

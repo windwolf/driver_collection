@@ -11,9 +11,9 @@ static inline int _st7735_is_busy(ST77XX *instance)
     return tx_event_flags_get(&instance->events, ST7735_EVENT_BUSY, TX_OR, &actualFlags, TX_NO_WAIT) == TX_SUCCESS;
 };
 
-DEVICE_STATUS st7735_create(ST77XX *instance, Command *command, Buffer buffer)
+DEVICE_STATUS st7735_create(ST77XX *instance, Command *command)
 {
-    st77xx_create(instance, command, buffer);
+    st77xx_create(instance, command);
 
     instance->pvGamma[0] = 0x02U;
     instance->pvGamma[1] = 0x1CU;
@@ -179,34 +179,30 @@ DEVICE_STATUS st7735_display(ST77XX *instance, uint8_t on)
 
 DEVICE_STATUS st7735_display_window_set(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 {
-    uint16_t *buffer = (uint16_t *)instance->buffer.data;
     x1 += instance->xOffset;
     x2 += instance->xOffset;
     y1 += instance->yOffset;
     y2 += instance->yOffset;
-    buffer[0] = x1;
-    buffer[1] = x2;
 
-    st77xx_command_write_16(instance, ST7735_CMD_COLUMN_ADDRESS_SET, buffer, 2);
-    buffer[0] = y1;
-    buffer[1] = y2;
-    st77xx_command_write_16(instance, ST7735_CMD_ROW_ADDRESS_SET, buffer, 2);
+    uint16_t x[2] = {x1, x2};
+    st77xx_command_write_16(instance, ST7735_CMD_COLUMN_ADDRESS_SET, x, 2);
+
+    uint16_t y[2] = {y1, y2};
+    st77xx_command_write_16(instance, ST7735_CMD_ROW_ADDRESS_SET, y, 2);
     return DEVICE_STATUS_OK;
 }
 
 DEVICE_STATUS st7735_cursor_set(ST77XX *instance, uint16_t x, uint16_t y)
 {
-    uint16_t *buffer = (uint16_t *)instance->buffer.data;
-
-    buffer[0] = x + instance->xOffset;
-    st77xx_command_write_16(instance, ST7735_CMD_COLUMN_ADDRESS_SET, buffer, 1);
-    buffer[0] = y + instance->yOffset;
-    st77xx_command_write_16(instance, ST7735_CMD_ROW_ADDRESS_SET, buffer, 1);
+    x += instance->xOffset;
+    st77xx_command_write_16(instance, ST7735_CMD_COLUMN_ADDRESS_SET, &x, 1);
+    y += instance->yOffset;
+    st77xx_command_write_16(instance, ST7735_CMD_ROW_ADDRESS_SET, &y, 1);
 
     return DEVICE_STATUS_OK;
 }
 
-DEVICE_STATUS st7735_pixel_set(ST77XX *instance, uint16_t x, uint16_t y, uint32_t color)
+DEVICE_STATUS st7735_pixel_draw(ST77XX *instance, uint16_t x, uint16_t y, uint16_t color)
 {
     DEVICE_STATUS ret = DEVICE_STATUS_OK;
 
@@ -220,15 +216,13 @@ DEVICE_STATUS st7735_pixel_set(ST77XX *instance, uint16_t x, uint16_t y, uint32_
     {
         return ret;
     }
-    uint16_t *buf = (uint16_t *)(instance->buffer.data);
-    buf[0] = (uint16_t)color;
 
-    st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, buf, 2);
+    st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, &color, 2);
 
     return DEVICE_STATUS_OK;
 }
 
-DEVICE_STATUS st7735_hline_draw(ST77XX *instance, uint32_t x1, uint32_t y, uint32_t x2, uint32_t color)
+DEVICE_STATUS st7735_hline_draw(ST77XX *instance, uint32_t x1, uint32_t y, uint32_t x2, uint16_t *data)
 {
 
     DEVICE_STATUS ret = DEVICE_STATUS_OK;
@@ -244,21 +238,15 @@ DEVICE_STATUS st7735_hline_draw(ST77XX *instance, uint32_t x1, uint32_t y, uint3
     {
         return ret;
     }
-    uint16_t *buf = (uint16_t *)(instance->buffer.data);
-    for (uint32_t i = 0; i < (x2 - x1 + 1); i++)
-    {
-        buf[i] = (uint16_t)(color);
-    }
 
-    st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, buf, x2 - x1 + 1);
+    st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, data, x2 - x1 + 1);
 
     return ret;
 }
 
-DEVICE_STATUS st7735_vline_draw(ST77XX *instance, uint16_t x, uint16_t y1, uint16_t y2, uint32_t color)
+DEVICE_STATUS st7735_vline_draw(ST77XX *instance, uint16_t x, uint16_t y1, uint16_t y2, uint16_t *data)
 {
     DEVICE_STATUS ret = DEVICE_STATUS_OK;
-    uint16_t *buf = (uint16_t *)(instance->buffer.data);
 
     if ((y1 > instance->height) || (y2 > instance->height))
     {
@@ -271,17 +259,13 @@ DEVICE_STATUS st7735_vline_draw(ST77XX *instance, uint16_t x, uint16_t y1, uint1
     {
         return ret;
     }
-    for (uint32_t i = 0; i < (y2 - y1 + 1); i++)
-    {
-        buf[i] = (uint16_t)(color);
-    }
 
-    st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, buf, y2 - y1 + 1);
+    st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, data, y2 - y1 + 1);
 
     return ret;
 }
 
-DEVICE_STATUS st7735_rect_draw(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
+DEVICE_STATUS st7735_rect_draw(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t *data)
 {
     DEVICE_STATUS ret = DEVICE_STATUS_OK;
 
@@ -300,59 +284,61 @@ DEVICE_STATUS st7735_rect_draw(ST77XX *instance, uint16_t x1, uint16_t y1, uint1
     {
         return ret;
     }
-    // uint8_t *buf = (uint8_t *)(instance->buffer);
-    uint16_t *buf = (uint16_t *)(instance->buffer.data);
+
     uint32_t size = (x2 - x1 + 1) * (y2 - y1 + 1);
-    st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, buf, size);
+    st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, data, size);
     // st77xx_command_write_8(instance, ST7735_CMD_MEMORY_WRITE, buf, size * 2);
     return ret;
 }
 
-DEVICE_STATUS st7735_rect_fill(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color)
-{
-    DEVICE_STATUS ret = DEVICE_STATUS_OK;
+// DEVICE_STATUS st7735_rect_fill(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color)
+// {
+//     DEVICE_STATUS ret = DEVICE_STATUS_OK;
 
-    if (x1 > instance->width || x2 > instance->width)
-    {
-        return DEVICE_STATUS_GENERAL_ERROR;
-    }
-    if (y1 > instance->height || y2 > instance->height)
-    {
-        return DEVICE_STATUS_GENERAL_ERROR;
-    }
+//     if (x1 > instance->width || x2 > instance->width)
+//     {
+//         return DEVICE_STATUS_GENERAL_ERROR;
+//     }
+//     if (y1 > instance->height || y2 > instance->height)
+//     {
+//         return DEVICE_STATUS_GENERAL_ERROR;
+//     }
 
-    ret = st7735_display_window_set(instance, x1, y1, x2, y2);
+//     ret = st7735_display_window_set(instance, x1, y1, x2, y2);
 
-    if (ret != DEVICE_STATUS_OK)
-    {
-        return ret;
-    }
-    // uint8_t *buf = (uint8_t *)(instance->buffer);
-    uint16_t *buf = (uint16_t *)(instance->buffer.data);
-    uint32_t size = (x2 - x1 + 1) * (y2 - y1 + 1);
-    for (uint32_t i = 0; i < size; i++)
-    {
-        buf[i] = color;
-        // buf[i << 1] = (uint8_t)(color >> 8);
-        // buf[(i << 1) + 1] = (uint8_t)(color);
-    }
+//     if (ret != DEVICE_STATUS_OK)
+//     {
+//         return ret;
+//     }
+//     // uint8_t *buf = (uint8_t *)(instance->buffer);
+//     uint16_t *buf = (uint16_t *)(instance->buffer.data);
+//     uint32_t size = (x2 - x1 + 1) * (y2 - y1 + 1);
+//     for (uint32_t i = 0; i < size; i++)
+//     {
+//         buf[i] = color;
+//         // buf[i << 1] = (uint8_t)(color >> 8);
+//         // buf[(i << 1) + 1] = (uint8_t)(color);
+//     }
 
-    st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, buf, size);
-    // st77xx_command_write_8(instance, ST7735_CMD_MEMORY_WRITE, buf, size * 2);
-    return ret;
-}
+//     st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, buf, size);
+//     // st77xx_command_write_8(instance, ST7735_CMD_MEMORY_WRITE, buf, size * 2);
+//     return ret;
+// }
 
 DEVICE_STATUS st7735_id_read(ST77XX *instance, uint32_t *id)
 {
     uint32_t id_temp = 0;
-    st77xx_command_read_8(instance, ST7735_CMD_READ_ID1, 1);
-    id_temp += instance->cmdData[0];
+    uint8_t rd;
+    st77xx_command_read_8(instance, ST7735_CMD_READ_ID1, &rd, 1);
+    id_temp += rd;
+
+    st77xx_command_read_8(instance, ST7735_CMD_READ_ID2, &rd, 1);
     id_temp <<= 8;
-    st77xx_command_read_8(instance, ST7735_CMD_READ_ID2, 1);
-    id_temp += instance->cmdData[0];
+    id_temp += rd;
+
+    st77xx_command_read_8(instance, ST7735_CMD_READ_ID3, &rd, 1);
     id_temp <<= 8;
-    st77xx_command_read_8(instance, ST7735_CMD_READ_ID3, 1);
-    id_temp += instance->cmdData[0];
+    id_temp += rd;
 
     *id = id_temp;
 

@@ -102,7 +102,7 @@ extern "C"
         ST7735_DISPLAY_REFRESH_ORDER_B2T_R2L = 0x14
     } ST7735_DISPLAY_REFRESH_ORDER;
 
-    DEVICE_STATUS st7735_create(ST77XX *instance, Command *command, Buffer buffer);
+    DEVICE_STATUS st7735_create(ST77XX *instance, Command *command);
 
     DEVICE_STATUS st7735_reset(ST77XX *instance);
     DEVICE_STATUS st7735_inversion(ST77XX *instance, uint8_t on);
@@ -112,12 +112,12 @@ extern "C"
     DEVICE_STATUS st7735_cursor_set(ST77XX *instance, uint16_t x, uint16_t y);
 
     DEVICE_STATUS st7735_display(ST77XX *instance, uint8_t on);
-    DEVICE_STATUS st7735_pixel_set(ST77XX *instance, uint16_t x, uint16_t y, uint32_t color);
-    DEVICE_STATUS st7735_hline_draw(ST77XX *instance, uint32_t x1, uint32_t y, uint32_t x2, uint32_t color);
-    DEVICE_STATUS st7735_vline_draw(ST77XX *instance, uint16_t x, uint16_t y1, uint16_t y2, uint32_t color);
+    DEVICE_STATUS st7735_pixel_draw(ST77XX *instance, uint16_t x, uint16_t y, uint16_t color);
+    DEVICE_STATUS st7735_hline_draw(ST77XX *instance, uint32_t x1, uint32_t y, uint32_t x2, uint16_t *data);
+    DEVICE_STATUS st7735_vline_draw(ST77XX *instance, uint16_t x, uint16_t y1, uint16_t y2, uint16_t *data);
 
-    DEVICE_STATUS st7735_rect_draw(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
-    DEVICE_STATUS st7735_rect_fill(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color);
+    DEVICE_STATUS st7735_rect_draw(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t *data);
+    //DEVICE_STATUS st7735_rect_fill(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color);
     DEVICE_STATUS st7735_bitmap_draw(ST77XX *instance, uint32_t x, uint32_t y, uint8_t *pBmp);
 
     DEVICE_STATUS st7735_id_read(ST77XX *instance, uint32_t *id);

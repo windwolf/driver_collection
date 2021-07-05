@@ -9,11 +9,11 @@ static void _st77xx_comand_setup(CommandFrame *cmd)
     cmd->dummyCycles = 0;
 }
 
-DEVICE_STATUS st77xx_create(ST77XX *instance, Command *cc)
+OP_RESULT st77xx_create(ST77XX *instance, Command *cc)
 {
     instance->cc = cc;
     tx_event_flags_create(&instance->events, "st77xx");
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 }
 
 int st77xx_is_busy(ST77XX *instance)
@@ -22,15 +22,15 @@ int st77xx_is_busy(ST77XX *instance)
     return tx_event_flags_get(&instance->events, ST77XX_EVENT_BUSY, TX_OR, &actualFlags, TX_NO_WAIT) == TX_SUCCESS;
 };
 
-DEVICE_STATUS st77xx_lock(ST77XX *instance)
+OP_RESULT st77xx_lock(ST77XX *instance)
 {
     if (st77xx_is_busy(instance))
     {
-        return DEVICE_STATUS_BUSY;
+        return OP_RESULT_BUSY;
     }
     EVENTS_SET_FLAGS(instance->events, ST77XX_EVENT_BUSY);
     //LOG("ST77XX: LCK")
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 }
 
 void st77xx_unlock(ST77XX *instance)

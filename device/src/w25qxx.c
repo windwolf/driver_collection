@@ -15,23 +15,23 @@ typedef enum W25QXX_CMD_LINE_MODE
     W25QXX_CMD_LINE_MODE_400,
 } W25QXX_CMD_LINE_MODE;
 
-static DEVICE_STATUS _w25qxx_block_erase_wrap(W25QXX *instance, uint32_t addr, uint32_t size)
+static OP_RESULT _w25qxx_block_erase_wrap(W25QXX *instance, uint32_t addr, uint32_t size)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     uint32_t blkBeginAddr = addr & ~(W25QXX_BLOCK_SIZE - 1);
     uint32_t blkEndAddr = (addr + size - 1) & ~(W25QXX_BLOCK_SIZE - 1);
     uint32_t curAddr = blkBeginAddr;
     do
     {
         rst = w25qxx_block_erase(instance, curAddr);
-        if (rst != DEVICE_STATUS_OK)
+        if (rst != OP_RESULT_OK)
         {
             return rst;
         }
         curAddr += W25QXX_BLOCK_SIZE;
 
     } while (curAddr <= blkEndAddr);
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 }
 
 static inline void _w25qxx_cmd_line_cfg(CommandFrame *cmd, W25QXX_CMD_LINE_MODE lineMode)
@@ -97,24 +97,24 @@ static void _w25qxx_qspi_status_polling_result(W25QXX *instance)
     EVENTS_SET_FLAGS(instance->events, W25QXX_EVENT_OP_CPLT);
 };
 
-static inline DEVICE_STATUS _w25qxx_op_busy_check(W25QXX *instance)
+static inline OP_RESULT _w25qxx_op_busy_check(W25QXX *instance)
 {
     UINT rst;
     ULONG actualFlags;
     rst = tx_event_flags_get(&instance->events, W25QXX_EVENT_OP_BUSY, TX_AND, &actualFlags, TX_NO_WAIT);
     if (rst == TX_NO_EVENTS)
     {
-        return DEVICE_STATUS_OK;
+        return OP_RESULT_OK;
     }
     else
     {
-        return DEVICE_STATUS_BUSY;
+        return OP_RESULT_BUSY;
     }
 };
 
-static DEVICE_STATUS _w25qxx_status1_get(W25QXX *instance)
+static OP_RESULT _w25qxx_status1_get(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
@@ -134,16 +134,16 @@ static DEVICE_STATUS _w25qxx_status1_get(W25QXX *instance)
     cmd->data = &instance->status1;
 
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
-static DEVICE_STATUS _w25qxx_status2_get(W25QXX *instance)
+static OP_RESULT _w25qxx_status2_get(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
@@ -163,16 +163,16 @@ static DEVICE_STATUS _w25qxx_status2_get(W25QXX *instance)
     cmd->data = &instance->status2;
 
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
-static DEVICE_STATUS _w25qxx_status3_get(W25QXX *instance)
+static OP_RESULT _w25qxx_status3_get(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
@@ -192,16 +192,16 @@ static DEVICE_STATUS _w25qxx_status3_get(W25QXX *instance)
     cmd->data = &instance->status3;
 
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
-static DEVICE_STATUS _w25qxx_status1_set(W25QXX *instance)
+static OP_RESULT _w25qxx_status1_set(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
@@ -221,16 +221,16 @@ static DEVICE_STATUS _w25qxx_status1_set(W25QXX *instance)
     cmd->data = &instance->status1;
 
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
-static DEVICE_STATUS _w25qxx_status2_set(W25QXX *instance)
+static OP_RESULT _w25qxx_status2_set(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
@@ -250,16 +250,16 @@ static DEVICE_STATUS _w25qxx_status2_set(W25QXX *instance)
     cmd->data = &instance->status2;
 
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
-static DEVICE_STATUS _w25qxx_status3_set(W25QXX *instance)
+static OP_RESULT _w25qxx_status3_set(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
@@ -279,27 +279,27 @@ static DEVICE_STATUS _w25qxx_status3_set(W25QXX *instance)
     cmd->data = &instance->status3;
 
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
-static DEVICE_STATUS _w25qxx_busy_wait(W25QXX *instance)
+static OP_RESULT _w25qxx_busy_wait(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     do
     {
         rst = _w25qxx_status1_get(instance);
 
-        if (rst != DEVICE_STATUS_OK)
+        if (rst != OP_RESULT_OK)
         {
             return rst;
         }
         if ((instance->status1 & W25QXX_STATUS1_BUSY) == 0x00)
         {
-            return DEVICE_STATUS_OK;
+            return OP_RESULT_OK;
         }
         else
         {
@@ -308,9 +308,9 @@ static DEVICE_STATUS _w25qxx_busy_wait(W25QXX *instance)
     } while (1);
 };
 
-static inline DEVICE_STATUS _w25qxx_read_cmd(W25QXX *instance, uint8_t *pData, uint32_t readAddr, uint32_t size)
+static inline OP_RESULT _w25qxx_read_cmd(W25QXX *instance, uint8_t *pData, uint32_t readAddr, uint32_t size)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
@@ -334,7 +334,7 @@ static inline DEVICE_STATUS _w25qxx_read_cmd(W25QXX *instance, uint8_t *pData, u
     cmd->isWrite = 0;
 
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
@@ -342,9 +342,9 @@ static inline DEVICE_STATUS _w25qxx_read_cmd(W25QXX *instance, uint8_t *pData, u
     return rst;
 }
 
-static DEVICE_STATUS _w25qxx_read_parameter_set(W25QXX *instance)
+static OP_RESULT _w25qxx_read_parameter_set(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
@@ -376,7 +376,7 @@ static DEVICE_STATUS _w25qxx_read_parameter_set(W25QXX *instance)
         cmd->isWrite = 1;
         cmd->data = &params;
         rst = command_send(cc, cmd);
-        if (rst != DEVICE_STATUS_OK)
+        if (rst != OP_RESULT_OK)
         {
             return rst;
         }
@@ -385,13 +385,13 @@ static DEVICE_STATUS _w25qxx_read_parameter_set(W25QXX *instance)
     else
     {
         // SPI
-        return DEVICE_STATUS_NOT_SUPPORT;
+        return OP_RESULT_NOT_SUPPORT;
     }
 };
 
-static inline DEVICE_STATUS _w25qxx_4k_sector_erase_cmd(W25QXX *instance, uint32_t address)
+static inline OP_RESULT _w25qxx_4k_sector_erase_cmd(W25QXX *instance, uint32_t address)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
@@ -407,7 +407,7 @@ static inline DEVICE_STATUS _w25qxx_4k_sector_erase_cmd(W25QXX *instance, uint32
     cmd->addressBits = DEVICE_DATAWIDTH_24;
 
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
@@ -415,9 +415,9 @@ static inline DEVICE_STATUS _w25qxx_4k_sector_erase_cmd(W25QXX *instance, uint32
     return rst;
 };
 
-static inline DEVICE_STATUS _w25qxx_32k_block_erase_cmd(W25QXX *instance, uint32_t address)
+static inline OP_RESULT _w25qxx_32k_block_erase_cmd(W25QXX *instance, uint32_t address)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
@@ -433,7 +433,7 @@ static inline DEVICE_STATUS _w25qxx_32k_block_erase_cmd(W25QXX *instance, uint32
     cmd->addressBits = DEVICE_DATAWIDTH_24;
 
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
@@ -441,9 +441,9 @@ static inline DEVICE_STATUS _w25qxx_32k_block_erase_cmd(W25QXX *instance, uint32
     return rst;
 }
 
-static inline DEVICE_STATUS _w25qxx_64k_block_erase_cmd(W25QXX *instance, uint32_t address)
+static inline OP_RESULT _w25qxx_64k_block_erase_cmd(W25QXX *instance, uint32_t address)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
@@ -459,7 +459,7 @@ static inline DEVICE_STATUS _w25qxx_64k_block_erase_cmd(W25QXX *instance, uint32
     cmd->addressBits = DEVICE_DATAWIDTH_24;
 
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
@@ -467,9 +467,9 @@ static inline DEVICE_STATUS _w25qxx_64k_block_erase_cmd(W25QXX *instance, uint32
     return rst;
 }
 
-static inline DEVICE_STATUS _w25qxx_chip_erase_cmd(W25QXX *instance)
+static inline OP_RESULT _w25qxx_chip_erase_cmd(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
@@ -483,7 +483,7 @@ static inline DEVICE_STATUS _w25qxx_chip_erase_cmd(W25QXX *instance)
     cmd->commandId = W25QXX_SPI_CHIP_ERASE_CMD;
 
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
@@ -491,9 +491,9 @@ static inline DEVICE_STATUS _w25qxx_chip_erase_cmd(W25QXX *instance)
     return rst;
 }
 
-static inline DEVICE_STATUS _w25qxx_write_enable_cmd(W25QXX *instance)
+static inline OP_RESULT _w25qxx_write_enable_cmd(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
@@ -507,16 +507,16 @@ static inline DEVICE_STATUS _w25qxx_write_enable_cmd(W25QXX *instance)
     cmd->commandId = W25QXX_SPI_WRITE_ENABLE_CMD;
 
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
-static inline DEVICE_STATUS _w25qxx_write_cmd(W25QXX *instance, uint8_t *pData, uint32_t writeAddr, uint32_t size)
+static inline OP_RESULT _w25qxx_write_cmd(W25QXX *instance, uint8_t *pData, uint32_t writeAddr, uint32_t size)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
@@ -537,46 +537,46 @@ static inline DEVICE_STATUS _w25qxx_write_cmd(W25QXX *instance, uint8_t *pData, 
     cmd->dataBits = DEVICE_DATAWIDTH_8;
 
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     return command_cplt_wait(cc, TX_WAIT_FOREVER);
 }
 
-static inline DEVICE_STATUS _w25qxx_qpi_enter_cmd(W25QXX *instance)
+static inline OP_RESULT _w25qxx_qpi_enter_cmd(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_100);
     instance->command.commandId = W25QXX_SPI_ENTER_QPI_MODE_CMD;
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
-static inline DEVICE_STATUS _w25qxx_qpi_exit_cmd(W25QXX *instance)
+static inline OP_RESULT _w25qxx_qpi_exit_cmd(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_400);
     cmd->commandId = W25QXX_QPI_EXIT_QPI_MODE_CMD;
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
-static inline DEVICE_STATUS _w25qxx_reset_cmd(W25QXX *instance)
+static inline OP_RESULT _w25qxx_reset_cmd(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
@@ -590,18 +590,18 @@ static inline DEVICE_STATUS _w25qxx_reset_cmd(W25QXX *instance)
 
     cmd->commandId = W25QXX_QPI_ENABLE_RESET_CMD;
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     rst = command_cplt_wait(cc, TX_WAIT_FOREVER);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     cmd->commandId = W25QXX_QPI_RESET_DEVICE_CMD;
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
@@ -657,26 +657,26 @@ static inline DEVICE_STATUS _w25qxx_reset_cmd(W25QXX *instance)
 //     return DEVICE_STATUS_OK;
 // };
 
-DEVICE_STATUS w25qxx_create(W25QXX *instance, Command *cc, uint8_t autoPolling)
+OP_RESULT w25qxx_create(W25QXX *instance, Command *cc, uint8_t autoPolling)
 {
     tx_event_flags_create(&instance->events, "w25qxx");
     instance->cc = cc;
     instance->command.addressBits = DEVICE_DATAWIDTH_24;
     instance->command.dummyCycles = 2;
     instance->autoPolling = autoPolling;
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };
 
-DEVICE_STATUS w25qxx_mode_switch(W25QXX *instance, W25QXX_CMD_MODE cmdMode)
+OP_RESULT w25qxx_mode_switch(W25QXX *instance, W25QXX_CMD_MODE cmdMode)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     if (cmdMode == W25QXX_CMD_MODE_SPI)
     {
 
         if (instance->cmdMode == W25QXX_CMD_MODE_QPI)
         {
             rst = _w25qxx_qpi_exit_cmd(instance);
-            if (rst != DEVICE_STATUS_OK)
+            if (rst != OP_RESULT_OK)
             {
                 return rst;
             }
@@ -696,59 +696,59 @@ DEVICE_STATUS w25qxx_mode_switch(W25QXX *instance, W25QXX_CMD_MODE cmdMode)
                 instance->dummyCycles = 2;
             }
             rst = _w25qxx_status2_get(instance);
-            if (rst != DEVICE_STATUS_OK)
+            if (rst != OP_RESULT_OK)
             {
                 return rst;
             }
             instance->status2Bits.QE = 1;
             rst = _w25qxx_status2_set(instance);
-            if (rst != DEVICE_STATUS_OK)
+            if (rst != OP_RESULT_OK)
             {
                 return rst;
             }
             rst = _w25qxx_qpi_enter_cmd(instance);
-            if (rst != DEVICE_STATUS_OK)
+            if (rst != OP_RESULT_OK)
             {
                 return rst;
             }
             instance->cmdMode = cmdMode;
             rst = _w25qxx_read_parameter_set(instance);
-            if (rst != DEVICE_STATUS_OK)
+            if (rst != OP_RESULT_OK)
             {
                 return rst;
             }
         }
     }
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };
 
-DEVICE_STATUS w25qxx_reset(W25QXX *instance)
+OP_RESULT w25qxx_reset(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
 
     rst = _w25qxx_reset_cmd(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     rst = _w25qxx_qpi_exit_cmd(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     rst = w25qxx_status_get(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     instance->status2Bits.QE = 0;
     rst = _w25qxx_status2_set(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     rst = _w25qxx_busy_wait(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
@@ -757,61 +757,61 @@ DEVICE_STATUS w25qxx_reset(W25QXX *instance)
     return rst;
 };
 
-DEVICE_STATUS w25qxx_status_get(W25QXX *instance)
+OP_RESULT w25qxx_status_get(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     rst = _w25qxx_status1_get(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     rst = _w25qxx_status2_get(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     rst = _w25qxx_status3_get(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };
 
-DEVICE_STATUS w25qxx_status_set(W25QXX *instance)
+OP_RESULT w25qxx_status_set(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     rst = _w25qxx_status1_set(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     rst = _w25qxx_busy_wait(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     rst = _w25qxx_status2_set(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     rst = _w25qxx_busy_wait(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     rst = _w25qxx_status3_set(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     return _w25qxx_busy_wait(instance);
 };
 
-DEVICE_STATUS w25qxx_id_read(W25QXX *instance)
+OP_RESULT w25qxx_id_read(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     Command *cc = instance->cc;
     CommandFrame *cmd = &instance->command;
     if (instance->cmdMode == W25QXX_CMD_MODE_SPI)
@@ -829,12 +829,12 @@ DEVICE_STATUS w25qxx_id_read(W25QXX *instance)
     cmd->dataBits = DEVICE_DATAWIDTH_8;
     cmd->dataSize = 2;
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     rst = command_cplt_wait(cc, TX_WAIT_FOREVER);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
@@ -852,14 +852,14 @@ DEVICE_STATUS w25qxx_id_read(W25QXX *instance)
     cmd->dataBits = DEVICE_DATAWIDTH_8;
     cmd->dataSize = 3;
     rst = command_send(cc, cmd);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     return command_cplt_wait(cc, TX_WAIT_FOREVER);
 };
 
-DEVICE_STATUS w25qxx_read(W25QXX *instance, uint8_t *pData, uint32_t readAddr, uint32_t size)
+OP_RESULT w25qxx_read(W25QXX *instance, uint8_t *pData, uint32_t readAddr, uint32_t size)
 {
     return _w25qxx_read_cmd(instance, pData, readAddr, size);
 };
@@ -900,18 +900,18 @@ DEVICE_STATUS w25qxx_read(W25QXX *instance, uint8_t *pData, uint32_t readAddr, u
 //     return DEVICE_STATUS_OK;
 // };
 
-DEVICE_STATUS w25qxx_write(W25QXX *instance, uint8_t *pData, uint32_t writeAddr, uint32_t size)
+OP_RESULT w25qxx_write(W25QXX *instance, uint8_t *pData, uint32_t writeAddr, uint32_t size)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
 
     rst = _w25qxx_write_enable_cmd(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
 
     rst = _w25qxx_write_cmd(instance, pData, writeAddr, size);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
@@ -919,40 +919,40 @@ DEVICE_STATUS w25qxx_write(W25QXX *instance, uint8_t *pData, uint32_t writeAddr,
     return _w25qxx_busy_wait(instance);
 };
 
-DEVICE_STATUS w25qxx_block_erase(W25QXX *instance, uint32_t address)
+OP_RESULT w25qxx_block_erase(W25QXX *instance, uint32_t address)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     rst = _w25qxx_write_enable_cmd(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
 
     rst = _w25qxx_4k_sector_erase_cmd(instance, address);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     return _w25qxx_busy_wait(instance);
 };
 
-DEVICE_STATUS w25qxx_chip_erase(W25QXX *instance)
+OP_RESULT w25qxx_chip_erase(W25QXX *instance)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     rst = _w25qxx_write_enable_cmd(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     rst = _w25qxx_chip_erase_cmd(instance);
-    if (rst != DEVICE_STATUS_OK)
+    if (rst != OP_RESULT_OK)
     {
         return rst;
     }
     return _w25qxx_busy_wait(instance);
 };
 
-DEVICE_STATUS w25qxx_block_create(W25QXX *instance, Block *block, Buffer buffer)
+OP_RESULT w25qxx_block_create(W25QXX *instance, Block *block, Buffer buffer)
 {
     block_create(block, instance,
                  0, W25QXX_PAGE_SIZE, W25QXX_BLOCK_SIZE,
@@ -960,5 +960,5 @@ DEVICE_STATUS w25qxx_block_create(W25QXX *instance, Block *block, Buffer buffer)
                  BLOCK_MODE_RANDOM, BLOCK_MODE_WRAP, BLOCK_MODE_RANDOM_BLOCK,
                  buffer,
                  &w25qxx_read, &w25qxx_write, &_w25qxx_block_erase_wrap);
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };

@@ -35,11 +35,11 @@ struct CommandQspi;
                                                  CommandErrorHandleFuncType onError,
                                                  CommandQspiEventHandleFuncType onStatusPollingResult);
 
-    DEVICE_STATUS command_qspi_create(CommandQspi *command,
+    OP_RESULT command_qspi_create(CommandQspi *command,
                                                        QSPI_HandleTypeDef *instance,
                                                        uint32_t dmaThreshold);
 
-    DEVICE_STATUS command_qspi_autopolling(CommandQspi *command, CommandFrame* pollingCommandStep, FSCCAutoPollingTypeDef *autoPolling);
+    OP_RESULT command_qspi_autopolling(CommandQspi *command, CommandFrame* pollingCommandStep, FSCCAutoPollingTypeDef *autoPolling);
 
 #ifdef __cplusplus
 }

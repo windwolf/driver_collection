@@ -53,7 +53,7 @@ static void Uart_ErrCpltCallback__(UART_HandleTypeDef *handle)
     }
 };
 
-DEVICE_STATUS uart_device_create(UartDevice *device, UART_HandleTypeDef *instance, uint16_t dmaThershold)
+OP_RESULT uart_device_create(UartDevice *device, UART_HandleTypeDef *instance, uint16_t dmaThershold)
 {
     device_base_create((DeviceBase *)device);
     device->base.instance = instance;
@@ -66,18 +66,18 @@ DEVICE_STATUS uart_device_create(UartDevice *device, UART_HandleTypeDef *instanc
     HAL_UART_RegisterRxEventCallback(instance, &Uart_RxEventCpltCallback__);
     HAL_UART_RegisterCallback(instance, HAL_UART_ERROR_CB_ID, &Uart_ErrCpltCallback__);
     DEVICE_INSTANCE_REGISTER(device, instance->Instance);
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };
 
-DEVICE_STATUS uart_device_init(UartDevice *device) { return DEVICE_STATUS_OK; };
-DEVICE_STATUS uart_device_deinit(UartDevice *device) { return DEVICE_STATUS_OK; };
+OP_RESULT uart_device_init(UartDevice *device) { return OP_RESULT_OK; };
+OP_RESULT uart_device_deinit(UartDevice *device) { return OP_RESULT_OK; };
 
-DEVICE_STATUS uart_device_tx(UartDevice *device, uint8_t *data, uint32_t size)
+OP_RESULT uart_device_tx(UartDevice *device, uint8_t *data, uint32_t size)
 {
     UART_HandleTypeDef *handle = device->base.instance;
     if ((HAL_UART_GetState(handle) & HAL_UART_STATE_BUSY_TX) == HAL_UART_STATE_BUSY_TX)
     {
-        return DEVICE_STATUS_BUSY;
+        return OP_RESULT_BUSY;
     }
     if (size > device->dmaThershold)
     {
@@ -92,29 +92,29 @@ DEVICE_STATUS uart_device_tx(UartDevice *device, uint8_t *data, uint32_t size)
     }
 };
 
-DEVICE_STATUS uart_device_circular_rx_start(UartDevice *device, uint8_t *data, uint32_t size)
+OP_RESULT uart_device_circular_rx_start(UartDevice *device, uint8_t *data, uint32_t size)
 {
     device->_rxBuffer.data = data;
     device->_rxBuffer.size = size;
     UART_HandleTypeDef *handle = device->base.instance;
     if (handle->hdmarx->Init.Mode != DMA_CIRCULAR)
     {
-        return DEVICE_STATUS_NOT_SUPPORT;
+        return OP_RESULT_NOT_SUPPORT;
     }
     if ((HAL_UART_GetState(handle) & HAL_UART_STATE_BUSY_RX) == HAL_UART_STATE_BUSY_RX)
     {
-        return DEVICE_STATUS_BUSY;
+        return OP_RESULT_BUSY;
     }
 
     return HAL_UARTEx_ReceiveToIdle_DMA(handle, data, size);
 };
-DEVICE_STATUS uart_device_circular_rx_stop(UartDevice *device)
+OP_RESULT uart_device_circular_rx_stop(UartDevice *device)
 {
     UART_HandleTypeDef *handle = device->base.instance;
 
     if ((HAL_UART_GetState(handle) & HAL_UART_STATE_BUSY_RX) != HAL_UART_STATE_BUSY_RX)
     {
-        return DEVICE_STATUS_OK;
+        return OP_RESULT_OK;
     }
     return HAL_UART_DMAStop(handle);
 };

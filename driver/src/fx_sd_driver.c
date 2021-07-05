@@ -32,13 +32,13 @@ static int32_t check_sd_status(SdDevice *instance)
 
     while (tx_time_get() - start < DEFAULT_TIMEOUT)
     {
-        if (sd_device_query_status(instance) == DEVICE_STATUS_OK)
+        if (sd_device_query_status(instance) == OP_RESULT_OK)
         {
-            return DEVICE_STATUS_OK;
+            return OP_RESULT_OK;
         }
     }
 
-    return DEVICE_STATUS_BUSY;
+    return OP_RESULT_BUSY;
 }
 
 /**
@@ -97,7 +97,7 @@ VOID fx_sd_driver(FX_MEDIA *media_ptr)
     /* before performing any operation, check the status of the SDMMC */
     if (is_initialized == 1)
     {
-        if (check_sd_status(_fx_device) != DEVICE_STATUS_OK)
+        if (check_sd_status(_fx_device) != OP_RESULT_OK)
         {
             media_ptr->fx_media_driver_status = FX_IO_ERROR;
             return;
@@ -225,7 +225,7 @@ VOID fx_sd_driver(FX_MEDIA *media_ptr)
         if (partition_start)
         {
 
-            if (check_sd_status(_fx_device) != DEVICE_STATUS_OK)
+            if (check_sd_status(_fx_device) != OP_RESULT_OK)
             {
                 media_ptr->fx_media_driver_status = FX_IO_ERROR;
                 break;
@@ -287,7 +287,7 @@ static UINT sd_read_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_secto
 
     status = sd_device_read(_fx_device, (uint32_t *)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
 
-    if (status != DEVICE_STATUS_OK)
+    if (status != OP_RESULT_OK)
     {
         /* DMA transfer failed, release semaphore and return immediately */
         tx_semaphore_put(&transfer_semaphore);
@@ -331,7 +331,7 @@ static UINT sd_write_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_sect
 
     status = sd_device_write(_fx_device, (uint32_t *)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
 
-    if (status != DEVICE_STATUS_OK)
+    if (status != OP_RESULT_OK)
     {
         /* DMA transfer failed, release semaphore and return immediately */
         tx_semaphore_put(&transfer_semaphore);

@@ -120,7 +120,7 @@ static uint32_t bits_switch(SPI_HandleTypeDef *handle, DeviceDataWidth width, ui
     //return;
 };
 
-DEVICE_STATUS spi_device_create(SpiDevice *device, SPI_HandleTypeDef *instance, uint16_t dmaThershold)
+OP_RESULT spi_device_create(SpiDevice *device, SPI_HandleTypeDef *instance, uint16_t dmaThershold)
 {
     device_base_create((DeviceBase *)device);
     device->base.instance = instance;
@@ -133,19 +133,19 @@ DEVICE_STATUS spi_device_create(SpiDevice *device, SPI_HandleTypeDef *instance, 
     HAL_SPI_RegisterCallback(instance, HAL_SPI_RX_COMPLETE_CB_ID, &Spi_RxCpltCallback__);
     HAL_SPI_RegisterCallback(instance, HAL_SPI_ERROR_CB_ID, &Spi_ErrCallback__);
     DEVICE_INSTANCE_REGISTER(device, instance->Instance);
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };
 
-DEVICE_STATUS spi_device_init(SpiDevice *device) { return DEVICE_STATUS_OK; };
-DEVICE_STATUS spi_device_deinit(SpiDevice *device) { return DEVICE_STATUS_OK; };
+OP_RESULT spi_device_init(SpiDevice *device) { return OP_RESULT_OK; };
+OP_RESULT spi_device_deinit(SpiDevice *device) { return OP_RESULT_OK; };
 
-DEVICE_STATUS spi_device_tx(SpiDevice *device, void *data, uint32_t size, DeviceDataWidth width)
+OP_RESULT spi_device_tx(SpiDevice *device, void *data, uint32_t size, DeviceDataWidth width)
 {
     SPI_HandleTypeDef *handle = (SPI_HandleTypeDef *)(device->base.instance);
     uint32_t byteSize = bits_switch(handle, width, size);
     if (size < 0)
     {
-        return DEVICE_STATUS_GENERAL_ERROR;
+        return OP_RESULT_GENERAL_ERROR;
     }
     if (size > device->dmaThershold)
     {
@@ -160,13 +160,13 @@ DEVICE_STATUS spi_device_tx(SpiDevice *device, void *data, uint32_t size, Device
     }
 };
 
-DEVICE_STATUS spi_device_rx(SpiDevice *device, void *data, uint32_t size, DeviceDataWidth width, uint8_t dummyCycleCount)
+OP_RESULT spi_device_rx(SpiDevice *device, void *data, uint32_t size, DeviceDataWidth width, uint8_t dummyCycleCount)
 {
     SPI_HandleTypeDef *handle = (SPI_HandleTypeDef *)(device->base.instance);
     uint32_t byteSize = bits_switch(handle, width, size);
     if (size < 0)
     {
-        return DEVICE_STATUS_GENERAL_ERROR;
+        return OP_RESULT_GENERAL_ERROR;
     }
     device->_rxBuffer.data = data;
     device->_rxBuffer.size = byteSize;

@@ -79,15 +79,15 @@ extern "C"
         uint32_t _writeBlockSizeMask;
         uint32_t _eraseBlockSizeMask;
 
-        DEVICE_STATUS(*read)
+        OP_RESULT(*read)
         (void *instance, void *data, uint32_t num, uint32_t size);
-        DEVICE_STATUS(*write)
+        OP_RESULT(*write)
         (void *instance, void *data, uint32_t num, uint32_t size);
-        DEVICE_STATUS(*erase)
+        OP_RESULT(*erase)
         (void *instance, uint32_t num, uint32_t size);
     } Block;
 
-    DEVICE_STATUS block_create(Block *block, void *instance,
+    OP_RESULT block_create(Block *block, void *instance,
                                uint32_t readBlockSize,
                                uint32_t writeBlockSize,
                                uint32_t eraseBlockSize,
@@ -96,13 +96,13 @@ extern "C"
                                BLOCK_MODE writeMode,
                                BLOCK_MODE eraseMode,
                                Buffer buffer,
-                               DEVICE_STATUS (*read)(void *instance, void *data, uint32_t address, uint32_t size),
-                               DEVICE_STATUS (*write)(void *instance, void *data, uint32_t address, uint32_t size),
-                               DEVICE_STATUS (*erase)(void *instance, uint32_t address, uint32_t size));
-    DEVICE_STATUS block_read(Block *block, void *data, uint32_t address, uint32_t size);
-    DEVICE_STATUS block_write(Block *block, void *data, uint32_t address, uint32_t size);
-    DEVICE_STATUS block_erase(Block *block, uint32_t address, uint32_t size);
-	DEVICE_STATUS _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size);	
+                               OP_RESULT (*read)(void *instance, void *data, uint32_t address, uint32_t size),
+                               OP_RESULT (*write)(void *instance, void *data, uint32_t address, uint32_t size),
+                               OP_RESULT (*erase)(void *instance, uint32_t address, uint32_t size));
+    OP_RESULT block_read(Block *block, void *data, uint32_t address, uint32_t size);
+    OP_RESULT block_write(Block *block, void *data, uint32_t address, uint32_t size);
+    OP_RESULT block_erase(Block *block, uint32_t address, uint32_t size);
+	OP_RESULT _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size);	
 
 #ifdef __cplusplus
 }

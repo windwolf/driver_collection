@@ -9,7 +9,7 @@ extern "C"
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx_ll_dma.h"
 
-    DEVICE_STATUS i2c_device_create(I2CDevice *device, I2C_HandleTypeDef *instance, uint16_t dmaThershold);
+    OP_RESULT i2c_device_create(I2CDevice *device, I2C_HandleTypeDef *instance, uint16_t dmaThershold);
 
 #ifdef __cplusplus
 }

@@ -8,7 +8,7 @@
 
 //static DEVICE_STATUS _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size);
 
-DEVICE_STATUS block_create(Block *block, void *instance,
+OP_RESULT block_create(Block *block, void *instance,
                            uint32_t readBlockSize,
                            uint32_t writeBlockSize,
                            uint32_t eraseBlockSize,
@@ -17,28 +17,28 @@ DEVICE_STATUS block_create(Block *block, void *instance,
                            BLOCK_MODE writeMode,
                            BLOCK_MODE eraseMode,
                            Buffer buffer,
-                           DEVICE_STATUS (*read)(void *instance, void *data, uint32_t address, uint32_t size),
-                           DEVICE_STATUS (*write)(void *instance, void *data, uint32_t address, uint32_t size),
-                           DEVICE_STATUS (*erase)(void *instance, uint32_t address, uint32_t size))
+                           OP_RESULT (*read)(void *instance, void *data, uint32_t address, uint32_t size),
+                           OP_RESULT (*write)(void *instance, void *data, uint32_t address, uint32_t size),
+                           OP_RESULT (*erase)(void *instance, uint32_t address, uint32_t size))
 {
     if (readMode == BLOCK_MODE_RANDOM_BLOCK)
     {
         LOG_E("read should not RANDOM_BLOCK");
-        return DEVICE_STATUS_PARAMETER_ERROR;
+        return OP_RESULT_PARAMETER_ERROR;
     }
     if (writeMode == BLOCK_MODE_RANDOM_BLOCK)
     {
         LOG_E("write should not RANDOM_BLOCK");
-        return DEVICE_STATUS_PARAMETER_ERROR;
+        return OP_RESULT_PARAMETER_ERROR;
     }
     if (writeBlockSize > eraseBlockSize)
     {
         LOG_E("write block should not be great then erase block size.");
-        return DEVICE_STATUS_PARAMETER_ERROR;
+        return OP_RESULT_PARAMETER_ERROR;
     }
     if (buffer.size < max(readBlockSize, eraseBlockSize))
     {
-        return DEVICE_STATUS_PARAMETER_ERROR;
+        return OP_RESULT_PARAMETER_ERROR;
     }
     block->instance = instance;
     block->needEraseBeforeWrite = needEraseBeforeWrite;
@@ -64,11 +64,11 @@ DEVICE_STATUS block_create(Block *block, void *instance,
     block->_writeBlockSizeMask = writeBlockSize - 1;
     block->_eraseBlockSizeMask = eraseBlockSize - 1;
 
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };
-DEVICE_STATUS block_read(Block *block, void *data, uint32_t address, uint32_t size)
+OP_RESULT block_read(Block *block, void *data, uint32_t address, uint32_t size)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     if (block->readMode == BLOCK_MODE_RANDOM)
     {
         return block->read(block->instance, data, address, size);
@@ -80,7 +80,7 @@ DEVICE_STATUS block_read(Block *block, void *data, uint32_t address, uint32_t si
         if ((address != blkAddress) || (size != blkSize))
         {
             // not aligned
-            return DEVICE_STATUS_PARAMETER_ERROR;
+            return OP_RESULT_PARAMETER_ERROR;
         }
         return block->read(block->instance, data,
                            address >> block->_readBlockSizeBits,
@@ -101,7 +101,7 @@ DEVICE_STATUS block_read(Block *block, void *data, uint32_t address, uint32_t si
             }
             rst = block->read(block->instance, curDataPtr, address, sizeInBlock);
 
-            if (rst != DEVICE_STATUS_OK)
+            if (rst != OP_RESULT_OK)
             {
                 return rst;
             }
@@ -111,17 +111,17 @@ DEVICE_STATUS block_read(Block *block, void *data, uint32_t address, uint32_t si
 			address += sizeInBlock;
         } while (remainSize > 0);
 
-        return DEVICE_STATUS_OK;
+        return OP_RESULT_OK;
     }
     else
     {
-        return DEVICE_STATUS_NOT_SUPPORT;
+        return OP_RESULT_NOT_SUPPORT;
     }
 };
 
-DEVICE_STATUS _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size)
+OP_RESULT _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     if (block->writeMode == BLOCK_MODE_RANDOM)
     {
         return block->write(block->instance, data, address, size);
@@ -147,7 +147,7 @@ DEVICE_STATUS _block_write_directly(Block *block, void *data, uint32_t address, 
                 sizeInBlock = remainSize;
             }
             rst = block->write(block->instance, curDataPtr, address, sizeInBlock);
-            if (rst != DEVICE_STATUS_OK)
+            if (rst != OP_RESULT_OK)
             {
                 return rst;
             }
@@ -157,17 +157,17 @@ DEVICE_STATUS _block_write_directly(Block *block, void *data, uint32_t address, 
 			address += sizeInBlock;
         } while (remainSize > 0);
 
-        return DEVICE_STATUS_OK;
+        return OP_RESULT_OK;
     }
     else
     {
-        return DEVICE_STATUS_NOT_SUPPORT;
+        return OP_RESULT_NOT_SUPPORT;
     }
 }
 
-DEVICE_STATUS block_write(Block *block, void *data, uint32_t address, uint32_t size)
+OP_RESULT block_write(Block *block, void *data, uint32_t address, uint32_t size)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     if (block->writeMode == BLOCK_MODE_BLOCK)
     {
         uint32_t blkAddress = address & ~(block->_writeBlockSizeMask);
@@ -175,7 +175,7 @@ DEVICE_STATUS block_write(Block *block, void *data, uint32_t address, uint32_t s
         if ((address != blkAddress) || (size != blkSize))
         {
             // not aligned
-            return DEVICE_STATUS_PARAMETER_ERROR;
+            return OP_RESULT_PARAMETER_ERROR;
         }
     }
     if (block->needEraseBeforeWrite)
@@ -198,18 +198,18 @@ DEVICE_STATUS block_write(Block *block, void *data, uint32_t address, uint32_t s
             {
                 // address not aligned to erBlock or tail fragment. read->memcpy->erase->write.
                 rst = block_read(block, buffer, erBlkAddr, erBlkSize); // read entire block
-                if (rst != DEVICE_STATUS_OK)
+                if (rst != OP_RESULT_OK)
                 {
                     return rst;
                 }
                 memcpy((void *)(buffer + wPosInBlk), (const void *)wData, wSizeInBlk);
                 rst = block_erase(block, erBlkAddr, erBlkSize);
-                if (rst != DEVICE_STATUS_OK)
+                if (rst != OP_RESULT_OK)
                 {
                     return rst;
                 }
                 rst = _block_write_directly(block, buffer, erBlkAddr, erBlkSize); //write entire block
-                if (rst != DEVICE_STATUS_OK)
+                if (rst != OP_RESULT_OK)
                 {
                     return rst;
                 }
@@ -219,12 +219,12 @@ DEVICE_STATUS block_write(Block *block, void *data, uint32_t address, uint32_t s
                 // address aligned to erBlock. middle entire blocks. directly erase->write.
                 uint32_t blkCount = wRemainSize / erBlkSize;
                 rst = block_erase(block, erBlkAddr, erBlkSize * blkCount);
-                if (rst != DEVICE_STATUS_OK)
+                if (rst != OP_RESULT_OK)
                 {
                     return rst;
                 }
                 rst = _block_write_directly(block, wData, erBlkAddr, erBlkSize * blkCount);
-                if (rst != DEVICE_STATUS_OK)
+                if (rst != OP_RESULT_OK)
                 {
                     return rst;
                 }
@@ -234,7 +234,7 @@ DEVICE_STATUS block_write(Block *block, void *data, uint32_t address, uint32_t s
             wData += wSizeInBlk;
             wRemainSize -= wSizeInBlk;
         } while (wRemainSize > 0);
-        return DEVICE_STATUS_OK;
+        return OP_RESULT_OK;
     }
     else
     {
@@ -242,9 +242,9 @@ DEVICE_STATUS block_write(Block *block, void *data, uint32_t address, uint32_t s
     }
 };
 
-DEVICE_STATUS block_erase(Block *block, uint32_t address, uint32_t size)
+OP_RESULT block_erase(Block *block, uint32_t address, uint32_t size)
 {
-    DEVICE_STATUS rst;
+    OP_RESULT rst;
     if (block->eraseMode == BLOCK_MODE_RANDOM_BLOCK)
     {
         return block->erase(block->instance, address, size);
@@ -260,7 +260,7 @@ DEVICE_STATUS block_erase(Block *block, uint32_t address, uint32_t size)
         if ((address != blkAddress) || (size != blkSize))
         {
             // not aligned
-            return DEVICE_STATUS_PARAMETER_ERROR;
+            return OP_RESULT_PARAMETER_ERROR;
         }
         return block->erase(block->instance,
                             address >> (block->_eraseBlockSizeBits),
@@ -268,10 +268,10 @@ DEVICE_STATUS block_erase(Block *block, uint32_t address, uint32_t size)
     }
     else if (block->eraseMode == BLOCK_MODE_WRAP)
     {
-        return DEVICE_STATUS_OK;
+        return OP_RESULT_OK;
     }
     else
     {
-        return DEVICE_STATUS_NOT_SUPPORT;
+        return OP_RESULT_NOT_SUPPORT;
     }
 };

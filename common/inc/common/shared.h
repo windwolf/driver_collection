@@ -15,6 +15,7 @@ extern "C"
 #define EVENTS_RESET_FLAGS(eg, flags) (tx_event_flags_set(&eg, ~flags, TX_AND))
 
 #define ALIGN32 __attribute__((aligned(32)))
+#define ALWAYS_INLINE __attribute__((always_inline)) inline
 #define min(a, b) (((a) <= (b)) ? (a) : (b))
 #define max(a, b) (((a) >= (b)) ? (a) : (b))
 
@@ -23,7 +24,13 @@ extern "C"
 #define true 1
 #define false 0
 
-    
+#define OP_RESULT uint32_t
+
+#define OP_RESULT_OK 0x00000000
+#define OP_RESULT_BUSY 0x80000000
+#define OP_RESULT_NOT_SUPPORT 0x40000000
+#define OP_RESULT_PARAMETER_ERROR 0x20000000
+#define OP_RESULT_GENERAL_ERROR 0x10000000
 
     typedef void (*EventHandler)(void *sender, void *host, void *event);
 

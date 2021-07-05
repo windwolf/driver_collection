@@ -19,7 +19,7 @@ static inline void _io_chain_tx_rx_cplt(SpiWithPinsDevice *device)
     _op_chain_send_frame(cmd);
 };
 
-static void _io_chain_error(DeviceBase *device, DEVICE_STATUS error)
+static void _io_chain_error(DeviceBase *device, OP_RESULT error)
 {
     IoChain *cmd = (IoChain *)device->parent;
     cmd->hasError = 1;
@@ -63,7 +63,7 @@ static void _op_chain_send_frame(IoChain *ioChain)
     }
 };
 
-DEVICE_STATUS io_chain_create(IoChain *ioChain, SpiWithPinsDevice *device)
+OP_RESULT io_chain_create(IoChain *ioChain, SpiWithPinsDevice *device)
 {
     ioChain->device = device;
     tx_event_flags_create(&(ioChain->events), "command");
@@ -77,7 +77,7 @@ DEVICE_STATUS io_chain_create(IoChain *ioChain, SpiWithPinsDevice *device)
                                    &_io_chain_tx_rx_cplt,
                                    &_io_chain_tx_rx_cplt,
                                    &_io_chain_error);
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };
 
 void _io_chain_register(IoChain *ioChain, IoChainEventHandlerFuncType onError)
@@ -85,11 +85,11 @@ void _io_chain_register(IoChain *ioChain, IoChainEventHandlerFuncType onError)
     ioChain->onError = onError;
 };
 
-DEVICE_STATUS io_chain_send(IoChain *ioChain, IoChainFrame *ioChainFrame, uint32_t size)
+OP_RESULT io_chain_send(IoChain *ioChain, IoChainFrame *ioChainFrame, uint32_t size)
 {
     if (_io_chain_is_busy(ioChain))
     {
-        return DEVICE_STATUS_BUSY;
+        return OP_RESULT_BUSY;
     }
 
     ioChain->_curIochainFrame = ioChainFrame;
@@ -102,12 +102,12 @@ DEVICE_STATUS io_chain_send(IoChain *ioChain, IoChainFrame *ioChainFrame, uint32
     LOG_D("CMD-SND-CMD");
     _op_chain_send_frame(ioChain);
 
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };
 
-DEVICE_STATUS io_chain_cplt_wait(IoChain *ioChain, ULONG timeout)
+OP_RESULT io_chain_cplt_wait(IoChain *ioChain, ULONG timeout)
 {
     ULONG actualFlags;
     tx_event_flags_get(&ioChain->events, IO_CHAIN_EVENT_CMD_COMPLETE, TX_AND_CLEAR, &actualFlags, timeout);
-    return ioChain->hasError ? DEVICE_STATUS_GENERAL_ERROR : DEVICE_STATUS_OK;
+    return ioChain->hasError ? OP_RESULT_GENERAL_ERROR : OP_RESULT_OK;
 };

@@ -52,7 +52,7 @@ static void I2C_ErrCallback__(I2C_HandleTypeDef *handle)
     }
 };
 
-DEVICE_STATUS i2c_device_create(I2CDevice *device, I2C_HandleTypeDef *instance, uint16_t dmaThershold)
+OP_RESULT i2c_device_create(I2CDevice *device, I2C_HandleTypeDef *instance, uint16_t dmaThershold)
 {
     device_base_create((DeviceBase *)device);
     device->base.instance = instance;
@@ -65,17 +65,17 @@ DEVICE_STATUS i2c_device_create(I2CDevice *device, I2C_HandleTypeDef *instance, 
     device->onReadComplete = NULL;
     device->onWriteComplete = NULL;
     DEVICE_INSTANCE_REGISTER(device, instance->Instance);
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };
 
-DEVICE_STATUS i2c_device_init(I2CDevice *device) { return DEVICE_STATUS_OK; };
-DEVICE_STATUS i2c_device_deinit(I2CDevice *device) { return DEVICE_STATUS_OK; };
+OP_RESULT i2c_device_init(I2CDevice *device) { return OP_RESULT_OK; };
+OP_RESULT i2c_device_deinit(I2CDevice *device) { return OP_RESULT_OK; };
 
-DEVICE_STATUS i2c_device_read(I2CDevice *device, uint16_t deviceAddress, void *data, uint32_t size, DeviceDataWidth width)
+OP_RESULT i2c_device_read(I2CDevice *device, uint16_t deviceAddress, void *data, uint32_t size, DeviceDataWidth width)
 {
     if (width > DEVICE_DATAWIDTH_16)
     {
-        return DEVICE_STATUS_NOT_SUPPORT;
+        return OP_RESULT_NOT_SUPPORT;
     }
     device->_rxBuffer.data = data;
     device->_rxBuffer.size = size * (width - 1);
@@ -98,11 +98,11 @@ DEVICE_STATUS i2c_device_read(I2CDevice *device, uint16_t deviceAddress, void *d
                                 size /*TODO: 确认要不要x2 */);
     }
 };
-DEVICE_STATUS i2c_device_write(I2CDevice *device, uint16_t deviceAddress, void *data, uint32_t size, DeviceDataWidth width)
+OP_RESULT i2c_device_write(I2CDevice *device, uint16_t deviceAddress, void *data, uint32_t size, DeviceDataWidth width)
 {
     if (width > DEVICE_DATAWIDTH_16)
     {
-        return DEVICE_STATUS_NOT_SUPPORT;
+        return OP_RESULT_NOT_SUPPORT;
     }
     if (size > device->dmaThershold)
     {
@@ -125,11 +125,11 @@ DEVICE_STATUS i2c_device_write(I2CDevice *device, uint16_t deviceAddress, void *
     }
 };
 
-DEVICE_STATUS i2c_device_mem_write(I2CDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width)
+OP_RESULT i2c_device_mem_write(I2CDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width)
 {
     if (width > DEVICE_DATAWIDTH_16)
     {
-        return DEVICE_STATUS_NOT_SUPPORT;
+        return OP_RESULT_NOT_SUPPORT;
     }
     if (size > device->dmaThershold)
     {
@@ -152,11 +152,11 @@ DEVICE_STATUS i2c_device_mem_write(I2CDevice *device, uint16_t deviceAddress, ui
     }
 };
 
-DEVICE_STATUS i2c_device_mem_read(I2CDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width)
+OP_RESULT i2c_device_mem_read(I2CDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width)
 {
     if (width > DEVICE_DATAWIDTH_16)
     {
-        return DEVICE_STATUS_NOT_SUPPORT;
+        return OP_RESULT_NOT_SUPPORT;
     }
     device->_rxBuffer.data = data;
     device->_rxBuffer.size = size * (width - 1);

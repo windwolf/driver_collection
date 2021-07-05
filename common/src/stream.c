@@ -24,7 +24,7 @@ static inline void _stream_rx_ready(Stream *stream, uint16_t pos)
     tx_event_flags_set(&(stream->events), STREAM_EVENT_RX_READY, TX_OR);
 };
 
-static inline void _stream_error(Stream *stream, DEVICE_STATUS error)
+static inline void _stream_error(Stream *stream, OP_RESULT error)
 {
     if (stream->onError)
     {
@@ -40,12 +40,12 @@ static inline void _stream_device_rx_cplt(UartDevice *device, uint16_t pos)
 {
     _stream_rx_ready((Stream *)device->base.parent, pos);
 }
-static inline void _stream_device_error(DeviceBase *device, DEVICE_STATUS error)
+static inline void _stream_device_error(DeviceBase *device, OP_RESULT error)
 {
     _stream_error((Stream *)device->parent, error);
 }
 
-DEVICE_STATUS stream_create(Stream *stream, UartDevice *device, RingBuffer *rxBuffer)
+OP_RESULT stream_create(Stream *stream, UartDevice *device, RingBuffer *rxBuffer)
 {
     stream->device = device;
     stream->rxBuffer = rxBuffer;
@@ -55,20 +55,20 @@ DEVICE_STATUS stream_create(Stream *stream, UartDevice *device, RingBuffer *rxBu
                           &_stream_device_tx_cplt,
                           &_stream_device_rx_cplt,
                           &_stream_device_error);
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 }
 
-DEVICE_STATUS stream_server_start(Stream *stream)
+OP_RESULT stream_server_start(Stream *stream)
 {
     return uart_device_circular_rx_start(stream->device, stream->rxBuffer->data, stream->rxBuffer->size);
 }
 
-DEVICE_STATUS stream_server_stop(Stream *stream)
+OP_RESULT stream_server_stop(Stream *stream)
 {
     return uart_device_circular_rx_stop(stream->device);
 }
 
-DEVICE_STATUS stream_send(Stream *stream, uint8_t *data, uint32_t size)
+OP_RESULT stream_send(Stream *stream, uint8_t *data, uint32_t size)
 {
     return uart_device_tx(stream->device, data, size);
 }

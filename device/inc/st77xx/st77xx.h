@@ -37,11 +37,11 @@ extern "C"
 
     } ST77XX;
 
-    DEVICE_STATUS st77xx_create(ST77XX *instance, Command *cc);
+    OP_RESULT st77xx_create(ST77XX *instance, Command *cc);
 
     int st77xx_is_busy(ST77XX *instance);
 
-    DEVICE_STATUS st77xx_lock(ST77XX *instance);
+    OP_RESULT st77xx_lock(ST77XX *instance);
     void st77xx_unlock(ST77XX *instance);
 
     void st77xx_command(ST77XX *instance, uint8_t cmdId);

@@ -51,7 +51,7 @@ static void _spi_rx_clpt(struct SpiDevice *device)
     }
 };
 
-static void _spi_err(struct DeviceBase *device, DEVICE_STATUS error)
+static void _spi_err(struct DeviceBase *device, OP_RESULT error)
 {
     SpiWithPinsDevice *spDev = (SpiWithPinsDevice *)device->parent;
     cs_disable(spDev->csPin);
@@ -63,7 +63,7 @@ static void _spi_err(struct DeviceBase *device, DEVICE_STATUS error)
     }
 };
 
-DEVICE_STATUS spi_with_pins_device_create(SpiWithPinsDevice *device, SpiDevice *spi,
+OP_RESULT spi_with_pins_device_create(SpiWithPinsDevice *device, SpiDevice *spi,
                                           PinDevice *csPin,
                                           PinDevice *readPin,
                                           PinDevice *dataPin)
@@ -77,7 +77,7 @@ DEVICE_STATUS spi_with_pins_device_create(SpiWithPinsDevice *device, SpiDevice *
     device->onTxComplete = NULL;
     device->onRxComplete = NULL;
     _spi_device_register(spi, device, &_spi_tx_clpt, &_spi_rx_clpt, &_spi_err);
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };
 
 void _spi_with_pins_device_register(SpiWithPinsDevice *device, void *parent,
@@ -90,17 +90,17 @@ void _spi_with_pins_device_register(SpiWithPinsDevice *device, void *parent,
     device->onRxComplete = onRxComplete;
 };
 
-DEVICE_STATUS spi_with_pins_device_init(SpiWithPinsDevice *device)
+OP_RESULT spi_with_pins_device_init(SpiWithPinsDevice *device)
 {
     return spi_device_init(device->spi);
 };
 
-DEVICE_STATUS spi_with_pins_device_deinit(SpiWithPinsDevice *device)
+OP_RESULT spi_with_pins_device_deinit(SpiWithPinsDevice *device)
 {
     return spi_device_deinit(device->spi);
 };
 
-DEVICE_STATUS spi_with_pins_device_tx(SpiWithPinsDevice *device, uint8_t isData, void *data, uint32_t size, DeviceDataWidth width)
+OP_RESULT spi_with_pins_device_tx(SpiWithPinsDevice *device, uint8_t isData, void *data, uint32_t size, DeviceDataWidth width)
 {
     if (device->optionBits.autoCs || device->_isSessionBusy)
     {
@@ -111,7 +111,7 @@ DEVICE_STATUS spi_with_pins_device_tx(SpiWithPinsDevice *device, uint8_t isData,
     dc_set(device->dataPin, (uint32_t)isData);
     return spi_device_tx(device->spi, data, size, width);
 };
-DEVICE_STATUS spi_with_pins_device_rx(SpiWithPinsDevice *device, uint8_t isData, void *data, uint32_t size, DeviceDataWidth width, uint8_t dummyCycleCount)
+OP_RESULT spi_with_pins_device_rx(SpiWithPinsDevice *device, uint8_t isData, void *data, uint32_t size, DeviceDataWidth width, uint8_t dummyCycleCount)
 {
     if (device->optionBits.autoCs || device->_isSessionBusy)
     {
@@ -122,18 +122,18 @@ DEVICE_STATUS spi_with_pins_device_rx(SpiWithPinsDevice *device, uint8_t isData,
     return spi_device_rx(device->spi, data, size, width, dummyCycleCount);
 };
 
-DEVICE_STATUS spi_with_pins_device_session_begin(SpiWithPinsDevice *device)
+OP_RESULT spi_with_pins_device_session_begin(SpiWithPinsDevice *device)
 {
     if (device->_isSessionBusy)
     {
-        return DEVICE_STATUS_BUSY;
+        return OP_RESULT_BUSY;
     }
     device->_isSessionBusy = 1;
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };
-DEVICE_STATUS spi_with_pins_device_session_end(SpiWithPinsDevice *device)
+OP_RESULT spi_with_pins_device_session_end(SpiWithPinsDevice *device)
 {
     device->_isSessionBusy = 0;
     cs_disable(device->csPin);
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };

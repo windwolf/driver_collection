@@ -52,7 +52,7 @@ extern "C"
         uint8_t _isSessionBusy;
     } SpiWithPinsDevice;
 
-    DEVICE_STATUS spi_with_pins_device_create(SpiWithPinsDevice *device, SpiDevice *spi,
+    OP_RESULT spi_with_pins_device_create(SpiWithPinsDevice *device, SpiDevice *spi,
                                               PinDevice *csPin,
                                               PinDevice *readPin,
                                               PinDevice *dataPin);
@@ -62,14 +62,14 @@ extern "C"
                                         SpiWithPinsDeviceEventHandlerFuncType onRxComplete,
                                         DeviceBaseEventHandlerFuncType onError);
 
-    DEVICE_STATUS spi_with_pins_device_init(SpiWithPinsDevice *device);
-    DEVICE_STATUS spi_with_pins_device_deinit(SpiWithPinsDevice *device);
+    OP_RESULT spi_with_pins_device_init(SpiWithPinsDevice *device);
+    OP_RESULT spi_with_pins_device_deinit(SpiWithPinsDevice *device);
 
-    DEVICE_STATUS spi_with_pins_device_tx(SpiWithPinsDevice *device, uint8_t isData, void *data, uint32_t size, DeviceDataWidth width);
-    DEVICE_STATUS spi_with_pins_device_rx(SpiWithPinsDevice *device, uint8_t isData, void *data, uint32_t size, DeviceDataWidth width, uint8_t dummyCycleCount);
+    OP_RESULT spi_with_pins_device_tx(SpiWithPinsDevice *device, uint8_t isData, void *data, uint32_t size, DeviceDataWidth width);
+    OP_RESULT spi_with_pins_device_rx(SpiWithPinsDevice *device, uint8_t isData, void *data, uint32_t size, DeviceDataWidth width, uint8_t dummyCycleCount);
 
-    DEVICE_STATUS spi_with_pins_device_session_begin(SpiWithPinsDevice *device);
-    DEVICE_STATUS spi_with_pins_device_session_end(SpiWithPinsDevice *device);
+    OP_RESULT spi_with_pins_device_session_begin(SpiWithPinsDevice *device);
+    OP_RESULT spi_with_pins_device_session_end(SpiWithPinsDevice *device);
 
 #ifdef __cplusplus
 }

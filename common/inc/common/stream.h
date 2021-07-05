@@ -19,17 +19,17 @@ extern "C"
 
         void (*onRxReady)(struct Stream *stream);
 
-        void (*onError)(struct Stream *stream, DEVICE_STATUS error);
+        void (*onError)(struct Stream *stream, OP_RESULT error);
 
     } Stream;
 
-    DEVICE_STATUS stream_create(Stream *stream, UartDevice *device, RingBuffer *rxBuffer);
+    OP_RESULT stream_create(Stream *stream, UartDevice *device, RingBuffer *rxBuffer);
 
-    DEVICE_STATUS stream_server_start(Stream *stream);
+    OP_RESULT stream_server_start(Stream *stream);
 
-    DEVICE_STATUS stream_server_stop(Stream *stream);
+    OP_RESULT stream_server_stop(Stream *stream);
 
-    DEVICE_STATUS stream_send(Stream *stream, uint8_t *data, uint32_t size);
+    OP_RESULT stream_send(Stream *stream, uint8_t *data, uint32_t size);
     /**
      * @brief 阻塞等待tx完成.
      * 

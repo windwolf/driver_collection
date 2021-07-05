@@ -16,8 +16,8 @@ extern "C"
 
     struct Command;
     struct CommandFrame;
-    typedef void (*CommandErrorHandleFuncType)(struct Command *command, DEVICE_STATUS error);
-    typedef DEVICE_STATUS (*CommandDeviceSendFuncType)(struct Command *command, struct CommandFrame *commandFrame);
+    typedef void (*CommandErrorHandleFuncType)(struct Command *command, OP_RESULT error);
+    typedef OP_RESULT (*CommandDeviceSendFuncType)(struct Command *command, struct CommandFrame *commandFrame);
 
     typedef enum COMMAND_FRAME_MODE
     {
@@ -68,9 +68,9 @@ extern "C"
         CommandFrame *_curFrame;
         CommandDeviceSendFuncType _device_send;
     } Command;
-    DEVICE_STATUS command_create(Command *command, CommandDeviceSendFuncType deviceSendFunc);
-    DEVICE_STATUS command_cplt_wait(Command *command, ULONG timeout);
-    DEVICE_STATUS command_send(Command *command, CommandFrame *commandFrame);
+    OP_RESULT command_create(Command *command, CommandDeviceSendFuncType deviceSendFunc);
+    OP_RESULT command_cplt_wait(Command *command, ULONG timeout);
+    OP_RESULT command_send(Command *command, CommandFrame *commandFrame);
 
     typedef struct CommandSpi
     {
@@ -80,7 +80,7 @@ extern "C"
 
     } CommandSpi;
 
-    DEVICE_STATUS command_spi_create(CommandSpi *command, SpiWithPinsDevice *device);
+    OP_RESULT command_spi_create(CommandSpi *command, SpiWithPinsDevice *device);
     void _command_spi_register(CommandSpi *command, CommandErrorHandleFuncType onError);
 
 #ifdef __cplusplus

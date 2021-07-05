@@ -11,7 +11,7 @@ static inline int _st7735_is_busy(ST77XX *instance)
     return tx_event_flags_get(&instance->events, ST7735_EVENT_BUSY, TX_OR, &actualFlags, TX_NO_WAIT) == TX_SUCCESS;
 };
 
-DEVICE_STATUS st7735_create(ST77XX *instance, Command *command)
+OP_RESULT st7735_create(ST77XX *instance, Command *command)
 {
     st77xx_create(instance, command);
 
@@ -53,10 +53,10 @@ DEVICE_STATUS st7735_create(ST77XX *instance, Command *command)
     instance->command.dummyCycles = 0;
     instance->command.altDataMode = COMMAND_FRAME_MODE_SKIP;
 
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };
 
-DEVICE_STATUS st7735_reset(ST77XX *instance)
+OP_RESULT st7735_reset(ST77XX *instance)
 {
     //LOG("ST7735:SWRST s")
     st77xx_command(instance, ST7735_CMD_SOFTWARE_RESET);
@@ -150,34 +150,34 @@ DEVICE_STATUS st7735_reset(ST77XX *instance)
     st77xx_command_write_8(instance, ST7735_CMD_MEMORY_DATA_ACCESS_CONTROL, &instance->orientation, 1);
     //LOG("ST7735:MEMDAC e")
 
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };
 
-DEVICE_STATUS st7735_inversion(ST77XX *instance, uint8_t on)
+OP_RESULT st7735_inversion(ST77XX *instance, uint8_t on)
 {
 
     st77xx_command(instance, (on ? ST7735_CMD_DISPLAY_INVERSION_ON : ST7735_CMD_DISPLAY_INVERSION_OFF));
 
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 }
 
-DEVICE_STATUS st7535_sleep(ST77XX *instance, uint8_t on)
+OP_RESULT st7535_sleep(ST77XX *instance, uint8_t on)
 {
 
     st77xx_command(instance, (on ? ST7735_CMD_SLEEP_IN : ST7735_CMD_SLEEP_OUT));
 
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 }
 
-DEVICE_STATUS st7735_display(ST77XX *instance, uint8_t on)
+OP_RESULT st7735_display(ST77XX *instance, uint8_t on)
 {
 
     st77xx_command(instance, (on ? ST7735_CMD_DISPLAY_ON : ST7735_CMD_DISPLAY_OFF));
 
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 }
 
-DEVICE_STATUS st7735_display_window_set(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
+OP_RESULT st7735_display_window_set(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 {
     x1 += instance->xOffset;
     x2 += instance->xOffset;
@@ -189,22 +189,22 @@ DEVICE_STATUS st7735_display_window_set(ST77XX *instance, uint16_t x1, uint16_t 
 
     uint16_t y[2] = {y1, y2};
     st77xx_command_write_16(instance, ST7735_CMD_ROW_ADDRESS_SET, y, 2);
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 }
 
-DEVICE_STATUS st7735_cursor_set(ST77XX *instance, uint16_t x, uint16_t y)
+OP_RESULT st7735_cursor_set(ST77XX *instance, uint16_t x, uint16_t y)
 {
     x += instance->xOffset;
     st77xx_command_write_16(instance, ST7735_CMD_COLUMN_ADDRESS_SET, &x, 1);
     y += instance->yOffset;
     st77xx_command_write_16(instance, ST7735_CMD_ROW_ADDRESS_SET, &y, 1);
 
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 }
 
-DEVICE_STATUS st7735_pixel_draw(ST77XX *instance, uint16_t x, uint16_t y, uint16_t color)
+OP_RESULT st7735_pixel_draw(ST77XX *instance, uint16_t x, uint16_t y, uint16_t color)
 {
-    DEVICE_STATUS ret = DEVICE_STATUS_OK;
+    OP_RESULT ret = OP_RESULT_OK;
 
     if ((x >= instance->width) || (y >= instance->height))
     {
@@ -212,29 +212,29 @@ DEVICE_STATUS st7735_pixel_draw(ST77XX *instance, uint16_t x, uint16_t y, uint16
     }
     ret = st7735_cursor_set(instance, x, y);
 
-    if (ret != DEVICE_STATUS_OK)
+    if (ret != OP_RESULT_OK)
     {
         return ret;
     }
 
     st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, &color, 2);
 
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 }
 
-DEVICE_STATUS st7735_hline_draw(ST77XX *instance, uint32_t x1, uint32_t y, uint32_t x2, uint16_t *data)
+OP_RESULT st7735_hline_draw(ST77XX *instance, uint32_t x1, uint32_t y, uint32_t x2, uint16_t *data)
 {
 
-    DEVICE_STATUS ret = DEVICE_STATUS_OK;
+    OP_RESULT ret = OP_RESULT_OK;
 
     if ((x1 > instance->width) || (x2 > instance->width))
     {
-        return DEVICE_STATUS_GENERAL_ERROR;
+        return OP_RESULT_GENERAL_ERROR;
     }
 
     ret = st7735_cursor_set(instance, x1, y);
 
-    if (ret != DEVICE_STATUS_OK)
+    if (ret != OP_RESULT_OK)
     {
         return ret;
     }
@@ -244,18 +244,18 @@ DEVICE_STATUS st7735_hline_draw(ST77XX *instance, uint32_t x1, uint32_t y, uint3
     return ret;
 }
 
-DEVICE_STATUS st7735_vline_draw(ST77XX *instance, uint16_t x, uint16_t y1, uint16_t y2, uint16_t *data)
+OP_RESULT st7735_vline_draw(ST77XX *instance, uint16_t x, uint16_t y1, uint16_t y2, uint16_t *data)
 {
-    DEVICE_STATUS ret = DEVICE_STATUS_OK;
+    OP_RESULT ret = OP_RESULT_OK;
 
     if ((y1 > instance->height) || (y2 > instance->height))
     {
-        return DEVICE_STATUS_GENERAL_ERROR;
+        return OP_RESULT_GENERAL_ERROR;
     }
 
     ret = st7735_display_window_set(instance, x, y1, x, y2);
 
-    if (ret != DEVICE_STATUS_OK)
+    if (ret != OP_RESULT_OK)
     {
         return ret;
     }
@@ -265,22 +265,22 @@ DEVICE_STATUS st7735_vline_draw(ST77XX *instance, uint16_t x, uint16_t y1, uint1
     return ret;
 }
 
-DEVICE_STATUS st7735_rect_draw(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t *data)
+OP_RESULT st7735_rect_draw(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t *data)
 {
-    DEVICE_STATUS ret = DEVICE_STATUS_OK;
+    OP_RESULT ret = OP_RESULT_OK;
 
     if (x1 > instance->width || x2 > instance->width)
     {
-        return DEVICE_STATUS_GENERAL_ERROR;
+        return OP_RESULT_GENERAL_ERROR;
     }
     if (y1 > instance->height || y2 > instance->height)
     {
-        return DEVICE_STATUS_GENERAL_ERROR;
+        return OP_RESULT_GENERAL_ERROR;
     }
 
     ret = st7735_display_window_set(instance, x1, y1, x2, y2);
 
-    if (ret != DEVICE_STATUS_OK)
+    if (ret != OP_RESULT_OK)
     {
         return ret;
     }
@@ -297,11 +297,11 @@ DEVICE_STATUS st7735_rect_draw(ST77XX *instance, uint16_t x1, uint16_t y1, uint1
 
 //     if (x1 > instance->width || x2 > instance->width)
 //     {
-//         return DEVICE_STATUS_GENERAL_ERROR;
+//         return OP_RESULT_GENERAL_ERROR;
 //     }
 //     if (y1 > instance->height || y2 > instance->height)
 //     {
-//         return DEVICE_STATUS_GENERAL_ERROR;
+//         return OP_RESULT_GENERAL_ERROR;
 //     }
 
 //     ret = st7735_display_window_set(instance, x1, y1, x2, y2);
@@ -325,7 +325,7 @@ DEVICE_STATUS st7735_rect_draw(ST77XX *instance, uint16_t x1, uint16_t y1, uint1
 //     return ret;
 // }
 
-DEVICE_STATUS st7735_id_read(ST77XX *instance, uint32_t *id)
+OP_RESULT st7735_id_read(ST77XX *instance, uint32_t *id)
 {
     uint32_t id_temp = 0;
     uint8_t rd;
@@ -342,10 +342,10 @@ DEVICE_STATUS st7735_id_read(ST77XX *instance, uint32_t *id)
 
     *id = id_temp;
 
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 }
 
-DEVICE_STATUS st7735_bitmap_draw(ST77XX *instance, uint32_t x, uint32_t y, uint8_t *pBmp)
+OP_RESULT st7735_bitmap_draw(ST77XX *instance, uint32_t x, uint32_t y, uint8_t *pBmp)
 {
     uint32_t index, size, width, height, y_pos;
     uint8_t *pbmp;
@@ -375,5 +375,5 @@ DEVICE_STATUS st7735_bitmap_draw(ST77XX *instance, uint32_t x, uint32_t y, uint8
 
     st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, (uint16_t *)pbmp, size / 2);
 
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 }

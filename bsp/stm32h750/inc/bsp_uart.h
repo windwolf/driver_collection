@@ -11,7 +11,7 @@ extern "C"
 #include "stm32h7xx_ll_usart.h"
 #include "stm32h7xx_ll_dma.h"
 
-    DEVICE_STATUS uart_device_create(UartDevice *device, UART_HandleTypeDef *huart, uint16_t dmaThershold);
+    OP_RESULT uart_device_create(UartDevice *device, UART_HandleTypeDef *huart, uint16_t dmaThershold);
 
 #ifdef __cplusplus
 }

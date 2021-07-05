@@ -53,7 +53,7 @@ extern "C"
     } IoChainFrame;
 
     struct IoChain;
-    typedef void (*IoChainEventHandlerFuncType)(struct IoChain *opChain, DEVICE_STATUS error);
+    typedef void (*IoChainEventHandlerFuncType)(struct IoChain *opChain, OP_RESULT error);
 
     typedef struct IoChain
     {
@@ -68,12 +68,12 @@ extern "C"
 
     } IoChain;
 
-    DEVICE_STATUS io_chain_create(IoChain *opChain, SpiWithPinsDevice *device);
+    OP_RESULT io_chain_create(IoChain *opChain, SpiWithPinsDevice *device);
 
     void _io_chain_register(IoChain *opChain, IoChainEventHandlerFuncType onError);
 
-    DEVICE_STATUS io_chain_send(IoChain *opChain, IoChainFrame *commandFrame, uint32_t size);
-    DEVICE_STATUS io_chain_cplt_wait(IoChain *opChain, ULONG timeout);
+    OP_RESULT io_chain_send(IoChain *opChain, IoChainFrame *commandFrame, uint32_t size);
+    OP_RESULT io_chain_cplt_wait(IoChain *opChain, ULONG timeout);
 
 #ifdef __cplusplus
 }

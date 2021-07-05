@@ -204,21 +204,21 @@ extern "C"
         };
     } W25QXX;
 
-    DEVICE_STATUS w25qxx_create(W25QXX *instance, Command *cc, uint8_t autoPolling);
-    DEVICE_STATUS w25qxx_reset(W25QXX *instance);
-    DEVICE_STATUS w25qxx_status_get(W25QXX *instance);
-    DEVICE_STATUS w25qxx_status_set(W25QXX *instance);
-    DEVICE_STATUS w25qxx_id_read(W25QXX *instance);
+    OP_RESULT w25qxx_create(W25QXX *instance, Command *cc, uint8_t autoPolling);
+    OP_RESULT w25qxx_reset(W25QXX *instance);
+    OP_RESULT w25qxx_status_get(W25QXX *instance);
+    OP_RESULT w25qxx_status_set(W25QXX *instance);
+    OP_RESULT w25qxx_id_read(W25QXX *instance);
 
-    DEVICE_STATUS w25qxx_mode_switch(W25QXX *instance, W25QXX_CMD_MODE cmdMode);
+    OP_RESULT w25qxx_mode_switch(W25QXX *instance, W25QXX_CMD_MODE cmdMode);
 
-    DEVICE_STATUS w25qxx_read(W25QXX *instance, uint8_t *pData, uint32_t ReadAddr, uint32_t Size);
-    DEVICE_STATUS w25qxx_write(W25QXX *instance, uint8_t *pData, uint32_t WriteAddr, uint32_t Size);
+    OP_RESULT w25qxx_read(W25QXX *instance, uint8_t *pData, uint32_t ReadAddr, uint32_t Size);
+    OP_RESULT w25qxx_write(W25QXX *instance, uint8_t *pData, uint32_t WriteAddr, uint32_t Size);
 
-    DEVICE_STATUS w25qxx_block_erase(W25QXX *instance, uint32_t Address);
-    DEVICE_STATUS w25qxx_chip_erase(W25QXX *instance);
+    OP_RESULT w25qxx_block_erase(W25QXX *instance, uint32_t Address);
+    OP_RESULT w25qxx_chip_erase(W25QXX *instance);
 
-    DEVICE_STATUS w25qxx_block_create(W25QXX *instance, Block *block, Buffer buffer);
+    OP_RESULT w25qxx_block_create(W25QXX *instance, Block *block, Buffer buffer);
 #ifdef __cplusplus
 }
 #endif

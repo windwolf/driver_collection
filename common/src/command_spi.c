@@ -31,7 +31,7 @@ static inline void _tx_rx_cplt_(SpiWithPinsDevice *device)
     }
 };
 
-static void _do_error(CommandSpi *command, DEVICE_STATUS error)
+static void _do_error(CommandSpi *command, OP_RESULT error)
 {
     command->base.hasError = 1;
     command->_phase = 0;
@@ -46,7 +46,7 @@ static void _do_error(CommandSpi *command, DEVICE_STATUS error)
     }
 }
 
-static void _error(DeviceBase *device, DEVICE_STATUS error)
+static void _error(DeviceBase *device, OP_RESULT error)
 {
     CommandSpi *cmd = (CommandSpi *)device->parent;
     _do_error(cmd, error);
@@ -96,7 +96,7 @@ static void _send_phase_4(CommandSpi *command)
     {
         _send_phase_end(command);
         command->base.hasError = 1;
-        _do_error(command, DEVICE_STATUS_NOT_SUPPORT);
+        _do_error(command, OP_RESULT_NOT_SUPPORT);
     }
     else
     {
@@ -130,11 +130,11 @@ static void _send_phase_end(CommandSpi *command)
     EVENTS_RESET_FLAGS(command->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
 };
 
-static DEVICE_STATUS _five_step_command_client_spi_send(Command *command, CommandFrame *commandStep)
+static OP_RESULT _five_step_command_client_spi_send(Command *command, CommandFrame *commandStep)
 {
     if (_is_busy(command))
     {
-        return DEVICE_STATUS_BUSY;
+        return OP_RESULT_BUSY;
     }
 
     EVENTS_CLEAR_FLAGS(command->events);
@@ -142,10 +142,10 @@ static DEVICE_STATUS _five_step_command_client_spi_send(Command *command, Comman
     command->_curFrame = commandStep;
     _send_phase_1((CommandSpi *)command);
 
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };
 
-DEVICE_STATUS command_spi_create(CommandSpi *command, SpiWithPinsDevice *device)
+OP_RESULT command_spi_create(CommandSpi *command, SpiWithPinsDevice *device)
 {
     command_create((Command *)command, &_five_step_command_client_spi_send);
     device->optionBits.autoCs = 0;
@@ -155,7 +155,7 @@ DEVICE_STATUS command_spi_create(CommandSpi *command, SpiWithPinsDevice *device)
                                    &_tx_rx_cplt_,
                                    &_tx_rx_cplt_,
                                    &_error);
-    return DEVICE_STATUS_OK;
+    return OP_RESULT_OK;
 };
 
 void _command_spi_register(CommandSpi *command,

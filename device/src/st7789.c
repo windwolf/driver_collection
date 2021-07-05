@@ -2,19 +2,19 @@
 // #include "basic/shared.h"
 // #include "stdio.h"
 
-// DEVICE_STATUS st7789_create(ST77XX *instance)
+// OP_RESULT st7789_create(ST77XX *instance)
 // {
 //     tx_event_flags_create(&instance->events, "st7789");
 
 
-//     return DEVICE_STATUS_OK;
+//     return OP_RESULT_OK;
 // };
 
-// DEVICE_STATUS st7789_reset(ST77XX *instance, ST7789_COLOR_MODE color_mode, ST7789_DISPLAY_DIRECTION displayDirection, ST7789_DISPLAY_COLOR_DIRECTION colorDirection, ST7789_DISPLAY_REFRESH_ORDER refreshOrder)
+// OP_RESULT st7789_reset(ST77XX *instance, ST7789_COLOR_MODE color_mode, ST7789_DISPLAY_DIRECTION displayDirection, ST7789_DISPLAY_COLOR_DIRECTION colorDirection, ST7789_DISPLAY_REFRESH_ORDER refreshOrder)
 // {
 //     if (st77xx_is_busy(instance))
 //     {
-//         return DEVICE_STATUS_BUSY;
+//         return OP_RESULT_BUSY;
 //     }
 //     ST77XX_EVENTS_SET_BUSY(instance);
 
@@ -39,83 +39,83 @@
 
 //     ST77XX_EVENTS_RESET_BUSY(instance);
 
-//     return DEVICE_STATUS_OK;
+//     return OP_RESULT_OK;
 // };
 
-// DEVICE_STATUS st7789_inversion(ST77XX *instance, uint8_t on)
+// OP_RESULT st7789_inversion(ST77XX *instance, uint8_t on)
 // {
 //     if (st77xx_is_busy(instance))
 //     {
-//         return DEVICE_STATUS_BUSY;
+//         return OP_RESULT_BUSY;
 //     }
 //     ST77XX_EVENTS_SET_BUSY(instance);
 
 //     st77xx_command(instance, (on ? ST7789_CMD_DISPLAY_INVERSION_ON : ST7789_CMD_DISPLAY_INVERSION_OFF));
 
 //     ST77XX_EVENTS_RESET_BUSY(instance);
-//     return DEVICE_STATUS_OK;
+//     return OP_RESULT_OK;
 // }
 
-// DEVICE_STATUS st7789_sleep(ST77XX *instance, uint8_t on)
+// OP_RESULT st7789_sleep(ST77XX *instance, uint8_t on)
 // {
 //     if (st77xx_is_busy(instance))
 //     {
-//         return DEVICE_STATUS_BUSY;
+//         return OP_RESULT_BUSY;
 //     }
 //     ST77XX_EVENTS_SET_BUSY(instance);
 
 //     st77xx_command(instance, (on ? ST7789_CMD_SLEEP_IN : ST7789_CMD_SLEEP_OUT));
 
 //     ST77XX_EVENTS_RESET_BUSY(instance);
-//     return DEVICE_STATUS_OK;
+//     return OP_RESULT_OK;
 // }
 
-// DEVICE_STATUS st7789_display(ST77XX *instance, uint8_t on)
+// OP_RESULT st7789_display(ST77XX *instance, uint8_t on)
 // {
 //     if (st77xx_is_busy(instance))
 //     {
-//         return DEVICE_STATUS_BUSY;
+//         return OP_RESULT_BUSY;
 //     }
 //     ST77XX_EVENTS_SET_BUSY(instance);
 
 //     st77xx_command(instance, (on ? ST7789_CMD_DISPLAY_ON : ST7789_CMD_DISPLAY_OFF));
 
 //     ST77XX_EVENTS_RESET_BUSY(instance);
-//     return DEVICE_STATUS_OK;
+//     return OP_RESULT_OK;
 // }
-// DEVICE_STATUS st7789_row_address_set(ST77XX *instance, uint16_t start, uint16_t end)
+// OP_RESULT st7789_row_address_set(ST77XX *instance, uint16_t start, uint16_t end)
 // {
 //     if (st77xx_is_busy(instance))
 //     {
-//         return DEVICE_STATUS_BUSY;
+//         return OP_RESULT_BUSY;
 //     }
 //     ST77XX_EVENTS_SET_BUSY(instance);
 
 //     ST77XX_Command_Write16xN(instance, ST7789_CMD_ROW_ADDRESS_SET, start, end, 2);
 
 //     ST77XX_EVENTS_RESET_BUSY(instance);
-//     return DEVICE_STATUS_OK;
+//     return OP_RESULT_OK;
 // }
 
-// DEVICE_STATUS st7789_col_address_set(ST77XX *instance, uint16_t start, uint16_t end)
+// OP_RESULT st7789_col_address_set(ST77XX *instance, uint16_t start, uint16_t end)
 // {
 //     if (st77xx_is_busy(instance))
 //     {
-//         return DEVICE_STATUS_BUSY;
+//         return OP_RESULT_BUSY;
 //     }
 //     ST77XX_EVENTS_SET_BUSY(instance);
 
 //     ST77XX_Command_Write16xN(instance, ST7789_CMD_COLUMN_ADDRESS_SET, start, end, 2);
 
 //     ST77XX_EVENTS_RESET_BUSY(instance);
-//     return DEVICE_STATUS_OK;
+//     return OP_RESULT_OK;
 // }
 
-// DEVICE_STATUS st7789_data_write(ST77XX *instance, uint16_t *data, uint32_t size)
+// OP_RESULT st7789_data_write(ST77XX *instance, uint16_t *data, uint32_t size)
 // {
 //     if (st77xx_is_busy(instance))
 //     {
-//         return DEVICE_STATUS_BUSY;
+//         return OP_RESULT_BUSY;
 //     }
 //     ST77XX_EVENTS_SET_BUSY(instance);
 
@@ -128,5 +128,5 @@
 //     instance->command[1].buffer.data = pData;
 
 //     ST77XX_EVENTS_RESET_BUSY(instance);
-//     return DEVICE_STATUS_OK;
+//     return OP_RESULT_OK;
 // }

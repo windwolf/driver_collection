@@ -9,13 +9,7 @@ extern "C"
 #include "shared.h"
 #include "buffer.h"
 
-#define DEVICE_STATUS uint32_t
 
-#define DEVICE_STATUS_OK 0x00000000
-#define DEVICE_STATUS_BUSY 0x80000000
-#define DEVICE_STATUS_NOT_SUPPORT 0x40000000
-#define DEVICE_STATUS_PARAMETER_ERROR 0x20000000
-#define DEVICE_STATUS_GENERAL_ERROR 0x10000000
 
 #define ALIGN(n) __attribute__((aligned(n)))
 
@@ -30,7 +24,7 @@ extern "C"
     /* device base */
     struct DeviceBase;
 
-    typedef void (*DeviceBaseEventHandlerFuncType)(struct DeviceBase *device, DEVICE_STATUS error);
+    typedef void (*DeviceBaseEventHandlerFuncType)(struct DeviceBase *device, OP_RESULT error);
     typedef struct DeviceBase
     {
         void *parent;
@@ -71,12 +65,12 @@ extern "C"
                               PinDeviceEventHandlerFuncType onTrigger,
                               DeviceBaseEventHandlerFuncType onError);
 
-    DEVICE_STATUS pin_device_init(PinDevice *device);
-    DEVICE_STATUS pin_device_deinit(PinDevice *device);
+    OP_RESULT pin_device_init(PinDevice *device);
+    OP_RESULT pin_device_deinit(PinDevice *device);
 
-    DEVICE_STATUS pin_device_set(PinDevice *device, PIN_DEVICE_STATUS parent);
-    DEVICE_STATUS pin_device_get(PinDevice *device, PIN_DEVICE_STATUS *parent);
-    DEVICE_STATUS pin_device_toggle(PinDevice *device);
+    OP_RESULT pin_device_set(PinDevice *device, PIN_DEVICE_STATUS parent);
+    OP_RESULT pin_device_get(PinDevice *device, PIN_DEVICE_STATUS *parent);
+    OP_RESULT pin_device_toggle(PinDevice *device);
 
     /* spi device */
 
@@ -104,11 +98,11 @@ extern "C"
                               SpiDeviceEventHandlerFuncType onRxComplete,
                               DeviceBaseEventHandlerFuncType onError);
 
-    DEVICE_STATUS spi_device_init(SpiDevice *device);
-    DEVICE_STATUS spi_device_deinit(SpiDevice *device);
+    OP_RESULT spi_device_init(SpiDevice *device);
+    OP_RESULT spi_device_deinit(SpiDevice *device);
 
-    DEVICE_STATUS spi_device_tx(SpiDevice *device, void *data, uint32_t size, DeviceDataWidth width);
-    DEVICE_STATUS spi_device_rx(SpiDevice *device, void *data, uint32_t size, DeviceDataWidth width, uint8_t dummyCycleCount);
+    OP_RESULT spi_device_tx(SpiDevice *device, void *data, uint32_t size, DeviceDataWidth width);
+    OP_RESULT spi_device_rx(SpiDevice *device, void *data, uint32_t size, DeviceDataWidth width, uint8_t dummyCycleCount);
 
     /* i2c mem device */
     struct I2CDevice;
@@ -135,14 +129,14 @@ extern "C"
                               I2CMemDeviceEventHandlerFuncType onReadComplete,
                               DeviceBaseEventHandlerFuncType onError);
 
-    DEVICE_STATUS i2c_device_init(I2CDevice *device);
-    DEVICE_STATUS i2c_device_deinit(I2CDevice *device);
+    OP_RESULT i2c_device_init(I2CDevice *device);
+    OP_RESULT i2c_device_deinit(I2CDevice *device);
 
-    DEVICE_STATUS i2c_device_read(I2CDevice *device, uint16_t deviceAddress, void *data, uint32_t size, DeviceDataWidth width);
-    DEVICE_STATUS i2c_device_write(I2CDevice *device, uint16_t deviceAddress, void *data, uint32_t size, DeviceDataWidth width);
+    OP_RESULT i2c_device_read(I2CDevice *device, uint16_t deviceAddress, void *data, uint32_t size, DeviceDataWidth width);
+    OP_RESULT i2c_device_write(I2CDevice *device, uint16_t deviceAddress, void *data, uint32_t size, DeviceDataWidth width);
 
-    DEVICE_STATUS i2c_device_mem_read(I2CDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width);
-    DEVICE_STATUS i2c_device_mem_write(I2CDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width);
+    OP_RESULT i2c_device_mem_read(I2CDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width);
+    OP_RESULT i2c_device_mem_write(I2CDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width);
 
     /* uart device */
     struct UartDevice;
@@ -171,14 +165,14 @@ extern "C"
                                UartDeviceRxEventHandlerFuncType onRxComplete,
                                DeviceBaseEventHandlerFuncType onError);
 
-    DEVICE_STATUS uart_device_init(UartDevice *device);
-    DEVICE_STATUS uart_device_deinit(UartDevice *device);
+    OP_RESULT uart_device_init(UartDevice *device);
+    OP_RESULT uart_device_deinit(UartDevice *device);
 
-    DEVICE_STATUS uart_device_tx(UartDevice *device, uint8_t *data, uint32_t size);
+    OP_RESULT uart_device_tx(UartDevice *device, uint8_t *data, uint32_t size);
     //DEVICE_STATUS uart_device_rx(UartDevice *device, uint8_t *data, uint32_t size, uint8_t stopOnIdle);
 
-    DEVICE_STATUS uart_device_circular_rx_start(UartDevice *device, uint8_t *data, uint32_t size);
-    DEVICE_STATUS uart_device_circular_rx_stop(UartDevice *device);
+    OP_RESULT uart_device_circular_rx_start(UartDevice *device, uint8_t *data, uint32_t size);
+    OP_RESULT uart_device_circular_rx_stop(UartDevice *device);
 
     struct SdDevice;
     typedef void (*SdDeviceEventHandlerFuncType)(struct SdDevice *device);
@@ -210,15 +204,15 @@ extern "C"
                              SdDeviceEventHandlerFuncType onRxComplete,
                              DeviceBaseEventHandlerFuncType onError);
 
-    DEVICE_STATUS sd_device_init(SdDevice *device);
-    DEVICE_STATUS sd_device_deinit(SdDevice *device);
-    DEVICE_STATUS sd_device_read(SdDevice *device, void *data, uint32_t num, uint32_t count);
-    DEVICE_STATUS sd_device_write(SdDevice *device, void *data, uint32_t num, uint32_t count);
-    DEVICE_STATUS sd_device_erase(SdDevice *device, uint32_t num, uint32_t count);
+    OP_RESULT sd_device_init(SdDevice *device);
+    OP_RESULT sd_device_deinit(SdDevice *device);
+    OP_RESULT sd_device_read(SdDevice *device, void *data, uint32_t num, uint32_t count);
+    OP_RESULT sd_device_write(SdDevice *device, void *data, uint32_t num, uint32_t count);
+    OP_RESULT sd_device_erase(SdDevice *device, uint32_t num, uint32_t count);
 
-    DEVICE_STATUS sd_device_query_status(SdDevice *device);
+    OP_RESULT sd_device_query_status(SdDevice *device);
 
-    DEVICE_STATUS sd_device_card_init(SdDevice *device);
+    OP_RESULT sd_device_card_init(SdDevice *device);
 
 #ifdef __cplusplus
 }

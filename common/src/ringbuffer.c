@@ -6,33 +6,22 @@
 
 #define CONVERT_TO_UINT8_POINTER(a) ((uint8_t *)((void *)(a)))
 #define CONVERT_TO_VOID_POINTER(a) ((void *)(a))
-#define POINTER_ADD(a, b) (((uint8_t *)((void *)(a))) + ((int32_t)(b)))
-
-static inline uint32_t RinBuffer8_Count(RingBuffer *queue)
-{
-    int32_t len = queue->write - queue->read;
-    if (len < 0)
-    {
-        len += queue->size;
-    }
-    return len;
-}
+#define POINTER_ADD(data, offset, width) ((uint8_t *)data + offset * width)
 
 // static inline int8_t RingBuffer8_IsSameReadWriteMirrorMode(RingBuffer *queue)
 // {
 //     return queue->readMirror == queue->writeMirror;
 // }
 
-void ringbuffer_create(RingBuffer *queue, uint8_t *data, uint32_t maxSize)
+void ringbuffer_create(RingBuffer *queue, void *data, uint32_t dataWidth, uint32_t size)
 {
-    queue->size = maxSize;
+    queue->size = size;
     queue->statusBits.overflowed = 0;
     queue->data = data;
+    queue->dataWidth = dataWidth;
     queue->write = 0;
     queue->read = 0;
     queue->OperationNotify = 0;
-    //queue->readMirror = 0;
-    //queue->writeMirror = 0;
 }
 
 void ringbuffer_operation_notify_register(RingBuffer *queue, void (*OperationNotify)(RINGBUFFER_OPERATION_TYPE type))
@@ -40,31 +29,25 @@ void ringbuffer_operation_notify_register(RingBuffer *queue, void (*OperationNot
     queue->OperationNotify = OperationNotify;
 }
 
-inline uint8_t ringbuffer_is_full(RingBuffer *queue)
+inline bool_t ringbuffer_is_full(RingBuffer *queue)
 {
     return queue->write + 1 == queue->read;
 }
 
-inline uint8_t ringbuffer_is_empty(RingBuffer *queue)
+inline bool_t ringbuffer_is_empty(RingBuffer *queue)
 {
     return queue->write == queue->read;
     //return (queue->write == queue->read) && (queue->readMirror == queue->writeMirror);
 }
 
-// inline uint8_t ringbuffer_space_enough(RingBuffer *queue, uint32_t length)
-// {
-//     int32_t len = queue->write - queue->read;
-//     if (len < 0)
-//     {
-//         len += queue->size;
-//     }
-//     return len;
-//     return (ringbuffer_count_get(queue) + length) <= queue->size;
-// }
+inline bool_t ringbuffer_space_enough(RingBuffer *queue, uint32_t length)
+{
+    return (queue->size - 1) - ringbuffer_count_get(queue) >= length;
+}
 
 uint32_t ringbuffer_mem_size_get(RingBuffer *queue)
 {
-    return queue->size;
+    return queue->size * queue->dataWidth;
 }
 
 inline uint32_t ringbuffer_count_get(RingBuffer *queue)
@@ -77,17 +60,17 @@ inline uint32_t ringbuffer_count_get(RingBuffer *queue)
     return len;
 }
 
-inline uint8_t *ringbuffer_write_ptr_get(RingBuffer *queue)
+inline void *ringbuffer_write_ptr_get(RingBuffer *queue)
 {
     return queue->data + ((queue->write >= queue->size) ? (queue->write - queue->size) : queue->write);
 }
 
-inline uint8_t *ringbuffer_read_ptr_get(RingBuffer *queue)
+inline void *ringbuffer_read_ptr_get(RingBuffer *queue)
 {
     return queue->data + ((queue->read >= queue->size) ? (queue->read - queue->size) : queue->read);
 }
 
-uint8_t ringbuffer_write_index_sync(RingBuffer *queue, uint32_t newWrite)
+OP_RESULT ringbuffer_write_index_sync(RingBuffer *queue, uint32_t newWrite)
 {
     uint32_t size = queue->size;
     if (newWrite >= size)
@@ -116,10 +99,10 @@ uint8_t ringbuffer_write_index_sync(RingBuffer *queue, uint32_t newWrite)
     {
         queue->OperationNotify(RINGBUFFER_OPERATION_TYPE_SYNC_HEAD);
     }
-    return 0;
+    return OP_RESULT_OK;
 }
 
-uint8_t ringbuffer_read_index_sync(RingBuffer *queue, uint32_t newRead)
+OP_RESULT ringbuffer_read_index_sync(RingBuffer *queue, uint32_t newRead)
 {
     uint32_t read = queue->read;
 
@@ -141,15 +124,33 @@ uint8_t ringbuffer_read_index_sync(RingBuffer *queue, uint32_t newRead)
     {
         queue->OperationNotify(RINGBUFFER_OPERATION_TYPE_SYNC_TAIL);
     }
-    return 0;
+    return OP_RESULT_OK;
 }
 
-int32_t ringbuffer_write(RingBuffer *queue, uint8_t *valuePtr, uint32_t length, uint8_t allowCoverTail)
+OP_RESULT ringbuffer_read_offset_sync(RingBuffer *queue, uint32_t offset)
+{
+    if (offset > ringbuffer_count_get(queue))
+    {
+        return OP_RESULT_PARAMETER_ERROR;
+    }
+    uint32_t index = queue->read + offset;
+    if (index >= queue->size)
+    {
+        index -= queue->size;
+    }
+    queue->read = index;
+    if (queue->OperationNotify != NULL)
+    {
+        queue->OperationNotify(RINGBUFFER_OPERATION_TYPE_SYNC_TAIL);
+    }
+    return OP_RESULT_OK;
+};
+
+OP_RESULT ringbuffer_write(RingBuffer *queue, void *valuePtr, uint32_t length, uint8_t allowCoverTail, uint32_t *actualLength)
 {
     uint32_t write = queue->write;
     uint32_t size = queue->size;
     uint32_t cap = size - 1;
-    uint32_t rtnLength = length;
     uint32_t read = queue->read;
     int32_t space = read - write - 1;
     if (space <= -1)
@@ -163,7 +164,7 @@ int32_t ringbuffer_write(RingBuffer *queue, uint8_t *valuePtr, uint32_t length, 
         {
             if (length > cap)
             {
-                valuePtr = POINTER_ADD(valuePtr, (length - cap));
+                valuePtr = POINTER_ADD(valuePtr, (length - cap), queue->dataWidth);
                 length = cap;
             }
             queue->statusBits.overflowed = 1;
@@ -171,7 +172,6 @@ int32_t ringbuffer_write(RingBuffer *queue, uint8_t *valuePtr, uint32_t length, 
         else
         {
             length = space;
-            rtnLength = length;
         }
     }
 
@@ -179,14 +179,14 @@ int32_t ringbuffer_write(RingBuffer *queue, uint8_t *valuePtr, uint32_t length, 
 
     if (length <= spaceFromWriteToEnd)
     {
-        memcpy(POINTER_ADD(queue->data, write), valuePtr, length);
+        memcpy(POINTER_ADD(queue->data, write, queue->dataWidth), valuePtr, length);
         write += length;
         write = (write == size) ? 0 : write;
     }
     else
     {
-        memcpy(POINTER_ADD(queue->data, write), valuePtr, spaceFromWriteToEnd);
-        memcpy(queue->data, POINTER_ADD(valuePtr, spaceFromWriteToEnd), (length - spaceFromWriteToEnd));
+        memcpy(POINTER_ADD(queue->data, write, queue->dataWidth), valuePtr, spaceFromWriteToEnd);
+        memcpy(queue->data, POINTER_ADD(valuePtr, spaceFromWriteToEnd, queue->dataWidth), (length - spaceFromWriteToEnd));
 
         write = length - spaceFromWriteToEnd;
     }
@@ -202,10 +202,11 @@ int32_t ringbuffer_write(RingBuffer *queue, uint8_t *valuePtr, uint32_t length, 
     {
         queue->OperationNotify(RINGBUFFER_OPERATION_TYPE_ENQUEUE);
     }
-    return rtnLength;
+    *actualLength = length;
+    return OP_RESULT_OK;
 }
 
-int32_t ringbuffer_read(RingBuffer *queue, uint8_t *valuePtr, uint32_t length)
+OP_RESULT ringbuffer_read(RingBuffer *queue, void *valuePtr, uint32_t length, uint32_t *actualLegnth)
 {
     uint8_t *data = queue->data;
     uint32_t size = queue->size;
@@ -242,22 +243,89 @@ int32_t ringbuffer_read(RingBuffer *queue, uint8_t *valuePtr, uint32_t length)
     {
         queue->OperationNotify(RINGBUFFER_OPERATION_TYPE_DEQUEUE);
     }
-    return length;
+    *actualLegnth = length;
+    return OP_RESULT_OK;
 }
 
-uint8_t ringbuffer_peek_to_end(RingBuffer *queue, uint8_t **valuePtr, uint32_t *length)
+OP_RESULT ringbuffer_index_peek(RingBuffer *queue, uint32_t index, void **data)
 {
-    // uint32_t read = queue->read;
-    // uint32_t size = queue->size;
-    // uint32_t count = queue->count;
-    // uint32_t countFormTailToBufferEnd = size - read;
+    if (queue->write > queue->read)
+    {
+        if (index >= queue->write || index < queue->read)
+        {
+            return OP_RESULT_PARAMETER_ERROR;
+        }
+    }
+    else if (queue->write < queue->read)
+    {
+        if (index >= queue->write && index < queue->read)
+        {
+            return OP_RESULT_PARAMETER_ERROR;
+        }
+    }
+    else
+    {
+        return OP_RESULT_PARAMETER_ERROR;
+    }
+    *data = POINTER_ADD(queue->data, index, queue->dataWidth);
+    return OP_RESULT_OK;
+};
 
-    // *valuePtr = POINTER_ADD(queue->data, queue->read << unitSize);
-    // *length = count < countFormTailToBufferEnd ? count : countFormTailToBufferEnd;
+OP_RESULT ringbuffer_offset_peek(RingBuffer *queue, uint32_t offset, void **data)
+{
+    if (offset > ringbuffer_count_get(queue))
+    {
+        return OP_RESULT_PARAMETER_ERROR;
+    }
+    uint32_t index = queue->read + offset;
+    if (index >= queue->size)
+    {
+        index -= queue->size;
+    }
+    *data = POINTER_ADD(queue->data, index, queue->dataWidth);
+    return OP_RESULT_OK;
+};
 
-    // if (queue->OperationNotify != NULL)
-    // {
-    //     queue->OperationNotify(RINGBUFFER_OPERATION_TYPE_PEEK_TO_END);
-    // }
+OP_RESULT ringbuffer_peek(RingBuffer *queue, void **data)
+{
+    if (ringbuffer_is_empty(queue))
+    {
+        return OP_RESULT_GENERAL_ERROR;
+    }
+    *data = POINTER_ADD(queue->data, queue->read, queue->dataWidth);
     return 0;
+}
+
+ALWAYS_INLINE void *ringbuffer_index_peek_directly(RingBuffer *queue, uint32_t index)
+{
+    return POINTER_ADD(queue->data, index, queue->dataWidth);
+};
+
+ALWAYS_INLINE void *ringbuffer_offset_peek_directly(RingBuffer *queue, uint32_t offset)
+{
+    uint32_t index = queue->read + offset;
+    if (index >= queue->size)
+    {
+        index -= queue->size;
+    }
+    return POINTER_ADD(queue->data, index, queue->dataWidth);
+};
+
+ALWAYS_INLINE uint32_t ringbuffer_offset_to_index_convert(RingBuffer *queue, uint32_t offset)
+{
+    uint32_t index = queue->read + offset;
+    if (index >= queue->size)
+    {
+        index -= queue->size;
+    }
+    return index;
+}
+
+ALWAYS_INLINE uint32_t ringbuffer_index_wrap(RingBuffer *queue, uint32_t index)
+{
+    if (index >= queue->size)
+    {
+        index -= queue->size;
+    }
+    return index;
 }

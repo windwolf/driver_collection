@@ -1,46 +1,44 @@
 #include "stdint.h"
-#include "common/packet_parser.h"
+#include "common/message_parser.h"
 #include "string.h"
 #include "tx_api.h"
 
-#define LOG_MODULE "packet_parser"
+#define LOG_MODULE "message_parser"
 #include "log.h"
 
-static bool_t _packet_parser_schema_compare(PacketSchema *a, PacketSchema *b);
+static bool_t _message_parser_schema_compare(MessageSchema *a, MessageSchema *b);
 
-static void _packet_parser_frame_pack(PacketParser *parser, PacketFrame *parsedFrame);
+static void _message_parser_frame_pack(MessageParser *parser, MessageFrame *parsedFrame);
 
-static uint32_t Command_CalculateOverHeadLength(PacketSchema schema);
+static int8_t _message_parser_block_clear(MessageParser *parser);
 
-static int8_t _packet_parser_block_clear(PacketParser *parser);
+static int8_t _message_parser_schema_check(MessageSchema *schema);
 
-static int8_t _packet_parser_schema_check(PacketSchema *schema);
+static bool_t _message_parser_chars_seek(MessageParser *parser, char *pattern, int8_t *lps, uint8_t patternSize);
 
-static bool_t _packet_parser_chars_seek(PacketParser *parser, char *pattern, int8_t *lps, uint8_t patternSize);
+static int8_t _message_parser_int_scan(MessageParser *parser, MESSAGE_SCHEMA_LENGTH_SIZE size, MESSAGE_SCHEMA_LENGTH_ENDIAN endian, uint32_t *value);
 
-static int8_t _packet_parser_int_scan(PacketParser *parser, uint8_t size, uint32_t *value);
+static int8_t _message_parser_content_scan(MessageParser *parser, uint32_t length, uint32_t *scanedLength);
 
-static int8_t _packet_parser_content_scan(PacketParser *parser, uint32_t length, uint32_t *scanedLength);
+static void _message_parser_context_init(MessageParser *parser, MessageSchema *schema);
 
-static void _packet_parser_context_init(PacketParser *parser, PacketSchema *schema);
-
-static void _packet_parser_context_preparing(PacketParser *parser);
+static void _message_parser_context_preparing(MessageParser *parser);
 
 /**
  * @arg
  * @arg 
  * @return 0=success, -1=dismatch, 1=not enough chars
  * */
-static int8_t _packet_parser_chars_scan(PacketParser *parser, char *pattern, uint8_t size);
+static int8_t _message_parser_chars_scan(MessageParser *parser, char *pattern, uint8_t size);
 
-static void _packet_parser_pattern_nexts_generate(char *p, uint8_t M, int8_t *next);
+static void _message_parser_pattern_nexts_generate(char *p, uint8_t M, int8_t *next);
 
-int8_t packet_parser_create(PacketParser *parser, char *name,
-                            PacketSchema *schema,
-                            RingBuffer *buffer)
+int8_t message_parser_create(MessageParser *parser, char *name,
+                             MessageSchema *schema,
+                             RingBuffer *buffer)
 {
 
-    uint8_t checkResult = _packet_parser_schema_check(schema);
+    uint8_t checkResult = _message_parser_schema_check(schema);
     if (checkResult != 0)
     {
         return checkResult;
@@ -48,34 +46,34 @@ int8_t packet_parser_create(PacketParser *parser, char *name,
 
     parser->schema = schema;
 
-    _packet_parser_pattern_nexts_generate(schema->prefix, schema->prefixSize, parser->_prefixPatternNexts);
+    _message_parser_pattern_nexts_generate(schema->prefix, schema->prefixSize, parser->_prefixPatternNexts);
 
     if (schema->suffixSize != 0)
     {
-        _packet_parser_pattern_nexts_generate(schema->suffix, schema->suffixSize, parser->_suffixPatternNexts);
+        _message_parser_pattern_nexts_generate(schema->suffix, schema->suffixSize, parser->_suffixPatternNexts);
     }
 
     parser->buffer = buffer;
-    parser->_stage = PACKET_PARSE_STAGE_INIT;
+    parser->_stage = MESSAGE_PARSE_STAGE_INIT;
     return 0;
 };
 
-OP_RESULT packet_parser_get(PacketParser *parser, PacketSchema *customSchema, PacketFrame *parsedFrame)
+OP_RESULT message_parser_get(MessageParser *parser, MessageSchema *customSchema, MessageFrame *parsedFrame)
 {
     uint8_t stage = parser->_stage;
     uint8_t frameCount = 0;
-    PacketSchema *schema = parser->_curSchema;
+    MessageSchema *schema = parser->_curSchema;
 
     if (customSchema != NULL)
     {
         // 提供了自定义schema. 如果提供的和当前的一致, 则沿用; 否则初始化.
-        if (_packet_parser_schema_compare(customSchema, schema))
+        if (_message_parser_schema_compare(customSchema, schema))
         {
         }
         else
         {
             schema = customSchema;
-            stage = PACKET_PARSE_STAGE_INIT;
+            stage = MESSAGE_PARSE_STAGE_INIT;
         }
     }
     else
@@ -87,91 +85,91 @@ OP_RESULT packet_parser_get(PacketParser *parser, PacketSchema *customSchema, Pa
         {
             // 没提供自定义schema. 使用默认schema, 如果当前schema就是默认schema, 则沿用; 否则初始化.
             schema = parser->schema;
-            stage = PACKET_PARSE_STAGE_INIT;
+            stage = MESSAGE_PARSE_STAGE_INIT;
         }
     }
-    PACKET_SCHEMA_MODE mode = schema->mode;
+    MESSAGE_SCHEMA_MODE mode = schema->mode;
     bool_t result = false;
     switch (stage)
     {
-    case PACKET_PARSE_STAGE_INIT:
-        _packet_parser_context_init(parser, schema);
-        stage = PACKET_PARSE_STAGE_SEEKING_PREFIX;
+    case MESSAGE_PARSE_STAGE_INIT:
+        _message_parser_context_init(parser, schema);
+        stage = MESSAGE_PARSE_STAGE_SEEKING_PREFIX;
         // break; // Go to next stage directly.
-    case PACKET_PARSE_STAGE_PREPARING:
-        _packet_parser_context_preparing(parser);
-        stage = PACKET_PARSE_STAGE_SEEKING_PREFIX;
+    case MESSAGE_PARSE_STAGE_PREPARING:
+        _message_parser_context_preparing(parser);
+        stage = MESSAGE_PARSE_STAGE_SEEKING_PREFIX;
         // break; // Go to next stage directly.
-    case PACKET_PARSE_STAGE_SEEKING_PREFIX:
-        result = _packet_parser_chars_seek(parser, schema->prefix, parser->_prefixPatternNexts, schema->prefixSize);
+    case MESSAGE_PARSE_STAGE_SEEKING_PREFIX:
+        result = _message_parser_chars_seek(parser, schema->prefix, parser->_prefixPatternNexts, schema->prefixSize);
         if (result)
         {
             ringbuffer_read_offset_sync(parser->buffer, parser->_seekOffset - schema->prefixSize);
             parser->_packetStartOffset = 0;
             parser->_seekOffset = schema->prefixSize;
-            stage = PACKET_PARSE_STAGE_PARSING_LENGTH;
+            stage = MESSAGE_PARSE_STAGE_PARSING_LENGTH;
         }
         else
         {
-            stage = PACKET_PARSE_STAGE_SEEKING_PREFIX;
+            stage = MESSAGE_PARSE_STAGE_SEEKING_PREFIX;
             break;
         }
-    case PACKET_PARSE_STAGE_PARSING_LENGTH:
-        if (mode == PACKET_SCHEMA_MODE_FIXED_LENGTH)
+    case MESSAGE_PARSE_STAGE_PARSING_LENGTH:
+        if (mode == MESSAGE_SCHEMA_MODE_FIXED_LENGTH)
         {
             parser->_frameExpectContentLength = schema->fixed.fixedLength;
             parser->_frameActualContentLength = 0;
-            stage = PACKET_PARSE_STAGE_SEEKING_CONTENT;
+            stage = MESSAGE_PARSE_STAGE_SEEKING_CONTENT;
         }
-        else if (mode = PACKET_SCHEMA_MODE_DYNAMIC_LENGTH)
+        else if (mode = MESSAGE_SCHEMA_MODE_DYNAMIC_LENGTH)
         {
-            result = _packet_parser_int_scan(parser, schema->dynamic.lengthSize, &parser->_frameExpectContentLength);
+            result = _message_parser_int_scan(parser, schema->dynamic.lengthSize, schema->dynamic.endian, &parser->_frameExpectContentLength);
             if (result)
             {
                 parser->_frameActualContentLength = 0;
-                stage = PACKET_PARSE_STAGE_SEEKING_CONTENT;
+                stage = MESSAGE_PARSE_STAGE_SEEKING_CONTENT;
             }
             else
             {
-                stage = PACKET_SCHEMA_MODE_DYNAMIC_LENGTH;
+                stage = MESSAGE_SCHEMA_MODE_DYNAMIC_LENGTH;
                 break;
             }
         }
         else
         {
             parser->_frameExpectContentLength = -1;
-            stage = PACKET_PARSE_STAGE_SEEKING_SUFFIX;
+            stage = MESSAGE_PARSE_STAGE_SEEKING_SUFFIX;
         }
-    case PACKET_PARSE_STAGE_SEEKING_CONTENT:
-        if ((mode != PACKET_SCHEMA_MODE_FREE_LENGTH) && (parser->_frameExpectContentLength > 0))
+    case MESSAGE_PARSE_STAGE_SEEKING_CONTENT:
+        if ((mode != MESSAGE_SCHEMA_MODE_FREE_LENGTH) && (parser->_frameExpectContentLength > 0))
         {
             uint32_t parsedLength = 0;
-            result = _packet_parser_content_scan(parser, parser->_frameExpectContentLength - parser->_frameActualContentLength, &parsedLength);
+            result = _message_parser_content_scan(parser, parser->_frameExpectContentLength - parser->_frameActualContentLength, &parsedLength);
             parser->_frameActualContentLength += parsedLength;
             if (result)
             {
-                stage = PACKET_PARSE_STAGE_MATCHING_SUFFIX;
+                stage = MESSAGE_PARSE_STAGE_MATCHING_SUFFIX;
             }
             else
             {
-                stage = PACKET_PARSE_STAGE_SEEKING_CONTENT;
+                stage = MESSAGE_PARSE_STAGE_SEEKING_CONTENT;
                 break;
             }
         }
-    case PACKET_PARSE_STAGE_MATCHING_SUFFIX:
-        if (mode != PACKET_SCHEMA_MODE_FREE_LENGTH)
+    case MESSAGE_PARSE_STAGE_MATCHING_SUFFIX:
+        if (mode != MESSAGE_SCHEMA_MODE_FREE_LENGTH)
         {
             if (schema->suffixSize == 0)
             {
-                stage = PACKET_PARSE_STAGE_DONE;
+                stage = MESSAGE_PARSE_STAGE_DONE;
             }
             else
             {
-                result = _packet_parser_chars_scan(parser, schema->suffix, schema->suffixSize);
+                result = _message_parser_chars_scan(parser, schema->suffix, schema->suffixSize);
                 if (result == 1)
                 {
                     // success
-                    stage = PACKET_PARSE_STAGE_DONE;
+                    stage = MESSAGE_PARSE_STAGE_DONE;
                 }
                 else if (result == 0) // not enough buf
                 {
@@ -182,30 +180,30 @@ OP_RESULT packet_parser_get(PacketParser *parser, PacketSchema *customSchema, Pa
                     ringbuffer_read_offset_sync(parser->buffer, parser->_seekOffset);
                     parser->_packetStartOffset = 0;
                     parser->_seekOffset = 0;
-                    stage = PACKET_PARSE_STAGE_PREPARING;
+                    stage = MESSAGE_PARSE_STAGE_PREPARING;
                     result = 0;
                     break;
                 }
             }
         }
 
-    case PACKET_PARSE_STAGE_SEEKING_SUFFIX:
-        if (schema->mode == PACKET_SCHEMA_MODE_FREE_LENGTH)
+    case MESSAGE_PARSE_STAGE_SEEKING_SUFFIX:
+        if (schema->mode == MESSAGE_SCHEMA_MODE_FREE_LENGTH)
         {
-            result = _packet_parser_chars_seek(parser, schema->suffix, parser->_suffixPatternNexts, schema->suffixSize);
+            result = _message_parser_chars_seek(parser, schema->suffix, parser->_suffixPatternNexts, schema->suffixSize);
             if (result)
             {
                 parser->_frameActualContentLength = parser->_seekOffset - parser->_packetStartOffset - schema->suffixSize - schema->prefixSize;
-                stage = PACKET_PARSE_STAGE_DONE;
+                stage = MESSAGE_PARSE_STAGE_DONE;
             }
             else
             {
                 break;
             }
         }
-    case PACKET_PARSE_STAGE_DONE:
-        _packet_parser_frame_pack(parser, parsedFrame);
-        stage = PACKET_PARSE_STAGE_PREPARING;
+    case MESSAGE_PARSE_STAGE_DONE:
+        _message_parser_frame_pack(parser, parsedFrame);
+        stage = MESSAGE_PARSE_STAGE_PREPARING;
         result = true;
         break;
     default:
@@ -223,7 +221,7 @@ OP_RESULT packet_parser_get(PacketParser *parser, PacketSchema *customSchema, Pa
     }
 };
 
-static int8_t _packet_parser_schema_check(PacketSchema *schema)
+static int8_t _message_parser_schema_check(MessageSchema *schema)
 {
     if (schema->prefixSize == 0)
     {
@@ -232,7 +230,7 @@ static int8_t _packet_parser_schema_check(PacketSchema *schema)
     }
     switch (schema->mode)
     {
-    case PACKET_SCHEMA_MODE_FIXED_LENGTH:
+    case MESSAGE_SCHEMA_MODE_FIXED_LENGTH:
 
         if (schema->fixed.fixedLength == 0)
         {
@@ -240,10 +238,10 @@ static int8_t _packet_parser_schema_check(PacketSchema *schema)
             return -1;
         }
         break;
-    case PACKET_SCHEMA_MODE_DYNAMIC_LENGTH:
+    case MESSAGE_SCHEMA_MODE_DYNAMIC_LENGTH:
 
         break;
-    case PACKET_SCHEMA_MODE_FREE_LENGTH:
+    case MESSAGE_SCHEMA_MODE_FREE_LENGTH:
 
         if (schema->suffixSize == 0)
         {
@@ -258,7 +256,7 @@ static int8_t _packet_parser_schema_check(PacketSchema *schema)
     return 0;
 };
 
-static void _packet_parser_pattern_nexts_generate(char *p, uint8_t M, int8_t *next)
+static void _message_parser_pattern_nexts_generate(char *p, uint8_t M, int8_t *next)
 {
     next[0] = 0;
     int k = 0;
@@ -290,20 +288,20 @@ static void _packet_parser_pattern_nexts_generate(char *p, uint8_t M, int8_t *ne
     // }
 };
 
-static void _packet_parser_context_init(PacketParser *parser, PacketSchema *schema)
+static void _message_parser_context_init(MessageParser *parser, MessageSchema *schema)
 {
     parser->_seekOffset = 0;
     parser->_curSchema = schema;
 };
 
-static void _packet_parser_context_preparing(PacketParser *parser)
+static void _message_parser_context_preparing(MessageParser *parser)
 {
     parser->_frameActualContentLength = 0;
     parser->_frameExpectContentLength = 0;
     parser->_patternMatchedCount = 0;
 };
 
-static bool_t _packet_parser_schema_compare(PacketSchema *a, PacketSchema *b)
+static bool_t _message_parser_schema_compare(MessageSchema *a, MessageSchema *b)
 {
     bool_t rst;
     rst = a == b;
@@ -327,14 +325,14 @@ static bool_t _packet_parser_schema_compare(PacketSchema *a, PacketSchema *b)
 
     switch (a->mode)
     {
-    case PACKET_SCHEMA_MODE_FIXED_LENGTH:
+    case MESSAGE_SCHEMA_MODE_FIXED_LENGTH:
 
         rst = a->fixed.fixedLength == b->fixed.fixedLength;
         break;
-    case PACKET_SCHEMA_MODE_DYNAMIC_LENGTH:
+    case MESSAGE_SCHEMA_MODE_DYNAMIC_LENGTH:
 
         break;
-    case PACKET_SCHEMA_MODE_FREE_LENGTH:
+    case MESSAGE_SCHEMA_MODE_FREE_LENGTH:
 
         rst = a->dynamic.lengthSize == b->dynamic.lengthSize;
         break;
@@ -362,11 +360,11 @@ static bool_t _packet_parser_schema_compare(PacketSchema *a, PacketSchema *b)
     return true;
 };
 
-static void _packet_parser_frame_pack(PacketParser *parser, PacketFrame *parsedFrame)
+static void _message_parser_frame_pack(MessageParser *parser, MessageFrame *parsedFrame)
 {
-    PacketSchema *schema = parser->_curSchema;
+    MessageSchema *schema = parser->_curSchema;
     parsedFrame->length = parser->_seekOffset;
-    if (schema->mode == PACKET_SCHEMA_MODE_DYNAMIC_LENGTH)
+    if (schema->mode == MESSAGE_SCHEMA_MODE_DYNAMIC_LENGTH)
     {
         parsedFrame->contentStartOffset = schema->prefixSize + schema->dynamic.lengthSize;
     }
@@ -377,7 +375,7 @@ static void _packet_parser_frame_pack(PacketParser *parser, PacketFrame *parsedF
     parsedFrame->contentLength = parser->_frameActualContentLength;
 };
 
-static inline int8_t _packet_parser_content_scan(PacketParser *parser, uint32_t expectLength, uint32_t *scanedLength)
+static inline int8_t _message_parser_content_scan(MessageParser *parser, uint32_t expectLength, uint32_t *scanedLength)
 {
     RingBuffer *buffer = parser->buffer;
     uint32_t totalLength = ringbuffer_count_get(buffer);
@@ -397,7 +395,7 @@ static inline int8_t _packet_parser_content_scan(PacketParser *parser, uint32_t 
     }
 };
 
-static int8_t _packet_parser_int_scan(PacketParser *parser, uint8_t size, uint32_t *value)
+static int8_t _message_parser_int_scan(MessageParser *parser, MESSAGE_SCHEMA_LENGTH_SIZE size, MESSAGE_SCHEMA_LENGTH_ENDIAN endian, uint32_t *value)
 {
     RingBuffer *buffer = parser->buffer;
     uint32_t totalLength = ringbuffer_count_get(buffer);
@@ -406,21 +404,28 @@ static int8_t _packet_parser_int_scan(PacketParser *parser, uint8_t size, uint32
     {
         return false;
     }
-
-    int32_t tmpValue = 0;
-    while (size-- > 0)
+    uint8_t i = 0;
+    uint16_t tmpValue = 0;
+    do
     {
-        uint32_t seekIndex = ringbuffer_offset_to_index_convert(buffer, seekOffset);
-        tmpValue = (tmpValue << 8) + *(uint8_t *)ringbuffer_index_peek_directly(buffer, seekIndex);
+        if (endian == MESSAGE_SCHEMA_LENGTH_ENDIAN_LITTLE)
+        {
+            tmpValue += *(uint8_t *)ringbuffer_offset_peek_directly(buffer, seekOffset) << i;
+        }
+        else
+        {
+            tmpValue = (tmpValue << 8) + *(uint8_t *)ringbuffer_offset_peek_directly(buffer, seekOffset);
+        }
         seekOffset++;
-    }
+        i++;
+    } while (i < size);
     *value = tmpValue;
 
     parser->_seekOffset = seekOffset;
     return true;
 };
 
-static bool_t _packet_parser_chars_seek(PacketParser *parser, char *pattern, int8_t *next, uint8_t patternSize)
+static bool_t _message_parser_chars_seek(MessageParser *parser, char *pattern, int8_t *next, uint8_t patternSize)
 {
     RingBuffer *buffer = parser->buffer;
     uint32_t totalLength = ringbuffer_count_get(buffer);
@@ -466,7 +471,7 @@ static bool_t _packet_parser_chars_seek(PacketParser *parser, char *pattern, int
  * @arg 
  * @return 1=success, -1=dismatch, 0=not enough chars
  * */
-static int8_t _packet_parser_chars_scan(PacketParser *parser, char *pattern, uint8_t size)
+static int8_t _message_parser_chars_scan(MessageParser *parser, char *pattern, uint8_t size)
 {
     RingBuffer *buffer = parser->buffer;
     uint32_t totalLength = ringbuffer_count_get(buffer);
@@ -490,12 +495,12 @@ static int8_t _packet_parser_chars_scan(PacketParser *parser, char *pattern, uin
     return 1;
 };
 
-OP_RESULT packet_parser_frame_release(PacketParser *parser, PacketFrame *frame)
+OP_RESULT message_parser_frame_release(MessageParser *parser, MessageFrame *frame)
 {
     return ringbuffer_read_offset_sync(parser->buffer, frame->length);
 };
 
-OP_RESULT packet_parser_frame_content_extract(PacketParser *parser, PacketFrame *frame, uint8_t *buffer)
+OP_RESULT message_parser_frame_content_extract(MessageParser *parser, MessageFrame *frame, uint8_t *buffer)
 {
     OP_RESULT rst;
     rst = ringbuffer_read_offset_sync(parser->buffer, frame->contentStartOffset);
@@ -512,7 +517,7 @@ OP_RESULT packet_parser_frame_content_extract(PacketParser *parser, PacketFrame 
     return ringbuffer_read_offset_sync(parser->buffer, frame->length - frame->contentStartOffset - frame->contentLength);
 };
 
-OP_RESULT packet_parser_frame_extract(PacketParser *parser, PacketFrame *frame, uint8_t *buffer)
+OP_RESULT message_parser_frame_extract(MessageParser *parser, MessageFrame *frame, uint8_t *buffer)
 {
     uint32_t readed = 0;
     return ringbuffer_read(parser->buffer, buffer, frame->length, &readed);

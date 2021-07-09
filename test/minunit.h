@@ -6,38 +6,49 @@ extern "C"
 {
 #endif
 
+#include "stdio.h"
+
 /* file: minunit.h */
-#define mu_assert(message, test) \
-    do                           \
-    {                            \
-        if (!(test))             \
-            return message;      \
+#define MU_ASSERT(message, test)    \
+    do                              \
+    {                               \
+        if (!(test))                \
+            printf(message "\r\n"); \
     } while (0)
 
-#define mu_run_test(test)       \
-    do                          \
-    {                           \
-        char *message = test(); \
-        tests_run++;            \
-        if (message)            \
-            return message;     \
+#define MU_RUN(test)                \
+    do                              \
+    {                               \
+        char *message = test();     \
+        if (message)                \
+            printf(message "\r\n"); \
     } while (0)
-    extern int tests_run;
 
-#define mu_assert_equals(message, a, b) \
+#define MU_ASSERT_EQUALS(message, a, b) \
     do                                  \
     {                                   \
         if (a != b)                     \
-            return message;             \
+            printf(message "\r\n");     \
     } while (0)
 
-#define mu_assert_vec_equals(message, a, b, size) \
+#define MU_ASSERT_VEC_EQUALS(message, a, b, size) \
     do                                            \
     {                                             \
-        int i = size;                             \
-        if (a[i] != b[i])                         \
-            return message;                       \
-    } while (++i < size)
+        for (uint32_t i = 0; i < size; i++)       \
+        {                                         \
+            if (a[i] != b[i])                     \
+                printf(message "\r\n");           \
+        }                                         \
+    } while (0)
+
+#define MU_VEC_CLEAR(vec, size)             \
+    do                                      \
+    {                                       \
+        for (uint32_t i = 0; i < size; i++) \
+        {                                   \
+            vec[i] = 0;                     \
+        }                                   \
+    } while (0)
 
 #ifdef __cplusplus
 }

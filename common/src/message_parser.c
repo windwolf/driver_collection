@@ -135,7 +135,7 @@ OP_RESULT message_parser_frame_get(MessageParser *parser, MessageSchema *customS
             parser->_frameExpectContentLength = schema->fixed.length;
             parser->_frameActualContentLength = 0;
         }
-        else if (mode = MESSAGE_SCHEMA_MODE_DYNAMIC_LENGTH)
+        else if (mode == MESSAGE_SCHEMA_MODE_DYNAMIC_LENGTH)
         {
             uint32_t tlen;
             result = _message_parser_int_try_scan(parser, schema->dynamic.lengthSize, schema->dynamic.endian, &tlen);

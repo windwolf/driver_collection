@@ -22,7 +22,7 @@ static void message_parser_test1_1()
 
     ringbuffer_create(&rb, buf, 1, 64);
 
-    message_parser_create(&parser, "test01", &schema, &rb);
+    message_parser_create(&parser, "test1_1", &schema, &rb);
 
     uint8_t wr0Data[3] = {0x33, 0xFA, 0xFB};
     uint8_t wr1Data[17] = {0xFA, 0xFB, 0xFC, 0xFD, 0xFA, 0xFB, 0xFD, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x1E, 0x0F};
@@ -124,7 +124,7 @@ static void message_parser_test1_2()
 
     ringbuffer_create(&rb, buf, 1, 64);
 
-    message_parser_create(&parser, "test01", &schema, &rb);
+    message_parser_create(&parser, "test1_2", &schema, &rb);
 
     uint8_t wr0Data[3] = {0x33, 0xFA, 0xFB};
     uint8_t wr1Data[15] = {0xFA, 0xFB, 0xFC, 0xFD, 0xFA, 0xFB, 0xFD, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04};
@@ -222,7 +222,7 @@ static void message_parser_test2_1()
 
     ringbuffer_create(&rb, buf, 1, 64);
 
-    message_parser_create(&parser, "test02", &schema, &rb);
+    message_parser_create(&parser, "test2_1", &schema, &rb);
 
     uint8_t wr0Data[43] = {0x33, 0xFA, 0xFB,                                                                    //3
                            0xEF, 0xFF, 0x08, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x0E, 0x0F,        //13
@@ -281,12 +281,12 @@ static void message_parser_test2_2()
 
     ringbuffer_create(&rb, buf, 1, 64);
 
-    message_parser_create(&parser, "test02", &schema, &rb);
+    message_parser_create(&parser, "test2_2", &schema, &rb);
 
     uint8_t wr0Data[42] = {0x33, 0xFA, 0xFB,                                                              //3
                            0xEF, 0xFF, 0x08, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x0E, 0x0F,  //13
                            0xEF, 0xFF, 0x08, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x1E, 0x0F,  //13
-                           0x00, 0xEF, 0xFF, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x0E, 0x0F}; //13
+                           0x00, 0xEF, 0xFF, 0x08, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x0E, 0x0F}; //13
 
     uint32_t aw;
     ringbuffer_write(&rb, wr0Data, 42, true, &aw);
@@ -322,10 +322,158 @@ static void message_parser_test2_2()
     }
 }
 
+static void message_parser_test2_3()
+{
+    uint8_t prefix[2] = {0xB5, 0x62};
+    MessageSchema schema = {
+        .prefix = prefix,
+        .prefixSize = 2,
+        .cmdLength = MESSAGE_SCHEMA_LENGTH_SIZE_16BITS,
+        .mode = MESSAGE_SCHEMA_MODE_DYNAMIC_LENGTH,
+        .dynamic.range = MESSAGE_SCHEMA_RANGE_CONTENT,
+        .dynamic.lengthSize = 2,
+        .dynamic.range = MESSAGE_SCHEMA_RANGE_PREFIX | MESSAGE_SCHEMA_RANGE_CMD | MESSAGE_SCHEMA_RANGE_LENGTH | MESSAGE_SCHEMA_RANGE_CONTENT | MESSAGE_SCHEMA_RANGE_CRC,
+        .crc.length = MESSAGE_SCHEMA_LENGTH_SIZE_8BITS,
+        .suffixSize = 0,
+    };
+    RingBuffer rb;
+    uint8_t buf[64] = {0};
+    MessageParser parser;
+
+    ringbuffer_create(&rb, buf, 1, 64);
+
+    message_parser_create(&parser, "test2_3", &schema, &rb);
+
+    uint8_t wr0Data[50] = {0x33,                                                                                            //1
+                           0xB5, 0x62, 0x01, 0x02, 0x0F, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x0E, 0x0F,  //16
+                           0x33,                                                                                            //1
+                           0xB5, 0x62, 0x01, 0x02, 0x0F, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x1E, 0x0F,  //16
+                           0xB5, 0x62, 0x01, 0x02, 0x0F, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x0E, 0x0F}; //16
+
+    uint32_t aw;
+    ringbuffer_write(&rb, wr0Data, 50, true, &aw);
+
+    MessageFrame frame;
+    OP_RESULT rst;
+    uint8_t fData[8];
+    rst = message_parser_frame_get(&parser, &schema, &frame);
+    MU_ASSERT("test2_3:1 X", rst == OP_RESULT_OK);
+    if (rst == OP_RESULT_OK)
+    {
+        MU_VEC_CLEAR(fData, 8);
+        message_parser_frame_content_extract(&frame, fData);
+        MU_ASSERT_VEC_EQUALS("test2_3:1r X", fData, refData, 8);
+    }
+
+    rst = message_parser_frame_get(&parser, &schema, &frame);
+    MU_ASSERT("test2_3:2 X", rst == OP_RESULT_OK);
+    if (rst == OP_RESULT_OK)
+    {
+        MU_VEC_CLEAR(fData, 8);
+        message_parser_frame_content_extract(&frame, fData);
+        MU_ASSERT_VEC_EQUALS("test2_3:2r X", fData, refData, 8);
+    }
+
+    rst = message_parser_frame_get(&parser, &schema, &frame);
+    MU_ASSERT("test2_3:3 X", rst == OP_RESULT_OK);
+    if (rst == OP_RESULT_OK)
+    {
+        MU_VEC_CLEAR(fData, 8);
+        message_parser_frame_content_extract(&frame, fData);
+        MU_ASSERT_VEC_EQUALS("test2_3:3r X", fData, refData, 8);
+    }
+
+    ringbuffer_write(&rb, wr0Data, 50, true, &aw);
+
+    rst = message_parser_frame_get(&parser, &schema, &frame);
+    MU_ASSERT("test2_3:4 X", rst == OP_RESULT_OK);
+    if (rst == OP_RESULT_OK)
+    {
+        MU_VEC_CLEAR(fData, 8);
+        message_parser_frame_content_extract(&frame, fData);
+        MU_ASSERT_VEC_EQUALS("test2_3:4r X", fData, refData, 8);
+    }
+
+    rst = message_parser_frame_get(&parser, &schema, &frame);
+    MU_ASSERT("test2_3:5 X", rst == OP_RESULT_OK);
+    if (rst == OP_RESULT_OK)
+    {
+        MU_VEC_CLEAR(fData, 8);
+        message_parser_frame_content_extract(&frame, fData);
+        MU_ASSERT_VEC_EQUALS("test2_3:5r X", fData, refData, 8);
+    }
+}
+
+static void message_parser_test3_1()
+{
+    uint8_t prefix[2] = {0xEF, 0xFF};
+    uint8_t suffix[2] = {0x0E, 0x0F};
+    MessageSchema schema = {
+        .mode = MESSAGE_SCHEMA_MODE_FREE_LENGTH,
+        .prefix = prefix,
+        .prefixSize = 2,
+        .suffix = suffix,
+        .suffixSize = 2,
+        .crc.length = MESSAGE_SCHEMA_LENGTH_SIZE_NONE,
+    };
+    RingBuffer rb;
+    uint8_t buf[64] = {0};
+    MessageParser parser;
+
+    ringbuffer_create(&rb, buf, 1, 64);
+
+    message_parser_create(&parser, "test3_1", &schema, &rb);
+
+    uint8_t wr0Data[40] = {0x33, 0xFA, 0xFB,                                                                    //3
+                           0xEF, 0xFF, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x0E, 0x0F,        //12
+                           0xEF, 0xFF, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x1E, 0x0F,        //12
+                           0x00, 0xEF, 0xFF, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x0E, 0x0F}; //13
+
+    uint32_t aw;
+    ringbuffer_write(&rb, wr0Data, sizeof(wr0Data), true, &aw);
+
+    MessageFrame frame;
+    OP_RESULT rst;
+    uint8_t fData[8];
+    rst = message_parser_frame_get(&parser, &schema, &frame);
+    MU_ASSERT("test3_1:1 X", rst == OP_RESULT_OK);
+    if (rst == OP_RESULT_OK)
+    {
+        MU_VEC_CLEAR(fData, 8);
+        message_parser_frame_content_extract(&frame, fData);
+        MU_ASSERT_VEC_EQUALS("test3_1:1r X", fData, refData, 8);
+    }
+
+    rst = message_parser_frame_get(&parser, &schema, &frame);
+    MU_ASSERT("test3_1:2 X", rst == OP_RESULT_OK);
+    if (rst == OP_RESULT_OK)
+    {
+		uint8_t fData_2[21];
+		static const uint8_t refData2[21] = {0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x1E, 0x0F,        //12
+                           0x00, 0xEF, 0xFF, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04};
+        MU_VEC_CLEAR(fData_2, 21);
+        message_parser_frame_content_extract(&frame, fData_2);
+        MU_ASSERT_VEC_EQUALS("test3_1:2r X", fData_2, refData2, 21);
+    }
+
+    rst = message_parser_frame_get(&parser, &schema, &frame);
+    MU_ASSERT("test3_1:3 X", rst != OP_RESULT_OK);
+    if (rst == OP_RESULT_OK)
+    {
+        MU_VEC_CLEAR(fData, 8);
+        message_parser_frame_content_extract(&frame, fData);
+        MU_ASSERT_VEC_EQUALS("test3_1:3r X", fData, refData, 8);
+    }
+}
+
 void message_parser_test()
 {
+	MU_ASSERT("float!=4", sizeof(float)==4);
+	MU_ASSERT("double!=8", sizeof(double)==8);
     message_parser_test1_1();
     message_parser_test1_2();
     message_parser_test2_1();
     message_parser_test2_2();
+    message_parser_test2_3();
+    message_parser_test3_1();
 };

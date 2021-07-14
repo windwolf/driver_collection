@@ -14,11 +14,12 @@ extern "C"
 
     typedef enum MESSAGE_PARSER_STAGE
     {
-        MESSAGE_PARSE_STAGE_INIT = 0,        // schema is changed, reset everything, reparse current buffer.
-        MESSAGE_PARSE_STAGE_PREPARING,       // Prepare to parse a new message.
-        MESSAGE_PARSE_STAGE_SEEKING_PREFIX,  // try to seek the message's begin flags.
-        MESSAGE_PARSE_STAGE_PARSING_CMD,     // try to parse cmd of the message.
-        MESSAGE_PARSE_STAGE_PARSING_LENGTH,  // try to parse the length of the message.
+        MESSAGE_PARSE_STAGE_INIT = 0,       // schema is changed, reset everything, reparse current buffer.
+        MESSAGE_PARSE_STAGE_PREPARING,      // Prepare to parse a new message.
+        MESSAGE_PARSE_STAGE_SEEKING_PREFIX, // try to seek the message's begin flags.
+        MESSAGE_PARSE_STAGE_PARSING_CMD,    // try to parse cmd of the message.
+        MESSAGE_PARSE_STAGE_PARSING_LENGTH, // try to parse the length of the message.
+        MESSAGE_PARSE_STAGE_PARSING_ALTERDATA,
         MESSAGE_PARSE_STAGE_SEEKING_CONTENT, // try to
         MESSAGE_PARSE_STAGE_SEEKING_CRC,
         MESSAGE_PARSE_STAGE_MATCHING_SUFFIX,
@@ -33,24 +34,25 @@ extern "C"
         MESSAGE_SCHEMA_MODE_FREE_LENGTH,
     } MESSAGE_SCHEMA_MODE;
 
-    typedef enum MESSAGE_SCHEMA_LENGTH_SIZE
+    typedef enum MESSAGE_SCHEMA_SIZE
     {
-        MESSAGE_SCHEMA_LENGTH_SIZE_NONE = 0,
-        MESSAGE_SCHEMA_LENGTH_SIZE_8BITS = 1,
-        MESSAGE_SCHEMA_LENGTH_SIZE_16BITS = 2,
-        MESSAGE_SCHEMA_LENGTH_SIZE_24BITS = 3,
-        MESSAGE_SCHEMA_LENGTH_SIZE_32BITS = 4,
-    } MESSAGE_SCHEMA_LENGTH_SIZE;
+        MESSAGE_SCHEMA_SIZE_NONE = 0,
+        MESSAGE_SCHEMA_SIZE_8BITS = 1,
+        MESSAGE_SCHEMA_SIZE_16BITS = 2,
+        MESSAGE_SCHEMA_SIZE_24BITS = 3,
+        MESSAGE_SCHEMA_SIZE_32BITS = 4,
+    } MESSAGE_SCHEMA_SIZE;
 
     typedef enum MESSAGE_SCHEMA_RANGE
     {
         MESSAGE_SCHEMA_RANGE_PREFIX = 0x01,
         MESSAGE_SCHEMA_RANGE_CMD = 0x02,
         MESSAGE_SCHEMA_RANGE_LENGTH = 0x04,
-        MESSAGE_SCHEMA_RANGE_CONTENT = 0x08,
-        MESSAGE_SCHEMA_RANGE_CRC = 0x10,
-        MESSAGE_SCHEMA_RANGE_SUFFIX = 0x20,
-        MESSAGE_SCHEMA_RANGE_ALL = 0x3F,
+        MESSAGE_SCHEMA_RANGE_ALTERDATA = 0x08,
+        MESSAGE_SCHEMA_RANGE_CONTENT = 0x10,
+        MESSAGE_SCHEMA_RANGE_CRC = 0x20,
+        MESSAGE_SCHEMA_RANGE_SUFFIX = 0x40,
+        MESSAGE_SCHEMA_RANGE_ALL = 0x7F,
     } MESSAGE_SCHEMA_RANGE;
 
     typedef enum MESSAGE_SCHEMA_LENGTH_ENDIAN
@@ -77,7 +79,7 @@ extern "C"
         uint8_t *prefix;
         uint8_t prefixSize; // prefix size. 1-8, prefix size must not be 0.
         MESSAGE_SCHEMA_MODE mode;
-        MESSAGE_SCHEMA_LENGTH_SIZE cmdLength; // cmd size. 0-4.
+        MESSAGE_SCHEMA_SIZE cmdLength; // cmd size. 0-4.
 
         union
         {
@@ -88,16 +90,19 @@ extern "C"
             } fixed;
             struct
             {
-                MESSAGE_SCHEMA_LENGTH_SIZE lengthSize; // the size of the length field.
+                MESSAGE_SCHEMA_SIZE lengthSize; // the size of the length field.
                 MESSAGE_SCHEMA_LENGTH_ENDIAN endian;
                 MESSAGE_SCHEMA_RANGE range;
+                uint8_t devi
 
             } dynamic;
         };
 
+        MESSAGE_SCHEMA_SIZE alterDataSize;
+
         struct
         {
-            MESSAGE_SCHEMA_LENGTH_SIZE length;
+            MESSAGE_SCHEMA_SIZE length;
             MESSAGE_SCHEMA_RANGE range;
             // MESSAGE_SCHEMA_CRC_MODE mode;
         } crc;
@@ -110,9 +115,11 @@ extern "C"
     {
         uint8_t cmd[MESSAGE_PARSER_CMD_CRC_BUFFER_SIZE];
         int32_t length;
+        uint8_t alterData[MESSAGE_PARSER_CMD_CRC_BUFFER_SIZE];
         int32_t contentStartOffset;
         int32_t contentLength;
         uint8_t crc[MESSAGE_PARSER_CMD_CRC_BUFFER_SIZE];
+
         struct MessageParser *_parser;
     } MessageFrame;
 
@@ -140,6 +147,7 @@ extern "C"
         int32_t _seekOffset; // current working seek offset. initial value is -1.
         int32_t _patternMatchedCount;
         uint8_t _cmd[MESSAGE_PARSER_CMD_CRC_BUFFER_SIZE];
+        uint8_t _alterData[MESSAGE_PARSER_CMD_CRC_BUFFER_SIZE];
         int32_t _packetStartOffset;
         uint8_t _crc[MESSAGE_PARSER_CMD_CRC_BUFFER_SIZE];
         int32_t _frameExpectContentLength; // The value represents content length that been parsed, if block has fixed length.

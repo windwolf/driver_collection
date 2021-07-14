@@ -1,6 +1,7 @@
 #include "../inc/common/message_parser_test.h"
 #include "../inc/common/message_parser.h"
 #include "minunit.h"
+#include "stdlib.h"
 static const uint8_t refData[8] = {0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04};
 static void message_parser_test1_1()
 {
@@ -17,7 +18,7 @@ static void message_parser_test1_1()
         .prefixSize = 7,
         .suffix = suffix,
         .suffixSize = 2,
-        .crc.length = MESSAGE_SCHEMA_LENGTH_SIZE_NONE,
+        .crc.length = MESSAGE_SCHEMA_SIZE_NONE,
     };
 
     ringbuffer_create(&rb, buf, 1, 64);
@@ -67,7 +68,7 @@ static void message_parser_test1_1()
         .prefixSize = 2,
         .suffix = suffix,
         .suffixSize = 2,
-        .crc.length = MESSAGE_SCHEMA_LENGTH_SIZE_NONE,
+        .crc.length = MESSAGE_SCHEMA_SIZE_NONE,
     };
 
     // test1_1:3
@@ -119,7 +120,7 @@ static void message_parser_test1_2()
         .prefix = prefix,
         .prefixSize = 7,
         .suffixSize = 0,
-        .crc.length = MESSAGE_SCHEMA_LENGTH_SIZE_NONE,
+        .crc.length = MESSAGE_SCHEMA_SIZE_NONE,
     };
 
     ringbuffer_create(&rb, buf, 1, 64);
@@ -166,7 +167,7 @@ static void message_parser_test1_2()
         .prefix = prefix2,
         .prefixSize = 2,
         .suffixSize = 0,
-        .crc.length = MESSAGE_SCHEMA_LENGTH_SIZE_NONE,
+        .crc.length = MESSAGE_SCHEMA_SIZE_NONE,
     };
     rst = message_parser_frame_get(&parser, &schema2, &frame); //1
     MU_ASSERT("test1_2:3 X", rst == OP_RESULT_OK);
@@ -214,7 +215,7 @@ static void message_parser_test2_1()
         .prefixSize = 2,
         .suffix = suffix,
         .suffixSize = 2,
-        .crc.length = MESSAGE_SCHEMA_LENGTH_SIZE_NONE,
+        .crc.length = MESSAGE_SCHEMA_SIZE_NONE,
     };
     RingBuffer rb;
     uint8_t buf[64] = {0};
@@ -273,7 +274,7 @@ static void message_parser_test2_2()
         .prefix = prefix,
         .prefixSize = 2,
         .suffixSize = 0,
-        .crc.length = MESSAGE_SCHEMA_LENGTH_SIZE_NONE,
+        .crc.length = MESSAGE_SCHEMA_SIZE_NONE,
     };
     RingBuffer rb;
     uint8_t buf[64] = {0};
@@ -328,12 +329,12 @@ static void message_parser_test2_3()
     MessageSchema schema = {
         .prefix = prefix,
         .prefixSize = 2,
-        .cmdLength = MESSAGE_SCHEMA_LENGTH_SIZE_16BITS,
+        .cmdLength = MESSAGE_SCHEMA_SIZE_16BITS,
         .mode = MESSAGE_SCHEMA_MODE_DYNAMIC_LENGTH,
         .dynamic.range = MESSAGE_SCHEMA_RANGE_CONTENT,
         .dynamic.lengthSize = 2,
         .dynamic.range = MESSAGE_SCHEMA_RANGE_PREFIX | MESSAGE_SCHEMA_RANGE_CMD | MESSAGE_SCHEMA_RANGE_LENGTH | MESSAGE_SCHEMA_RANGE_CONTENT | MESSAGE_SCHEMA_RANGE_CRC,
-        .crc.length = MESSAGE_SCHEMA_LENGTH_SIZE_8BITS,
+        .crc.length = MESSAGE_SCHEMA_SIZE_8BITS,
         .suffixSize = 0,
     };
     RingBuffer rb;
@@ -414,7 +415,7 @@ static void message_parser_test3_1()
         .prefixSize = 2,
         .suffix = suffix,
         .suffixSize = 2,
-        .crc.length = MESSAGE_SCHEMA_LENGTH_SIZE_NONE,
+        .crc.length = MESSAGE_SCHEMA_SIZE_NONE,
     };
     RingBuffer rb;
     uint8_t buf[64] = {0};
@@ -468,6 +469,7 @@ static void message_parser_test3_1()
 
 void message_parser_test()
 {
+	int h = strtol("  ffx", NULL, 16);
 	MU_ASSERT("float!=4", sizeof(float)==4);
 	MU_ASSERT("double!=8", sizeof(double)==8);
     message_parser_test1_1();

@@ -30,7 +30,8 @@ extern "C"
 #define OP_RESULT_BUSY 0x80000000
 #define OP_RESULT_NOT_SUPPORT 0x40000000
 #define OP_RESULT_PARAMETER_ERROR 0x20000000
-#define OP_RESULT_GENERAL_ERROR 0x10000000
+#define OP_RESULT_NO_MATCH 0x10000000
+#define OP_RESULT_GENERAL_ERROR 0x01000000
 
     typedef void (*EventHandler)(void *sender, void *host, void *event);
 

@@ -1,5 +1,5 @@
 //-ĺżŤélog2 ççŽćł
-#include "../inc/common/shared.h"
+#include "../inc/shared.h"
 
 uint32_t fast_log2(uint32_t _val)
 {

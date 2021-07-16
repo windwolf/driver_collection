@@ -24,8 +24,8 @@ extern "C"
 
     typedef struct Speed2D
     {
-        float course; // degrees
-        float speed;  // m/s
+        float heading; // degrees
+        float speed;   // m/s
     } Speed2D;
 
     typedef struct Speed3D
@@ -66,10 +66,11 @@ extern "C"
     {
         GeoLocation location;
         DateTime dateTime;
-    }
+    };
+
+
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif // ___GPS_H__

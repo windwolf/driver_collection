@@ -76,7 +76,7 @@ extern "C"
      */
     typedef struct MessageSchema
     {
-        uint8_t *prefix;
+        uint8_t prefix[8];
         uint8_t prefixSize; // prefix size. 1-8, prefix size must not be 0.
         MESSAGE_SCHEMA_MODE mode;
         MESSAGE_SCHEMA_SIZE cmdLength; // cmd size. 0-4.
@@ -93,7 +93,6 @@ extern "C"
                 MESSAGE_SCHEMA_SIZE lengthSize; // the size of the length field.
                 MESSAGE_SCHEMA_LENGTH_ENDIAN endian;
                 MESSAGE_SCHEMA_RANGE range;
-                uint8_t devi
 
             } dynamic;
         };
@@ -106,7 +105,7 @@ extern "C"
             MESSAGE_SCHEMA_RANGE range;
             // MESSAGE_SCHEMA_CRC_MODE mode;
         } crc;
-        uint8_t *suffix;
+        uint8_t suffix[8];
         uint8_t suffixSize; // suffix size. 0-8, 0 meaning that suffix is not present. if mode = free, this field must not be 0.
 
     } MessageSchema;
@@ -121,6 +120,7 @@ extern "C"
         uint8_t crc[MESSAGE_PARSER_CMD_CRC_BUFFER_SIZE];
 
         struct MessageParser *_parser;
+        bool_t _released;
     } MessageFrame;
 
     // typedef struct PacketParserContext

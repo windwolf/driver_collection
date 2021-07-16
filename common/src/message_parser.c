@@ -436,6 +436,7 @@ static void _message_parser_frame_pack(MessageParser *parser, MessageFrame *pars
         parsedFrame->alterData[i] = parser->_alterData[i];
     }
     parsedFrame->_parser = parser;
+    parsedFrame->_released = false;
 };
 
 static inline int8_t _message_parser_content_scan(MessageParser *parser, uint32_t expectLength, uint32_t *scanedLength)
@@ -615,11 +616,16 @@ static uint32_t _message_parser_schema_overhead_get(MessageSchema *schema)
 
 OP_RESULT message_parser_frame_release(MessageFrame *frame)
 {
-    uint32_t len = frame->length;
-    OP_RESULT rst = ringbuffer_read_offset_sync(frame->_parser->buffer, len);
-    frame->_parser->_seekOffset -= len;
-    frame->_parser->_packetStartOffset -= len;
-    return rst;
+    if (!frame->_released)
+    {
+        uint32_t len = frame->length;
+        OP_RESULT rst = ringbuffer_read_offset_sync(frame->_parser->buffer, len);
+        frame->_parser->_seekOffset -= len;
+        frame->_parser->_packetStartOffset -= len;
+        frame->_released = true;
+        return rst;
+    }
+    return OP_RESULT_NO_MATCH;
 };
 
 OP_RESULT message_parser_frame_extract(MessageFrame *frame, uint8_t *buffer)
@@ -632,6 +638,7 @@ OP_RESULT message_parser_frame_extract(MessageFrame *frame, uint8_t *buffer)
     }
     frame->_parser->_seekOffset -= len;
     frame->_parser->_packetStartOffset -= len;
+    frame->_released = true;
     return rst;
 };
 
@@ -658,10 +665,12 @@ OP_RESULT message_parser_frame_content_extract(MessageFrame *frame, uint8_t *buf
     rst = ringbuffer_read_offset_sync(frame->_parser->buffer, len);
     if (rst != OP_RESULT_OK)
     {
+        frame->_released = true;
         return rst;
     }
     frame->_parser->_seekOffset -= len;
     frame->_parser->_packetStartOffset -= len;
+    frame->_released = true;
     return rst;
 };
 

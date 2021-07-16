@@ -6,17 +6,15 @@ static const uint8_t refData[8] = {0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x0
 static void message_parser_test1_1()
 {
 
-    uint8_t prefix[7] = {0xFA, 0xFB, 0xFC, 0xFD, 0xFA, 0xFB, 0xFD};
-    uint8_t suffix[2] = {0x0E, 0x0F};
     uint8_t buf[64] = {0};
     RingBuffer rb;
     MessageParser parser;
     MessageSchema schema = {
         .mode = MESSAGE_SCHEMA_MODE_FIXED_LENGTH,
         .fixed.length = 8,
-        .prefix = prefix,
+        .prefix = {0xFA, 0xFB, 0xFC, 0xFD, 0xFA, 0xFB, 0xFD},
         .prefixSize = 7,
-        .suffix = suffix,
+        .suffix = {0x0E, 0x0F},
         .suffixSize = 2,
         .crc.length = MESSAGE_SCHEMA_SIZE_NONE,
     };
@@ -60,13 +58,12 @@ static void message_parser_test1_1()
         MU_ASSERT_VEC_EQUALS("test1_1:2r X", fData, refData, 8);
     }
 
-    uint8_t prefix2[2] = {0xEF, 0xFF};
     MessageSchema schema2 = {
         .mode = MESSAGE_SCHEMA_MODE_FIXED_LENGTH,
         .fixed.length = 8,
-        .prefix = prefix2,
+        .prefix = {0xEF, 0xFF},
         .prefixSize = 2,
-        .suffix = suffix,
+        .suffix = {0x0E, 0x0F},
         .suffixSize = 2,
         .crc.length = MESSAGE_SCHEMA_SIZE_NONE,
     };
@@ -110,14 +107,14 @@ static void message_parser_test1_1()
 
 static void message_parser_test1_2()
 {
-    uint8_t prefix[7] = {0xFA, 0xFB, 0xFC, 0xFD, 0xFA, 0xFB, 0xFD};
+
     uint8_t buf[64] = {0};
     RingBuffer rb;
     MessageParser parser;
     MessageSchema schema = {
         .mode = MESSAGE_SCHEMA_MODE_FIXED_LENGTH,
         .fixed.length = 8,
-        .prefix = prefix,
+        .prefix = {0xFA, 0xFB, 0xFC, 0xFD, 0xFA, 0xFB, 0xFD},
         .prefixSize = 7,
         .suffixSize = 0,
         .crc.length = MESSAGE_SCHEMA_SIZE_NONE,
@@ -160,11 +157,10 @@ static void message_parser_test1_2()
         MU_ASSERT_VEC_EQUALS("test1_2:2r X", fData, refData, 8);
     }
 
-    uint8_t prefix2[2] = {0xEF, 0xFF};
     MessageSchema schema2 = {
         .mode = MESSAGE_SCHEMA_MODE_FIXED_LENGTH,
         .fixed.length = 8,
-        .prefix = prefix2,
+        .prefix = {0xEF, 0xFF},
         .prefixSize = 2,
         .suffixSize = 0,
         .crc.length = MESSAGE_SCHEMA_SIZE_NONE,
@@ -205,15 +201,14 @@ static void message_parser_test1_2()
 
 static void message_parser_test2_1()
 {
-    uint8_t prefix[2] = {0xEF, 0xFF};
-    uint8_t suffix[2] = {0x0E, 0x0F};
+
     MessageSchema schema = {
         .mode = MESSAGE_SCHEMA_MODE_DYNAMIC_LENGTH,
         .dynamic.range = MESSAGE_SCHEMA_RANGE_CONTENT,
         .dynamic.lengthSize = 1,
-        .prefix = prefix,
+        .prefix = {0xEF, 0xFF},
         .prefixSize = 2,
-        .suffix = suffix,
+        .suffix = {0x0E, 0x0F},
         .suffixSize = 2,
         .crc.length = MESSAGE_SCHEMA_SIZE_NONE,
     };
@@ -266,12 +261,11 @@ static void message_parser_test2_1()
 
 static void message_parser_test2_2()
 {
-    uint8_t prefix[2] = {0xEF, 0xFF};
     MessageSchema schema = {
         .mode = MESSAGE_SCHEMA_MODE_DYNAMIC_LENGTH,
         .dynamic.range = MESSAGE_SCHEMA_RANGE_CONTENT,
         .dynamic.lengthSize = 1,
-        .prefix = prefix,
+        .prefix = {0xEF, 0xFF},
         .prefixSize = 2,
         .suffixSize = 0,
         .crc.length = MESSAGE_SCHEMA_SIZE_NONE,
@@ -284,9 +278,9 @@ static void message_parser_test2_2()
 
     message_parser_create(&parser, "test2_2", &schema, &rb);
 
-    uint8_t wr0Data[42] = {0x33, 0xFA, 0xFB,                                                              //3
-                           0xEF, 0xFF, 0x08, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x0E, 0x0F,  //13
-                           0xEF, 0xFF, 0x08, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x1E, 0x0F,  //13
+    uint8_t wr0Data[42] = {0x33, 0xFA, 0xFB,                                                                    //3
+                           0xEF, 0xFF, 0x08, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x0E, 0x0F,        //13
+                           0xEF, 0xFF, 0x08, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x1E, 0x0F,        //13
                            0x00, 0xEF, 0xFF, 0x08, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x0E, 0x0F}; //13
 
     uint32_t aw;
@@ -325,9 +319,9 @@ static void message_parser_test2_2()
 
 static void message_parser_test2_3()
 {
-    uint8_t prefix[2] = {0xB5, 0x62};
+
     MessageSchema schema = {
-        .prefix = prefix,
+        .prefix = {0xB5, 0x62},
         .prefixSize = 2,
         .cmdLength = MESSAGE_SCHEMA_SIZE_16BITS,
         .mode = MESSAGE_SCHEMA_MODE_DYNAMIC_LENGTH,
@@ -407,13 +401,11 @@ static void message_parser_test2_3()
 
 static void message_parser_test3_1()
 {
-    uint8_t prefix[2] = {0xEF, 0xFF};
-    uint8_t suffix[2] = {0x0E, 0x0F};
     MessageSchema schema = {
         .mode = MESSAGE_SCHEMA_MODE_FREE_LENGTH,
-        .prefix = prefix,
+        .prefix = {0xEF, 0xFF},
         .prefixSize = 2,
-        .suffix = suffix,
+        .suffix = {0x0E, 0x0F},
         .suffixSize = 2,
         .crc.length = MESSAGE_SCHEMA_SIZE_NONE,
     };
@@ -425,7 +417,7 @@ static void message_parser_test3_1()
 
     message_parser_create(&parser, "test3_1", &schema, &rb);
 
-    uint8_t wr0Data[40] = {0x33, 0xFA, 0xFB,                                                                    //3
+    uint8_t wr0Data[40] = {0x33, 0xFA, 0xFB,                                                              //3
                            0xEF, 0xFF, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x0E, 0x0F,        //12
                            0xEF, 0xFF, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x1E, 0x0F,        //12
                            0x00, 0xEF, 0xFF, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x0E, 0x0F}; //13
@@ -449,9 +441,9 @@ static void message_parser_test3_1()
     MU_ASSERT("test3_1:2 X", rst == OP_RESULT_OK);
     if (rst == OP_RESULT_OK)
     {
-		uint8_t fData_2[21];
-		static const uint8_t refData2[21] = {0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x1E, 0x0F,        //12
-                           0x00, 0xEF, 0xFF, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04};
+        uint8_t fData_2[21];
+        static const uint8_t refData2[21] = {0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04, 0x1E, 0x0F, //12
+                                             0x00, 0xEF, 0xFF, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x03, 0x04};
         MU_VEC_CLEAR(fData_2, 21);
         message_parser_frame_content_extract(&frame, fData_2);
         MU_ASSERT_VEC_EQUALS("test3_1:2r X", fData_2, refData2, 21);
@@ -469,9 +461,9 @@ static void message_parser_test3_1()
 
 void message_parser_test()
 {
-	int h = strtol("  ffx", NULL, 16);
-	MU_ASSERT("float!=4", sizeof(float)==4);
-	MU_ASSERT("double!=8", sizeof(double)==8);
+    int h = strtol("  ffx", NULL, 16);
+    MU_ASSERT("float!=4", sizeof(float) == 4);
+    MU_ASSERT("double!=8", sizeof(double) == 8);
     message_parser_test1_1();
     message_parser_test1_2();
     message_parser_test2_1();

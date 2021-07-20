@@ -13,14 +13,14 @@ extern "C"
     {
         float longitude; // degrees
         float latitude;  // degrees
-    } GeoLocation;
+    } GeoLocation2D;
 
     typedef struct GeoLocation3D
     {
         float longitude; // degrees
         float latitude;  // degrees
         float altitude;  // m
-    } GeoLocation;
+    } GeoLocation3D;
 
     typedef struct Speed2D
     {
@@ -61,12 +61,6 @@ extern "C"
         uint8_t second;
         float millisescond;
     } DateTime;
-
-    typedef struct GeoLocationRecord
-    {
-        GeoLocation location;
-        DateTime dateTime;
-    };
 
 
 

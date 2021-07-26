@@ -63,7 +63,7 @@ extern "C"
         uint32_t writeBlockSize;
         uint32_t eraseBlockSize;
 
-        bool_t needEraseBeforeWrite;
+        bool needEraseBeforeWrite;
         BLOCK_MODE readMode;
         BLOCK_MODE writeMode;
         BLOCK_MODE eraseMode;
@@ -88,21 +88,21 @@ extern "C"
     } Block;
 
     OP_RESULT block_create(Block *block, void *instance,
-                               uint32_t readBlockSize,
-                               uint32_t writeBlockSize,
-                               uint32_t eraseBlockSize,
-                               bool_t needEraseBeforeWrite,
-                               BLOCK_MODE readMode,
-                               BLOCK_MODE writeMode,
-                               BLOCK_MODE eraseMode,
-                               Buffer buffer,
-                               OP_RESULT (*read)(void *instance, void *data, uint32_t address, uint32_t size),
-                               OP_RESULT (*write)(void *instance, void *data, uint32_t address, uint32_t size),
-                               OP_RESULT (*erase)(void *instance, uint32_t address, uint32_t size));
+                           uint32_t readBlockSize,
+                           uint32_t writeBlockSize,
+                           uint32_t eraseBlockSize,
+                           bool needEraseBeforeWrite,
+                           BLOCK_MODE readMode,
+                           BLOCK_MODE writeMode,
+                           BLOCK_MODE eraseMode,
+                           Buffer buffer,
+                           OP_RESULT (*read)(void *instance, void *data, uint32_t address, uint32_t size),
+                           OP_RESULT (*write)(void *instance, void *data, uint32_t address, uint32_t size),
+                           OP_RESULT (*erase)(void *instance, uint32_t address, uint32_t size));
     OP_RESULT block_read(Block *block, void *data, uint32_t address, uint32_t size);
     OP_RESULT block_write(Block *block, void *data, uint32_t address, uint32_t size);
     OP_RESULT block_erase(Block *block, uint32_t address, uint32_t size);
-	OP_RESULT _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size);	
+    OP_RESULT _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size);
 
 #ifdef __cplusplus
 }

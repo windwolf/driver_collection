@@ -8,6 +8,7 @@ extern "C"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #define BOOL uint8_t
 
 #define EVENTS_CLEAR_FLAGS(eg) (tx_event_flags_set(&eg, 0, TX_AND))
@@ -20,9 +21,9 @@ extern "C"
 #define max(a, b) (((a) >= (b)) ? (a) : (b))
 
     uint32_t fast_log2(uint32_t _val);
-    typedef uint8_t bool_t;
-#define true 1
-#define false 0
+//typedef uint8_t bool;
+//#define true 1
+//#define false 0
 
 #define OP_RESULT uint32_t
 

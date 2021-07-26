@@ -54,9 +54,9 @@ extern "C"
      * @param maxSize 
      */
     void ringbuffer_create(RingBuffer *queue, void *data, uint32_t dataWidth, uint32_t maxSize);
-    bool_t ringbuffer_is_full(RingBuffer *queue);
-    bool_t ringbuffer_is_empty(RingBuffer *queue);
-    bool_t ringbuffer_space_enough(RingBuffer *queue, uint32_t length);
+    bool ringbuffer_is_full(RingBuffer *queue);
+    bool ringbuffer_is_empty(RingBuffer *queue);
+    bool ringbuffer_space_enough(RingBuffer *queue, uint32_t length);
     uint32_t ringbuffer_mem_size_get(RingBuffer *queue);
     uint32_t ringbuffer_count_get(RingBuffer *queue);
     void *ringbuffer_write_ptr_get(RingBuffer *queue);

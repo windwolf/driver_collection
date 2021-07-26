@@ -9,17 +9,17 @@
 //static DEVICE_STATUS _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size);
 
 OP_RESULT block_create(Block *block, void *instance,
-                           uint32_t readBlockSize,
-                           uint32_t writeBlockSize,
-                           uint32_t eraseBlockSize,
-                           bool_t needEraseBeforeWrite,
-                           BLOCK_MODE readMode,
-                           BLOCK_MODE writeMode,
-                           BLOCK_MODE eraseMode,
-                           Buffer buffer,
-                           OP_RESULT (*read)(void *instance, void *data, uint32_t address, uint32_t size),
-                           OP_RESULT (*write)(void *instance, void *data, uint32_t address, uint32_t size),
-                           OP_RESULT (*erase)(void *instance, uint32_t address, uint32_t size))
+                       uint32_t readBlockSize,
+                       uint32_t writeBlockSize,
+                       uint32_t eraseBlockSize,
+                       bool needEraseBeforeWrite,
+                       BLOCK_MODE readMode,
+                       BLOCK_MODE writeMode,
+                       BLOCK_MODE eraseMode,
+                       Buffer buffer,
+                       OP_RESULT (*read)(void *instance, void *data, uint32_t address, uint32_t size),
+                       OP_RESULT (*write)(void *instance, void *data, uint32_t address, uint32_t size),
+                       OP_RESULT (*erase)(void *instance, uint32_t address, uint32_t size))
 {
     if (readMode == BLOCK_MODE_RANDOM_BLOCK)
     {
@@ -108,7 +108,7 @@ OP_RESULT block_read(Block *block, void *data, uint32_t address, uint32_t size)
 
             remainSize -= sizeInBlock;
             curDataPtr += sizeInBlock;
-			address += sizeInBlock;
+            address += sizeInBlock;
         } while (remainSize > 0);
 
         return OP_RESULT_OK;
@@ -154,7 +154,7 @@ OP_RESULT _block_write_directly(Block *block, void *data, uint32_t address, uint
 
             remainSize -= sizeInBlock;
             curDataPtr += sizeInBlock;
-			address += sizeInBlock;
+            address += sizeInBlock;
         } while (remainSize > 0);
 
         return OP_RESULT_OK;
@@ -187,7 +187,7 @@ OP_RESULT block_write(Block *block, void *data, uint32_t address, uint32_t size)
 
         uint8_t *wData = (uint8_t *)data;
         uint32_t erBlkSize = max(block->eraseBlockSize, block->readBlockSize);
-		uint32_t erBlkMask = erBlkSize - 1;
+        uint32_t erBlkMask = erBlkSize - 1;
         do
         {
             uint32_t erBlkAddr = wAddr & ~erBlkMask;

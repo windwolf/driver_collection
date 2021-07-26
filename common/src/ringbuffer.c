@@ -29,18 +29,18 @@ void ringbuffer_operation_notify_register(RingBuffer *queue, void (*OperationNot
     queue->OperationNotify = OperationNotify;
 }
 
-inline bool_t ringbuffer_is_full(RingBuffer *queue)
+inline bool ringbuffer_is_full(RingBuffer *queue)
 {
     return queue->write + 1 == queue->read;
 }
 
-inline bool_t ringbuffer_is_empty(RingBuffer *queue)
+inline bool ringbuffer_is_empty(RingBuffer *queue)
 {
     return queue->write == queue->read;
     //return (queue->write == queue->read) && (queue->readMirror == queue->writeMirror);
 }
 
-inline bool_t ringbuffer_space_enough(RingBuffer *queue, uint32_t length)
+inline bool ringbuffer_space_enough(RingBuffer *queue, uint32_t length)
 {
     return (queue->size - 1) - ringbuffer_count_get(queue) >= length;
 }

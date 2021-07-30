@@ -7,7 +7,7 @@ static void _send_phase_4(CommandSpi *command);
 static void _send_phase_5(CommandSpi *command);
 static void _send_phase_end(CommandSpi *command);
 
-static inline BOOL _is_busy(Command *command)
+static inline bool _is_busy(Command *command)
 {
     ULONG actualFlags;
     return tx_event_flags_get(&command->events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY, TX_OR, &actualFlags, TX_NO_WAIT) == TX_SUCCESS;

@@ -5,7 +5,7 @@ static CommandQspi *_cc;
 static OP_RESULT _command_qspi_cmd_begin(CommandQspi *command);
 static void _command_qspi_cmd_data_end(CommandQspi *command);
 
-static inline BOOL _command_qspi_is_busy(CommandQspi *command)
+static inline bool _command_qspi_is_busy(CommandQspi *command)
 {
     ULONG actualFlags;
     return tx_event_flags_get(&command->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY, TX_OR, &actualFlags, TX_NO_WAIT) == TX_SUCCESS;

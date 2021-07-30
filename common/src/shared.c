@@ -12,3 +12,18 @@ uint32_t fast_log2(uint32_t _val)
 
     return ret;
 }
+
+void event_handler_add(Events *events, Event *event)
+{
+    Event *parent = events->event;
+    if (parent == NULL)
+    {
+        events->event = event;
+        return;
+    }
+    while (parent->next != NULL)
+    {
+        parent = parent->next;
+    }
+    parent->next = event;
+};

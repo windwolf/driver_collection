@@ -6,7 +6,7 @@
 
 static void _op_chain_send_frame(IoChain *ioChain);
 
-static BOOL _io_chain_is_busy(IoChain *ioChain)
+static bool _io_chain_is_busy(IoChain *ioChain)
 {
     ULONG actualFlags;
     return tx_event_flags_get(&ioChain->events, IO_CHAIN_EVENT_CMD_BUSY, TX_OR, &actualFlags, TX_NO_WAIT) == TX_SUCCESS;

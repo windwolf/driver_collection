@@ -1,5 +1,23 @@
-//-ĺżŤélog2 ççŽćł
+
 #include "../inc/shared.h"
+
+char *strtrim(char *str, char delimit)
+{
+    while (*str != 0x00)
+    {
+        if (*str == delimit)
+        {
+            str++;
+            continue;
+        }
+        else
+        {
+            return str;
+        }
+    }
+
+    return str;
+};
 
 uint32_t fast_log2(uint32_t _val)
 {

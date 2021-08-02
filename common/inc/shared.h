@@ -67,23 +67,7 @@ extern "C"
     //     return NULL;
     // }
 
-    inline char *strtrim(char *str, char delimit)
-    {
-        while (*str != 0x00)
-        {
-            if (*str == delimit)
-            {
-                str++;
-                continue;
-            }
-            else
-            {
-                return str;
-            }
-        }
-
-        return str;
-    };
+    char *strtrim(char *str, char delimit);
 
     uint32_t fast_log2(uint32_t _val);
 

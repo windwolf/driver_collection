@@ -23,15 +23,21 @@ extern "C"
  */
 #define BLOCK_MODE_WRAP 0x01
 /**
- * @brief address block, operate block
+ * @brief address align to block, operate align to block
  * 
  */
-#define BLOCK_MODE_BLOCK 0x02
+#define BLOCK_MODE_BLOCKWISE 0x02
 /**
- * @brief address random, operate block
+ * @brief address random, operate align to block
  * 
  */
 #define BLOCK_MODE_RANDOM_BLOCK 0x03
+/**
+ * @brief address block, operate block
+ * 
+ */
+#define BLOCK_MODE_BLOCK 0x04
+
     /**
     * @brief 
     * sd            = BLOCK = address blockwise,    op blockwise.

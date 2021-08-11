@@ -73,7 +73,7 @@ OP_RESULT block_read(Block *block, void *data, uint32_t address, uint32_t size)
     {
         return block->read(block->instance, data, address, size);
     }
-    else if (block->readMode == BLOCK_MODE_BLOCK)
+    else if (block->readMode == BLOCK_MODE_BLOCKWISE)
     {
         uint32_t blkAddress = address & ~(block->_readBlockSizeMask);
         uint32_t blkSize = size & ~(block->_readBlockSizeMask);
@@ -85,6 +85,11 @@ OP_RESULT block_read(Block *block, void *data, uint32_t address, uint32_t size)
         return block->read(block->instance, data,
                            address >> block->_readBlockSizeBits,
                            size >> block->_readBlockSizeBits);
+    }
+    else if (block->readMode == BLOCK_MODE_BLOCK)
+    {
+        return block->read(block->instance, data,
+                           address, size);
     }
     else if (block->readMode == BLOCK_MODE_WRAP)
     {
@@ -126,11 +131,16 @@ OP_RESULT _block_write_directly(Block *block, void *data, uint32_t address, uint
     {
         return block->write(block->instance, data, address, size);
     }
-    else if (block->writeMode == BLOCK_MODE_BLOCK)
+    else if (block->writeMode == BLOCK_MODE_BLOCKWISE)
     {
         return block->write(block->instance, data,
                             address >> (block->_writeBlockSizeBits),
                             size >> (block->_writeBlockSizeBits));
+    }
+    else if (block->writeMode == BLOCK_MODE_BLOCK)
+    {
+        return block->write(block->instance, data,
+                            address, size);
     }
     else if (block->writeMode == BLOCK_MODE_WRAP)
     {
@@ -168,7 +178,7 @@ OP_RESULT _block_write_directly(Block *block, void *data, uint32_t address, uint
 OP_RESULT block_write(Block *block, void *data, uint32_t address, uint32_t size)
 {
     OP_RESULT rst;
-    if (block->writeMode == BLOCK_MODE_BLOCK)
+    if (block->writeMode == BLOCK_MODE_BLOCKWISE)
     {
         uint32_t blkAddress = address & ~(block->_writeBlockSizeMask);
         uint32_t blkSize = size & ~(block->_writeBlockSizeMask);
@@ -254,6 +264,10 @@ OP_RESULT block_erase(Block *block, uint32_t address, uint32_t size)
         return block->erase(block->instance, address, size);
     }
     else if (block->eraseMode == BLOCK_MODE_BLOCK)
+    {
+        return block->erase(block->instance, address, size);
+    }
+    else if (block->eraseMode == BLOCK_MODE_BLOCKWISE)
     {
         uint32_t blkAddress = address & ~(block->_eraseBlockSizeMask);
         uint32_t blkSize = size & ~(block->_eraseBlockSizeMask);

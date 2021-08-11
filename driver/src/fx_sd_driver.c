@@ -275,7 +275,6 @@ VOID fx_sd_driver(FX_MEDIA *media_ptr)
 
 static UINT sd_read_data(FX_MEDIA *media_ptr, ULONG start_sector, UINT num_sectors)
 {
-    INT i = 0;
     UINT status;
     UCHAR *read_addr;
 

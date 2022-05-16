@@ -1,15 +1,20 @@
 function(drivers_os_port drivers_dir)
 
-#     # driver的OS port
-#     list_source_files(${drivers_dir}/os/${DRIVERS_OS}/src OS_SOURCE_FILES)
-#     target_sources(${PROJECT_NAME}
-#             PRIVATE
-#             ${OS_SOURCE_FILES}
-#             )
-#     target_include_directories(${PROJECT_NAME}
-#             PRIVATE
-#             ${drivers_dir}/os/${DRIVERS_OS}/inc
-#             )
+target_include_directories(${PROJECT_NAME}
+            PRIVATE
+            ${drivers_dir}/os
+            )
+
+    # driver的OS port
+    list_source_files(${drivers_dir}/os/${DRIVERS_OS}/src OS_SOURCE_FILES)
+    target_sources(${PROJECT_NAME}
+            PRIVATE
+            ${OS_SOURCE_FILES}
+            )
+    target_include_directories(${PROJECT_NAME}
+            PRIVATE
+            ${drivers_dir}/os/${DRIVERS_OS}/inc
+            )
 
 endfunction()
 

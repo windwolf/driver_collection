@@ -8,7 +8,7 @@ extern "C"
 #include "device.h"
 #include "spi_with_pins_device.h"
 #include "ringbuffer.h"
-#include "tx_api.h"
+#include "os.h"
 #include "buffer.h"
 
 #define IO_CHAIN_EVENT_CMD_BUSY 0x01

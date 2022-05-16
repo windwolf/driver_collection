@@ -1,7 +1,6 @@
 #include "../inc/st77xx/st7735.h"
 #include "../../common/inc/common/device.h"
 #include "stdio.h"
-#include "mem_layout.h"
 
 #define ST7735_EVENT_BUSY 0x01
 
@@ -58,97 +57,97 @@ OP_RESULT st7735_create(ST77XX *instance, Command *command)
 
 OP_RESULT st7735_reset(ST77XX *instance)
 {
-    //LOG("ST7735:SWRST s")
+    // LOG("ST7735:SWRST s")
     st77xx_command(instance, ST7735_CMD_SOFTWARE_RESET);
     tx_thread_sleep(120);
-    //LOG("ST7735:SWRST e")
+    // LOG("ST7735:SWRST e")
 
-    //LOG("ST7735:SWRST s")
+    // LOG("ST7735:SWRST s")
     st77xx_command(instance, ST7735_CMD_SOFTWARE_RESET);
     tx_thread_sleep(120);
-    //LOG("ST7735:SWRST e")
+    // LOG("ST7735:SWRST e")
 
-    //LOG("ST7735:SLPOUT s")
+    // LOG("ST7735:SLPOUT s")
     st77xx_command(instance, ST7735_CMD_SLEEP_OUT);
-    //LOG("ST7735:SLPOUT e")
+    // LOG("ST7735:SLPOUT e")
 
-    //LOG("ST7735:RBGIC s")
+    // LOG("ST7735:RBGIC s")
     static const uint8_t frctl1[3] = {0x01U, 0x2CU, 0x2DU};
     st77xx_command_write_8(instance, ST7735_CMD_FRAME_RATE_CTRL1, (uint8_t *)frctl1, 3);
-    //LOG("ST7735:RBGIC e")
+    // LOG("ST7735:RBGIC e")
 
-    //LOG("ST7735:PROCH s")
+    // LOG("ST7735:PROCH s")
     static const uint8_t frctl2[3] = {0x01U, 0x2CU, 0x2DU};
     st77xx_command_write_8(instance, ST7735_CMD_FRAME_RATE_CTRL2, (uint8_t *)frctl2, 3);
-    //LOG("ST7735:PROCH e")
+    // LOG("ST7735:PROCH e")
 
-    //LOG("ST7735:FRMRCTL s")
+    // LOG("ST7735:FRMRCTL s")
     static const uint8_t frctl3[6] = {0x01U, 0x2CU, 0x2DU, 0x01U, 0x2CU, 0x2DU};
     st77xx_command_write_8(instance, ST7735_CMD_FRAME_RATE_CTRL3, (uint8_t *)frctl3, 6);
-    //LOG("ST7735:FRMRCTL e")
+    // LOG("ST7735:FRMRCTL e")
 
-    //LOG("ST7735:FRMICTL s")
+    // LOG("ST7735:FRMICTL s")
     static const uint8_t fictl[1] = {0x07U};
     st77xx_command_write_8(instance, ST7735_CMD_FRAME_INVERSION_CTRL, (uint8_t *)fictl, 1);
-    //LOG("ST7735:FRMICTL e")
+    // LOG("ST7735:FRMICTL e")
 
-    //LOG("ST7735:PWRCTL1 s")
+    // LOG("ST7735:PWRCTL1 s")
     static const uint8_t pctl1[3] = {0xA2U, 0x02U, 0x84U};
     st77xx_command_write_8(instance, ST7735_CMD_PWR_CTRL1, (uint8_t *)pctl1, 3);
-    //LOG("ST7735:PWRCTL1 e")
+    // LOG("ST7735:PWRCTL1 e")
 
-    //LOG("ST7735:PWRCTL2 s")
+    // LOG("ST7735:PWRCTL2 s")
     static const uint8_t pctl2[1] = {0xC5U};
     st77xx_command_write_8(instance, ST7735_CMD_PWR_CTRL2, (uint8_t *)pctl2, 1);
-    //LOG("ST7735:PWRCTL2 e")
+    // LOG("ST7735:PWRCTL2 e")
 
-    //LOG("ST7735:PWRCTL3 s")
+    // LOG("ST7735:PWRCTL3 s")
     static const uint8_t pctl3[2] = {0x0AU, 0x00U};
     st77xx_command_write_8(instance, ST7735_CMD_PWR_CTRL3, (uint8_t *)pctl3, 2);
-    //LOG("ST7735:PWRCTL3 e")
+    // LOG("ST7735:PWRCTL3 e")
 
-    //LOG("ST7735:PWRCTL4 s")
+    // LOG("ST7735:PWRCTL4 s")
     static const uint8_t pctl4[2] = {0x8AU, 0x2AU};
     st77xx_command_write_8(instance, ST7735_CMD_PWR_CTRL4, (uint8_t *)pctl4, 2);
-    //LOG("ST7735:PWRCTL4 e")
+    // LOG("ST7735:PWRCTL4 e")
 
-    //LOG("ST7735:PWRCTL5 s")
+    // LOG("ST7735:PWRCTL5 s")
     static const uint8_t pctl5[2] = {0x8AU, 0xEEU};
     st77xx_command_write_8(instance, ST7735_CMD_PWR_CTRL5, (uint8_t *)pctl5, 2);
-    //LOG("ST7735:PWRCTL5 e")
+    // LOG("ST7735:PWRCTL5 e")
 
-    //LOG("ST7735:PWRCTL s")
+    // LOG("ST7735:PWRCTL s")
     static const uint8_t vcomctl1[1] = {0x0EU};
     st77xx_command_write_8(instance, ST7735_CMD_VCOMH_VCOML_CTRL1, (uint8_t *)vcomctl1, 1);
-    //LOG("ST7735:PWRCTL e")
+    // LOG("ST7735:PWRCTL e")
 
-    //LOG("ST7735:DISINV s")
+    // LOG("ST7735:DISINV s")
     st77xx_command(instance, ST7735_CMD_DISPLAY_INVERSION_ON);
-    //LOG("ST7735:DISINV e")
+    // LOG("ST7735:DISINV e")
 
-    //LOG("ST7735:PIXFMT s")
+    // LOG("ST7735:PIXFMT s")
     st77xx_command_write_8(instance, ST7735_CMD_INTERFACE_PIXEL_FORMAT, &instance->colorMode, 1);
-    //LOG("ST7735:PIXFMT e")
+    // LOG("ST7735:PIXFMT e")
 
-    //LOG("ST7735:PVGAMMA s")
+    // LOG("ST7735:PVGAMMA s")
     st77xx_command_write_8(instance, ST7735_CMD_POSITIVE_VOLTAGE_GAMMA_CONTROL, instance->pvGamma, 16);
-    //LOG("ST7735:PVGAMMA e")
+    // LOG("ST7735:PVGAMMA e")
 
-    //LOG("ST7735:NVGAMMA s")
+    // LOG("ST7735:NVGAMMA s")
     st77xx_command_write_8(instance, ST7735_CMD_NAGATIVE_VALTAGE_GAMMA_CONTROL, instance->nvGamma, 16);
-    //LOG("ST7735:NVGAMMA e")
+    // LOG("ST7735:NVGAMMA e")
 
-    //LOG("ST7735:DISNOR s")
+    // LOG("ST7735:DISNOR s")
     st77xx_command(instance, ST7735_CMD_NORMAL_DISPLAY_MODE_ON);
-    //LOG("ST7735:DISNOR e")
+    // LOG("ST7735:DISNOR e")
 
-    //LOG("ST7735:DISP s")
+    // LOG("ST7735:DISP s")
     st77xx_command(instance, ST7735_CMD_DISPLAY_ON);
-    //LOG("ST7735:DISP e")
+    // LOG("ST7735:DISP e")
 
-    //LOG("ST7735:MEMDAC s")
+    // LOG("ST7735:MEMDAC s")
     st77xx_command_write_8(instance, ST7735_CMD_MEMORY_DATA_ACCESS_CONTROL, &instance->orientation, 1);
-    //LOG("ST7735:MEMDAC e")
+    // LOG("ST7735:MEMDAC e")
 
     return OP_RESULT_OK;
 };

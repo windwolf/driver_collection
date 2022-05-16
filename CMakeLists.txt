@@ -14,8 +14,12 @@ endif ()
 
 # BSP PORT
 drivers_bsp_port(${CMAKE_CURRENT_LIST_DIR})
+
+
 # OS PORT
 drivers_os_port(${CMAKE_CURRENT_LIST_DIR})
+
+
 # 驱动内容
 list_source_directories(${CMAKE_CURRENT_LIST_DIR} DRIVER_COMPONENTS)
 # list(REMOVE_ITEM DRIVER_COMPONENTS "common" "bsp" "os")

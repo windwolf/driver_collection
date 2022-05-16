@@ -11,7 +11,7 @@ extern "C"
 #include "../../../common/inc/common/command.h"
 #include "../../../common/inc/common/block.h"
 #include "stdint.h"
-#include "tx_api.h"
+#include "os.h"
 
 /* Write Operations */
 #define W25QXX_SPI_WRITE_ENABLE_CMD 0x06
@@ -67,11 +67,11 @@ extern "C"
 #define W25QXX_SPI_ENABLE_RESET_CMD 0x66
 #define W25QXX_SPI_RESET_DEVICE_CMD 0x99
 
-#define W25QXX_QSPI_INPUT_PAGE_PROG_CMD 0x32     //1-1-4
-#define W25QXX_QSPI_FAST_READ_OUTPUT_CMD 0x6B    //1-1-4
-#define W25QXX_QSPI_MFTR_DEVICE_ID_IO_CMD 0x94   //1-4-4
-#define W25QXX_QSPI_FAST_READ_IO_CMD 0xEB        //1-4-4
-#define W25QXX_QSPI_SET_BURST_WITH_WRAP_CMD 0x77 //1-4-4
+#define W25QXX_QSPI_INPUT_PAGE_PROG_CMD 0x32     // 1-1-4
+#define W25QXX_QSPI_FAST_READ_OUTPUT_CMD 0x6B    // 1-1-4
+#define W25QXX_QSPI_MFTR_DEVICE_ID_IO_CMD 0x94   // 1-4-4
+#define W25QXX_QSPI_FAST_READ_IO_CMD 0xEB        // 1-4-4
+#define W25QXX_QSPI_SET_BURST_WITH_WRAP_CMD 0x77 // 1-4-4
 
 /* Write Operations */
 #define W25QXX_QPI_WRITE_ENABLE_CMD 0x06
@@ -143,7 +143,7 @@ extern "C"
     typedef enum W25QXX_CMD_MODE
     {
         W25QXX_CMD_MODE_SPI,
-        //W25QXX_CMD_MODE_QSPI,
+        // W25QXX_CMD_MODE_QSPI,
         W25QXX_CMD_MODE_QPI,
     } W25QXX_CMD_MODE;
 

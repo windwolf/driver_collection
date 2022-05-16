@@ -7,7 +7,7 @@ extern "C"
 #endif
 #include "device.h"
 #include "ringbuffer.h"
-#include "tx_api.h"
+#include "os.h"
 
     typedef struct Stream
     {
@@ -32,17 +32,17 @@ extern "C"
     OP_RESULT stream_send(Stream *stream, uint8_t *data, uint32_t size);
     /**
      * @brief 阻塞等待tx完成.
-     * 
-     * @param stream 
-     * @return DEVICE_STATUS 
+     *
+     * @param stream
+     * @return DEVICE_STATUS
      */
     UINT stream_send_cplt_wait(Stream *stream, ULONG timeout);
     /**
      * @brief 阻塞等待rx准备数据.
-     * 
-     * @param stream 
-     * @param timeout 
-     * @return DEVICE_STATUS 
+     *
+     * @param stream
+     * @param timeout
+     * @return DEVICE_STATUS
      */
     UINT stream_receive_ready_wait(Stream *stream, ULONG timeout);
 

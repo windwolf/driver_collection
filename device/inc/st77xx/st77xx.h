@@ -7,14 +7,14 @@ extern "C"
 #endif
 
 #include "../../../common/inc/common/command.h"
-#include "tx_api.h"
+#include "os.h"
 #include "stdint.h"
 #include "../../../common/inc/common/device.h"
 
-#define ST77XX_EVENT_BUSY 0x01
+// #define ST77XX_EVENT_BUSY 0x01
 
-#define ST77XX_EVENTS_SET_BUSY(instance) EVENTS_SET_FLAGS(instance->events, ST77XX_EVENT_BUSY)
-#define ST77XX_EVENTS_RESET_BUSY(instance) EVENTS_RESET_FLAGS(instance->events, ST77XX_EVENT_BUSY);
+// #define ST77XX_EVENTS_SET_BUSY(instance) EVENTS_SET_FLAGS(instance->events, ST77XX_EVENT_BUSY)
+// #define ST77XX_EVENTS_RESET_BUSY(instance) EVENTS_RESET_FLAGS(instance->events, ST77XX_EVENT_BUSY);
 
 #define DEVICE_STATUS_POSITION_OUT_OF_RANGE -4
 
@@ -22,7 +22,7 @@ extern "C"
     {
         Command *cc;
         CommandFrame command;
-        TX_EVENT_FLAGS_GROUP events;
+        DRIVER_MUTEX mutex;
         uint8_t cmdData[16];
 
         uint8_t pvGamma[16];

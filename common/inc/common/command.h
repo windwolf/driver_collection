@@ -8,7 +8,7 @@ extern "C"
 #include "device.h"
 #include "spi_with_pins_device.h"
 #include "ringbuffer.h"
-#include "tx_api.h"
+#include "os.h"
 #include "buffer.h"
 
 #define FIVE_STEP_COMMAND_EVENT_CMD_BUSY 0x01
@@ -40,7 +40,7 @@ extern "C"
             struct
             {
                 uint32_t commandMode : 2;
-                //uint32_t commandBits : 2; // always 8bits
+                // uint32_t commandBits : 2; // always 8bits
 
                 uint32_t addressMode : 2;
                 uint32_t addressBits : 2;

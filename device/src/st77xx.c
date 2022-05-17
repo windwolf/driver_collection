@@ -25,7 +25,7 @@ void st77xx_command(ST77XX *instance, uint8_t cmdId)
     cmd->dataSize = 0;
     command_send(cc, cmd);
     // LOG("ST77XX-CMD0: W: %x", cmdId)
-    command_cplt_wait(cc, TX_WAIT_FOREVER);
+    command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
     // LOG("ST77XX-CMD0: WC: %x", cmdId)
 }
 
@@ -42,7 +42,7 @@ void st77xx_command_write_8(ST77XX *instance, uint8_t cmdId, uint8_t *data, uint
     // LOG("ST77XX-DATA8: S: %x", cmdId)
     command_send(cc, cmd);
     // LOG("ST77XX-DATA8: W: %x", cmdId)
-    command_cplt_wait(cc, TX_WAIT_FOREVER);
+    command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
     // LOG("ST77XX-DATA8: WC: %x", cmdId)
 }
 
@@ -59,7 +59,7 @@ void st77xx_command_write_16(ST77XX *instance, uint8_t cmdId, uint16_t *data, ui
     // LOG("ST77XX-DATA16: S: %x", cmdId)
     command_send(cc, cmd);
     // LOG("ST77XX-DATA16: W: %x", cmdId)
-    command_cplt_wait(cc, TX_WAIT_FOREVER);
+    command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
     // LOG("ST77XX-DATA16: WC: %x", cmdId)
 }
 
@@ -76,7 +76,7 @@ void st77xx_command_read_8(ST77XX *instance, uint8_t cmdId, uint8_t *buffer, uin
     // LOG("ST77XX-DATA8: S: %x", cmdId)
     command_send(cc, cmd);
     // LOG("ST77XX-DATA8: W: %x", cmdId)
-    command_cplt_wait(cc, TX_WAIT_FOREVER);
+    command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
     // LOG("ST77XX-DATA8: WC: %x", cmdId)
 }
 
@@ -93,6 +93,6 @@ void st77xx_command_read_16(ST77XX *instance, uint8_t cmdId, uint16_t *buffer, u
     // LOG("ST77XX-DATA16: S: %x", cmdId)
     command_send(cc, cmd);
     // LOG("ST77XX-DATA16: W: %x", cmdId)
-    command_cplt_wait(cc, TX_WAIT_FOREVER);
+    command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
     // LOG("ST77XX-DATA16: WC: %x", cmdId)
 }

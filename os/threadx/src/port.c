@@ -1,5 +1,9 @@
 #include "os.h"
 
+void driver_thread_sleep(uint32_t ms) {
+    tx_thread_sleep(ms);
+}
+
 bool driver_mutex_create(DRIVER_MUTEX *mutex, const char *name)
 {
     return tx_mutex_create(mutex, name, 0) == TX_SUCCESS;

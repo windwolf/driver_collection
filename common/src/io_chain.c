@@ -101,7 +101,7 @@ OP_RESULT io_chain_send(IoChain *ioChain, IoChainFrame *ioChainFrame, uint32_t s
     return OP_RESULT_OK;
 };
 
-OP_RESULT io_chain_cplt_wait(IoChain *ioChain, ULONG timeout)
+OP_RESULT io_chain_cplt_wait(IoChain *ioChain, uint32_t timeout)
 {
     if (!driver_events_get(&(ioChain->events), IO_CHAIN_READY, DRIVER_EVENTS_OPTION_AND, timeout))
     {

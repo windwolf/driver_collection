@@ -11,7 +11,7 @@ OP_RESULT command_create(Command *command, CommandDeviceSendFuncType deviceSendF
     return OP_RESULT_OK;
 };
 
-OP_RESULT command_cplt_wait(Command *command, ULONG timeout)
+OP_RESULT command_cplt_wait(Command *command, uint32_t timeout)
 {
     if (!driver_events_get(&(command->events), COMMAND_READY, DRIVER_EVENTS_OPTION_AND, timeout))
     {

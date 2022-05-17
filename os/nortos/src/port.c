@@ -1,5 +1,10 @@
 #include "os.h"
 
+void driver_thread_sleep(uint32_t ms)
+{
+    // FIXME: implement
+}
+
 bool driver_mutex_create(DRIVER_MUTEX *mutex, const char *name)
 {
     *mutex = 0;

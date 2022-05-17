@@ -72,7 +72,7 @@ extern "C"
     void _io_chain_register(IoChain *opChain, IoChainEventHandlerFuncType onError);
 
     OP_RESULT io_chain_send(IoChain *opChain, IoChainFrame *commandFrame, uint32_t size);
-    OP_RESULT io_chain_cplt_wait(IoChain *opChain, ULONG timeout);
+    OP_RESULT io_chain_cplt_wait(IoChain *opChain, uint32_t timeout);
 
 #ifdef __cplusplus
 }

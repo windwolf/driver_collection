@@ -75,7 +75,7 @@ OP_RESULT stream_send(Stream *stream, uint8_t *data, uint32_t size)
     return uart_device_tx(stream->device, data, size);
 }
 
-OP_RESULT stream_send_cplt_wait(Stream *stream, ULONG timeout)
+OP_RESULT stream_send_cplt_wait(Stream *stream, uint32_t timeout)
 {
     return driver_events_get(&stream->events, STREAM_EVENT_TX_READY, DRIVER_EVENTS_OPTION_AND, timeout);
 }
@@ -86,8 +86,14 @@ OP_RESULT stream_send_cplt_wait(Stream *stream, ULONG timeout)
  * @param timeout
  * @return DEVICE_STATUS
  */
-OP_RESULT stream_receive_ready_wait(Stream *stream, ULONG timeout)
+OP_RESULT stream_receive_ready_wait(Stream *stream, uint32_t timeout)
 {
-    UINT rst = driver_events_get(&stream->events, STREAM_EVENT_RX_READY, DRIVER_EVENTS_OPTION_AND, timeout);
-    return rst;
+    if (driver_events_get(&stream->events, STREAM_EVENT_RX_READY, DRIVER_EVENTS_OPTION_AND, timeout))
+    {
+        return OP_RESULT_OK;
+    }
+    else
+    {
+        return OP_RESULT_TIMEOUT;
+    }
 }

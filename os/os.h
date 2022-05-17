@@ -13,6 +13,8 @@ extern "C"
 #define DRIVER_TIMEOUT_FOREVER (uint32_t)(0xFFFFFFFFUL)
 #define DRIVER_TIMEOUT_NOWAIT (uint32_t)(0x00000000UL)
 
+    void driver_thread_sleep(uint32_t ms);
+
     bool driver_mutex_create(DRIVER_MUTEX *mutex, const char *name);
 
     bool driver_mutex_get(DRIVER_MUTEX *mutex);

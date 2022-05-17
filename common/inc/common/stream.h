@@ -36,7 +36,7 @@ extern "C"
      * @param stream
      * @return OP_RESULT
      */
-    OP_RESULT stream_send_cplt_wait(Stream *stream, ULONG timeout);
+    OP_RESULT stream_send_cplt_wait(Stream *stream, uint32_t timeout);
     /**
      * @brief 阻塞等待rx准备数据.
      *
@@ -44,7 +44,7 @@ extern "C"
      * @param timeout
      * @return OP_RESULT
      */
-    OP_RESULT stream_receive_ready_wait(Stream *stream, ULONG timeout);
+    OP_RESULT stream_receive_ready_wait(Stream *stream, uint32_t timeout);
 
 #ifdef __cplusplus
 }

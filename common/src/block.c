@@ -6,7 +6,7 @@
 #define LOG_MODULE "block"
 #include "log.h"
 
-//static DEVICE_STATUS _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size);
+// static DEVICE_STATUS _block_write_directly(Block *block, void *data, uint32_t address, uint32_t size);
 
 OP_RESULT block_create(Block *block, void *instance,
                        uint32_t readBlockSize,
@@ -17,9 +17,9 @@ OP_RESULT block_create(Block *block, void *instance,
                        BLOCK_MODE writeMode,
                        BLOCK_MODE eraseMode,
                        Buffer buffer,
-                       OP_RESULT (*read)(void *instance, void *data, uint32_t address, uint32_t size),
-                       OP_RESULT (*write)(void *instance, void *data, uint32_t address, uint32_t size),
-                       OP_RESULT (*erase)(void *instance, uint32_t address, uint32_t size))
+                       BLOCK_READ_WRITE_CB read,
+                       BLOCK_READ_WRITE_CB write,
+                       BLOCK_ERROR_CB erase)
 {
     if (readMode == BLOCK_MODE_RANDOM_BLOCK)
     {
@@ -218,7 +218,7 @@ OP_RESULT block_write(Block *block, void *data, uint32_t address, uint32_t size)
                 {
                     return rst;
                 }
-                rst = _block_write_directly(block, buffer, erBlkAddr, erBlkSize); //write entire block
+                rst = _block_write_directly(block, buffer, erBlkAddr, erBlkSize); // write entire block
                 if (rst != OP_RESULT_OK)
                 {
                     return rst;
@@ -254,7 +254,6 @@ OP_RESULT block_write(Block *block, void *data, uint32_t address, uint32_t size)
 
 OP_RESULT block_erase(Block *block, uint32_t address, uint32_t size)
 {
-    OP_RESULT rst;
     if (block->eraseMode == BLOCK_MODE_RANDOM_BLOCK)
     {
         return block->erase(block->instance, address, size);

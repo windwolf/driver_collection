@@ -92,25 +92,22 @@ static inline void _w25qxx_cmd_line_cfg(CommandFrame *cmd, W25QXX_CMD_LINE_MODE 
     cmd->dummyCycles = 0;
 }
 
-static void _w25qxx_qspi_status_polling_result(W25QXX *instance)
-{
-    EVENTS_SET_FLAGS(instance->events, W25QXX_EVENT_OP_CPLT);
-};
+// static void _w25qxx_qspi_status_polling_result(W25QXX *instance)
+// {
+//     driver_events_set(&(instance->events), W25QXX_EVENT_OP_CPLT);
+// };
 
-static inline OP_RESULT _w25qxx_op_busy_check(W25QXX *instance)
-{
-    UINT rst;
-    ULONG actualFlags;
-    rst = tx_event_flags_get(&instance->events, W25QXX_EVENT_OP_BUSY, TX_AND, &actualFlags, TX_NO_WAIT);
-    if (rst == TX_NO_EVENTS)
-    {
-        return OP_RESULT_OK;
-    }
-    else
-    {
-        return OP_RESULT_BUSY;
-    }
-};
+// static inline OP_RESULT _w25qxx_op_busy_check(W25QXX *instance)
+// {
+//     if (driver_events_get(&(instance->events), W25QXX_EVENT_OP_BUSY, DRIVER_EVENTS_OPTION_AND, DRIVER_TIMEOUT_NOWAIT))
+//     {
+//         return OP_RESULT_OK;
+//     }
+//     else
+//     {
+//         return OP_RESULT_BUSY;
+//     }
+// };
 
 static OP_RESULT _w25qxx_status1_get(W25QXX *instance)
 {
@@ -659,7 +656,7 @@ static inline OP_RESULT _w25qxx_reset_cmd(W25QXX *instance)
 
 OP_RESULT w25qxx_create(W25QXX *instance, Command *cc, uint8_t autoPolling)
 {
-    tx_event_flags_create(&instance->events, "w25qxx");
+    // driver_events_create(&(instance->events), "w25qxx");
     instance->cc = cc;
     instance->command.addressBits = DEVICE_DATAWIDTH_24;
     instance->command.dummyCycles = 2;
@@ -959,6 +956,6 @@ OP_RESULT w25qxx_block_create(W25QXX *instance, Block *block, Buffer buffer)
                  true,
                  BLOCK_MODE_RANDOM, BLOCK_MODE_WRAP, BLOCK_MODE_RANDOM_BLOCK,
                  buffer,
-                 &w25qxx_read, &w25qxx_write, &_w25qxx_block_erase_wrap);
+                 (BLOCK_READ_WRITE_CB)&w25qxx_read, (BLOCK_READ_WRITE_CB)&w25qxx_write, (BLOCK_ERROR_CB)&_w25qxx_block_erase_wrap);
     return OP_RESULT_OK;
 };

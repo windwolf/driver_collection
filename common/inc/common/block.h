@@ -14,37 +14,37 @@ extern "C"
 
 /**
  * @brief address random, operate random.
- * 
+ *
  */
 #define BLOCK_MODE_RANDOM 0x00
 /**
  * @brief address random, operate block wrap.
- * 
+ *
  */
 #define BLOCK_MODE_WRAP 0x01
 /**
  * @brief address align to block, operate align to block
- * 
+ *
  */
 #define BLOCK_MODE_BLOCKWISE 0x02
 /**
  * @brief address random, operate align to block
- * 
+ *
  */
 #define BLOCK_MODE_RANDOM_BLOCK 0x03
 /**
  * @brief address block, operate block
- * 
+ *
  */
 #define BLOCK_MODE_BLOCK 0x04
 
     /**
-    * @brief 
-    * sd            = BLOCK = address blockwise,    op blockwise.
-    * w25qxx erase  =       = address random,       op blockwise.
-    * w25qxx read   =       = address random,       op random.
-    * w25qxx write  =       = address random,       op random. wrap.
-    */
+     * @brief
+     * sd            = BLOCK = address blockwise,    op blockwise.
+     * w25qxx erase  =       = address random,       op blockwise.
+     * w25qxx read   =       = address random,       op random.
+     * w25qxx write  =       = address random,       op random. wrap.
+     */
     typedef struct BlockConfig
     {
         uint32_t readBlockwise : 1;         // read in blockwise.
@@ -60,10 +60,10 @@ extern "C"
     {
         void *instance;
 
-        //BlockConfig config;
+        // BlockConfig config;
         /**
          * @brief final size is power of 2.
-         * 
+         *
          */
         uint32_t readBlockSize;
         uint32_t writeBlockSize;
@@ -93,6 +93,9 @@ extern "C"
         (void *instance, uint32_t num, uint32_t size);
     } Block;
 
+    typedef OP_RESULT (*BLOCK_READ_WRITE_CB)(void *instance, void *data, uint32_t address, uint32_t size);
+    typedef OP_RESULT (*BLOCK_ERROR_CB)(void *instance, uint32_t address, uint32_t size);
+
     OP_RESULT block_create(Block *block, void *instance,
                            uint32_t readBlockSize,
                            uint32_t writeBlockSize,
@@ -102,9 +105,9 @@ extern "C"
                            BLOCK_MODE writeMode,
                            BLOCK_MODE eraseMode,
                            Buffer buffer,
-                           OP_RESULT (*read)(void *instance, void *data, uint32_t address, uint32_t size),
-                           OP_RESULT (*write)(void *instance, void *data, uint32_t address, uint32_t size),
-                           OP_RESULT (*erase)(void *instance, uint32_t address, uint32_t size));
+                           BLOCK_READ_WRITE_CB read,
+                           BLOCK_READ_WRITE_CB write,
+                           BLOCK_ERROR_CB erase);
     OP_RESULT block_read(Block *block, void *data, uint32_t address, uint32_t size);
     OP_RESULT block_write(Block *block, void *data, uint32_t address, uint32_t size);
     OP_RESULT block_erase(Block *block, uint32_t address, uint32_t size);

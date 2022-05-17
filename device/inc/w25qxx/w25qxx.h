@@ -149,7 +149,7 @@ extern "C"
 
     typedef struct W25QXX
     {
-        TX_EVENT_FLAGS_GROUP events;
+        DRIVER_EVENTS events;
         uint16_t mdId;
         uint32_t jedecId;
         W25QXX_CMD_MODE cmdMode;

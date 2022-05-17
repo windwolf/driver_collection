@@ -67,7 +67,7 @@ OP_RESULT sd_device_init(SdDevice *device)
 };
 OP_RESULT sd_device_deinit(SdDevice *device)
 {
-    //SD_HandleTypeDef *handle = (SD_HandleTypeDef *)(device->base.instance);
+    // SD_HandleTypeDef *handle = (SD_HandleTypeDef *)(device->base.instance);
     return OP_RESULT_OK;
 };
 OP_RESULT sd_device_read(SdDevice *device, void *data, uint32_t num, uint32_t count)
@@ -106,7 +106,7 @@ OP_RESULT sd_device_block_create(SdDevice *device, Block *block, Buffer buffer)
                         false,
                         BLOCK_MODE_BLOCK, BLOCK_MODE_BLOCK, BLOCK_MODE_BLOCK,
                         buffer,
-                        &sd_device_read, &sd_device_write, &sd_device_erase);
+                        (BLOCK_READ_WRITE_CB)&sd_device_read, (BLOCK_READ_WRITE_CB)&sd_device_write, (BLOCK_ERROR_CB)&sd_device_erase);
 }
 
 OP_RESULT sd_device_card_init(SdDevice *device)

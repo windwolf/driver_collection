@@ -11,8 +11,7 @@ extern "C"
 #include "os.h"
 #include "buffer.h"
 
-#define FIVE_STEP_COMMAND_EVENT_CMD_BUSY 0x01
-#define FIVE_STEP_COMMAND_EVENT_CMD_COMPLETE 0x02
+#define COMMAND_READY 0x01UL
 
     struct Command;
     struct CommandFrame;
@@ -61,7 +60,7 @@ extern "C"
 
     typedef struct Command
     {
-        TX_EVENT_FLAGS_GROUP events;
+        DRIVER_EVENTS events;
         uint32_t hasError;
         CommandErrorHandleFuncType onError;
 
@@ -69,8 +68,14 @@ extern "C"
         CommandDeviceSendFuncType _device_send;
     } Command;
     OP_RESULT command_create(Command *command, CommandDeviceSendFuncType deviceSendFunc);
-    OP_RESULT command_cplt_wait(Command *command, ULONG timeout);
     OP_RESULT command_send(Command *command, CommandFrame *commandFrame);
+
+    OP_RESULT command_cplt_wait(Command *command, uint32_t timeout);
+
+    OP_RESULT command_start(Command *command);
+    OP_RESULT command_end(Command *command);
+
+    bool command_is_busy(Command *command);
 
     typedef struct CommandSpi
     {

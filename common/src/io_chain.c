@@ -8,8 +8,7 @@ static void _op_chain_send_frame(IoChain *ioChain);
 
 static bool _io_chain_is_busy(IoChain *ioChain)
 {
-    ULONG actualFlags;
-    return tx_event_flags_get(&ioChain->events, IO_CHAIN_EVENT_CMD_BUSY, TX_OR, &actualFlags, TX_NO_WAIT) == TX_SUCCESS;
+    return driver_events_get(&(ioChain->events), IO_CHAIN_READY, DRIVER_EVENTS_OPTION_AND, DRIVER_TIMEOUT_NOWAIT);
 };
 
 static inline void _io_chain_tx_rx_cplt(SpiWithPinsDevice *device)
@@ -25,8 +24,7 @@ static void _io_chain_error(DeviceBase *device, OP_RESULT error)
     cmd->hasError = 1;
     if (_io_chain_is_busy(cmd))
     {
-        EVENTS_RESET_FLAGS(cmd->events, IO_CHAIN_EVENT_CMD_BUSY);
-        EVENTS_SET_FLAGS(cmd->events, IO_CHAIN_EVENT_CMD_COMPLETE);
+        driver_events_set(&(cmd->events), IO_CHAIN_READY);
     }
 
     if (cmd->onError)
@@ -58,15 +56,15 @@ static void _op_chain_send_frame(IoChain *ioChain)
     {
         LOG_D("CMD-SF-E:");
         ioChain->hasError = 0;
-        EVENTS_SET_FLAGS(ioChain->events, IO_CHAIN_EVENT_CMD_COMPLETE);
-        EVENTS_RESET_FLAGS(ioChain->events, IO_CHAIN_EVENT_CMD_BUSY);
+        driver_events_set(&(ioChain->events), IO_CHAIN_READY);
     }
 };
 
 OP_RESULT io_chain_create(IoChain *ioChain, SpiWithPinsDevice *device)
 {
     ioChain->device = device;
-    tx_event_flags_create(&(ioChain->events), "command");
+    driver_events_create(&(ioChain->events), "command");
+    driver_events_set(&(ioChain->events), IO_CHAIN_READY);
     ioChain->hasError = 0;
     ioChain->_curIochainFrame = NULL;
     ioChain->_curIoChainFrameSize = 0;
@@ -96,9 +94,7 @@ OP_RESULT io_chain_send(IoChain *ioChain, IoChainFrame *ioChainFrame, uint32_t s
     ioChain->_curIoChainIndex = 0;
     ioChain->_curIoChainFrameSize = size;
 
-    EVENTS_CLEAR_FLAGS(ioChain->events);
-
-    EVENTS_SET_FLAGS(ioChain->events, IO_CHAIN_EVENT_CMD_BUSY);
+    driver_events_reset(&(ioChain->events), IO_CHAIN_READY);
     LOG_D("CMD-SND-CMD");
     _op_chain_send_frame(ioChain);
 
@@ -107,7 +103,10 @@ OP_RESULT io_chain_send(IoChain *ioChain, IoChainFrame *ioChainFrame, uint32_t s
 
 OP_RESULT io_chain_cplt_wait(IoChain *ioChain, ULONG timeout)
 {
-    ULONG actualFlags;
-    tx_event_flags_get(&ioChain->events, IO_CHAIN_EVENT_CMD_COMPLETE, TX_AND_CLEAR, &actualFlags, timeout);
+    if (!driver_events_get(&(ioChain->events), IO_CHAIN_READY, DRIVER_EVENTS_OPTION_AND, timeout))
+    {
+        return OP_RESULT_GENERAL_ERROR;
+    }
+
     return ioChain->hasError ? OP_RESULT_GENERAL_ERROR : OP_RESULT_OK;
 };

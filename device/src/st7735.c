@@ -4,12 +4,6 @@
 
 #define ST7735_EVENT_BUSY 0x01
 
-static inline int _st7735_is_busy(ST77XX *instance)
-{
-    ULONG actualFlags;
-    return tx_event_flags_get(&instance->events, ST7735_EVENT_BUSY, TX_OR, &actualFlags, TX_NO_WAIT) == TX_SUCCESS;
-};
-
 OP_RESULT st7735_create(ST77XX *instance, Command *command)
 {
     st77xx_create(instance, command);

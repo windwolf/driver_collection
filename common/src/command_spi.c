@@ -7,12 +7,6 @@ static void _send_phase_4(CommandSpi *command);
 static void _send_phase_5(CommandSpi *command);
 static void _send_phase_end(CommandSpi *command);
 
-static inline bool _is_busy(Command *command)
-{
-    ULONG actualFlags;
-    return tx_event_flags_get(&command->events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY, TX_OR, &actualFlags, TX_NO_WAIT) == TX_SUCCESS;
-};
-
 static inline void _tx_rx_cplt_(SpiWithPinsDevice *device)
 {
     CommandSpi *cmd = (CommandSpi *)device->base.parent;
@@ -35,10 +29,9 @@ static void _do_error(CommandSpi *command, OP_RESULT error)
 {
     command->base.hasError = 1;
     command->_phase = 0;
-    if (_is_busy((Command *)command))
+    if (command_is_busy(&(command->base)))
     {
-        EVENTS_RESET_FLAGS(command->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
-        EVENTS_SET_FLAGS(command->base.events, FIVE_STEP_COMMAND_EVENT_CMD_COMPLETE);
+        command_end(&(command->base));
     }
     if (command->base.onError)
     {
@@ -126,19 +119,17 @@ static void _send_phase_end(CommandSpi *command)
 {
     spi_with_pins_device_session_end(command->device);
     command->base.hasError = 0;
-    EVENTS_SET_FLAGS(command->base.events, FIVE_STEP_COMMAND_EVENT_CMD_COMPLETE);
-    EVENTS_RESET_FLAGS(command->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
+    command_end(&(command->base));
 };
 
 static OP_RESULT _five_step_command_client_spi_send(Command *command, CommandFrame *commandStep)
 {
-    if (_is_busy(command))
+    if (command_is_busy(command))
     {
         return OP_RESULT_BUSY;
     }
 
-    EVENTS_CLEAR_FLAGS(command->events);
-    EVENTS_SET_FLAGS(command->events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
+    command_start(command);
     command->_curFrame = commandStep;
     _send_phase_1((CommandSpi *)command);
 

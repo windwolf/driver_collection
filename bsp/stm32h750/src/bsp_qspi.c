@@ -5,12 +5,6 @@ static CommandQspi *_cc;
 static OP_RESULT _command_qspi_cmd_begin(CommandQspi *command);
 static void _command_qspi_cmd_data_end(CommandQspi *command);
 
-static inline bool _command_qspi_is_busy(CommandQspi *command)
-{
-    ULONG actualFlags;
-    return tx_event_flags_get(&command->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY, TX_OR, &actualFlags, TX_NO_WAIT) == TX_SUCCESS;
-};
-
 static void _command_qspi_cmd_tranlate(CommandFrame *cmd, QSPI_CommandTypeDef *cmdhandler)
 {
     cmdhandler->Instruction = cmd->commandId;
@@ -21,7 +15,7 @@ static void _command_qspi_cmd_tranlate(CommandFrame *cmd, QSPI_CommandTypeDef *c
     cmdhandler->AddressMode = cmd->addressMode << QUADSPI_CCR_ADMODE_Pos;
 
     cmdhandler->AlternateBytes = cmd->altData;
-    cmdhandler->AlternateBytesSize = cmd->altDataBits << QSPI_ALTERNATE_BYTES_8_BITS; //QUADSPI_CCR_ABSIZE_Pos
+    cmdhandler->AlternateBytesSize = cmd->altDataBits << QSPI_ALTERNATE_BYTES_8_BITS; // QUADSPI_CCR_ABSIZE_Pos
     cmdhandler->AlternateByteMode = cmd->altDataMode << QUADSPI_CCR_ABMODE_Pos;
 
     cmdhandler->DummyCycles = cmd->dummyCycles;
@@ -88,20 +82,17 @@ static void _command_qspi_cmd_data_end(CommandQspi *command)
 {
     command->_rxBuffer.data = 0;
     command->_rxBuffer.size = 0;
-    EVENTS_RESET_FLAGS(command->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
-    EVENTS_SET_FLAGS(command->base.events, FIVE_STEP_COMMAND_EVENT_CMD_COMPLETE);
+    command_end(&(command->base));
 };
 
 static OP_RESULT _command_qspi_send(Command *cc, CommandFrame *commandStep)
 {
     CommandQspi *command = (CommandQspi *)cc;
-    if (_command_qspi_is_busy(command))
+    if (command_is_busy(cc))
     {
         return OP_RESULT_BUSY;
     }
-
-    EVENTS_CLEAR_FLAGS(command->base.events);
-    EVENTS_SET_FLAGS(command->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
+    command_start(&(command->base));
     command->base._curFrame = commandStep;
     return _command_qspi_cmd_begin(command);
 };
@@ -133,20 +124,19 @@ static void _qspi_rx_cplt(QSPI_HandleTypeDef *instance)
 
 static void _qspi_error(QSPI_HandleTypeDef *instance)
 {
-    if (_command_qspi_is_busy(_cc))
+    if (command_is_busy(&(_cc->base)))
     {
-        EVENTS_RESET_FLAGS(_cc->base.events, FIVE_STEP_COMMAND_EVENT_CMD_BUSY);
-        EVENTS_SET_FLAGS(_cc->base.events, FIVE_STEP_COMMAND_EVENT_CMD_COMPLETE);
+        command_end(&(_cc->base));
     }
     if (_cc->base.onError)
     {
-        _cc->base.onError((Command *)_cc, instance->ErrorCode);
+        _cc->base.onError(&(_cc->base), instance->ErrorCode);
     }
 };
 
 static void _command_qspi_result_match(QSPI_HandleTypeDef *instance)
 {
-    EVENTS_SET_FLAGS(_cc->base.events, FSCC_EVENT_AUTO_POLLING_CPLT);
+    driver_events_set(&(_cc->base.events), FSCC_EVENT_AUTO_POLLING_CPLT);
     if (_cc->onStatusPollingResult)
     {
         _cc->onStatusPollingResult(_cc);
@@ -156,20 +146,30 @@ static void _command_qspi_result_match(QSPI_HandleTypeDef *instance)
 OP_RESULT command_qspi_auto_polling_wait(CommandQspi *command)
 {
     ULONG actualFlags;
-    return tx_event_flags_get(&command->base.events, FSCC_EVENT_AUTO_POLLING_CPLT, TX_OR, &actualFlags, TX_WAIT_FOREVER);
+    if (driver_events_get(&command->base.events, FSCC_EVENT_AUTO_POLLING_CPLT, DRIVER_EVENTS_OPTION_OR, DRIVER_TIMEOUT_FOREVER))
+    {
+        return OP_RESULT_OK;
+    }
+    else
+    {
+        return OP_RESULT_GENERAL_ERROR;
+    }
 };
 
 OP_RESULT command_qspi_autopolling(CommandQspi *command, CommandFrame *pollingCommand, FSCCAutoPollingTypeDef *cfg)
 {
     QSPI_CommandTypeDef cmdHandler;
     _command_qspi_cmd_tranlate(pollingCommand, &cmdHandler);
-    EVENTS_RESET_FLAGS(command->base.events, FSCC_EVENT_AUTO_POLLING_CPLT);
+    if (!driver_events_reset(&command->base.events, FSCC_EVENT_AUTO_POLLING_CPLT))
+    {
+        return OP_RESULT_GENERAL_ERROR;
+    }
     return HAL_QSPI_AutoPolling((QSPI_HandleTypeDef *)command->instance, &cmdHandler, cfg, HAL_MAX_DELAY);
 };
 
 OP_RESULT command_qspi_create(CommandQspi *command,
-                                                   QSPI_HandleTypeDef *instance,
-                                                   uint32_t dmaThreshold)
+                              QSPI_HandleTypeDef *instance,
+                              uint32_t dmaThreshold)
 {
     command_create((Command *)command, &_command_qspi_send);
     command->instance = instance;
@@ -188,8 +188,8 @@ OP_RESULT command_qspi_create(CommandQspi *command,
 };
 
 void _command_qspi_register(CommandQspi *command, void *parent,
-                                             CommandErrorHandleFuncType onError,
-                                             CommandQspiEventHandleFuncType onStatusPollingResult)
+                            CommandErrorHandleFuncType onError,
+                            CommandQspiEventHandleFuncType onStatusPollingResult)
 {
     command->parent = parent;
     command->base.onError = onError;

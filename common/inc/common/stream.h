@@ -13,7 +13,7 @@ extern "C"
     {
         UartDevice *device;
         RingBuffer *rxBuffer;
-        TX_EVENT_FLAGS_GROUP events;
+        DRIVER_EVENTS events;
 
         void (*onTxComplete)(struct Stream *stream);
 
@@ -34,17 +34,17 @@ extern "C"
      * @brief 阻塞等待tx完成.
      *
      * @param stream
-     * @return DEVICE_STATUS
+     * @return OP_RESULT
      */
-    UINT stream_send_cplt_wait(Stream *stream, ULONG timeout);
+    OP_RESULT stream_send_cplt_wait(Stream *stream, ULONG timeout);
     /**
      * @brief 阻塞等待rx准备数据.
      *
      * @param stream
      * @param timeout
-     * @return DEVICE_STATUS
+     * @return OP_RESULT
      */
-    UINT stream_receive_ready_wait(Stream *stream, ULONG timeout);
+    OP_RESULT stream_receive_ready_wait(Stream *stream, ULONG timeout);
 
 #ifdef __cplusplus
 }

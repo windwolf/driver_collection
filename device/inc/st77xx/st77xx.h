@@ -11,18 +11,12 @@ extern "C"
 #include "stdint.h"
 #include "../../../common/inc/common/device.h"
 
-// #define ST77XX_EVENT_BUSY 0x01
-
-// #define ST77XX_EVENTS_SET_BUSY(instance) EVENTS_SET_FLAGS(instance->events, ST77XX_EVENT_BUSY)
-// #define ST77XX_EVENTS_RESET_BUSY(instance) EVENTS_RESET_FLAGS(instance->events, ST77XX_EVENT_BUSY);
-
 #define DEVICE_STATUS_POSITION_OUT_OF_RANGE -4
 
     typedef struct ST77XX
     {
         Command *cc;
         CommandFrame command;
-        DRIVER_MUTEX mutex;
         uint8_t cmdData[16];
 
         uint8_t pvGamma[16];
@@ -38,11 +32,6 @@ extern "C"
     } ST77XX;
 
     OP_RESULT st77xx_create(ST77XX *instance, Command *cc);
-
-    int st77xx_is_busy(ST77XX *instance);
-
-    OP_RESULT st77xx_lock(ST77XX *instance);
-    void st77xx_unlock(ST77XX *instance);
 
     void st77xx_command(ST77XX *instance, uint8_t cmdId);
     // void ST77XX_Command_Write8xN(ST77XX *instance, uint8_t cmdId, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4, uint8_t data5, uint8_t data6, uint8_t size);

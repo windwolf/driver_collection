@@ -8,12 +8,31 @@ extern "C"
 
 #include "port.h"
 #include <stdbool.h>
+#include <stdint.h>
+
+#define DRIVER_TIMEOUT_FOREVER (uint32_t)(0xFFFFFFFFUL)
+#define DRIVER_TIMEOUT_NOWAIT (uint32_t)(0x00000000UL)
 
     bool driver_mutex_create(DRIVER_MUTEX *mutex, const char *name);
 
     bool driver_mutex_get(DRIVER_MUTEX *mutex);
 
     bool driver_mutex_put(DRIVER_MUTEX *mutex);
+
+    typedef enum DRIVER_EVENTS_OPTION
+    {
+        DRIVER_EVENTS_OPTION_AND = 2,
+        DRIVER_EVENTS_OPTION_OR = 0
+
+    } DRIVER_EVENTS_OPTION;
+
+    bool driver_events_create(DRIVER_EVENTS *events, const char *name);
+
+    bool driver_events_get(DRIVER_EVENTS *events, uint32_t flags, DRIVER_EVENTS_OPTION option, uint32_t timeout);
+
+    bool driver_events_set(DRIVER_EVENTS *events, uint32_t flags);
+
+    bool driver_events_reset(DRIVER_EVENTS *events, uint32_t flags);
 
 #ifdef __cplusplus
 }

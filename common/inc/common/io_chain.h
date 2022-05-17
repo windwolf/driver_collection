@@ -11,8 +11,7 @@ extern "C"
 #include "os.h"
 #include "buffer.h"
 
-#define IO_CHAIN_EVENT_CMD_BUSY 0x01
-#define IO_CHAIN_EVENT_CMD_COMPLETE 0x02
+#define IO_CHAIN_READY 0x01
 
     typedef enum IO_CHAIN_SELECT_PIN_MODE
     {
@@ -58,7 +57,7 @@ extern "C"
     typedef struct IoChain
     {
         SpiWithPinsDevice *device;
-        TX_EVENT_FLAGS_GROUP events;
+        DRIVER_EVENTS events;
         uint32_t hasError;
         IoChainEventHandlerFuncType onError;
 

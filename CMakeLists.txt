@@ -1,67 +1,68 @@
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 
-
 include(${CMAKE_CURRENT_SOURCE_DIR}/port.cmake)
 
-if (NOT DEFINED DRIVERS_BSP)
+if(NOT DEFINED DRIVERS_BSP)
     message(FATAL_ERROR "Error: DRIVERS_BSP not defined")
-endif ()
-if (NOT DEFINED DRIVERS_OS)
+endif()
+
+if(NOT DEFINED DRIVERS_OS)
     message(FATAL_ERROR "Error: DRIVERS_OS not defined")
-endif ()
-
-
+endif()
 
 # BSP PORT
 drivers_bsp_port(${CMAKE_CURRENT_LIST_DIR})
 
-
 # OS PORT
 drivers_os_port(${CMAKE_CURRENT_LIST_DIR})
 
-
 # 驱动内容
 list_source_directories(${CMAKE_CURRENT_LIST_DIR} DRIVER_COMPONENTS)
+
 # list(REMOVE_ITEM DRIVER_COMPONENTS "common" "bsp" "os")
 print_list("DRIVER_COMPONENTS: " ${DRIVER_COMPONENTS})
-foreach (DRIVER_COMPONENT ${DRIVER_COMPONENTS})
+
+foreach(DRIVER_COMPONENT ${DRIVER_COMPONENTS})
     list_source_files(${DRIVER_COMPONENT} DRIVER_COMPONENT_SOURCE_FILES)
     target_sources(${PROJECT_NAME}
-            PRIVATE
-            ${DRIVER_COMPONENT_SOURCE_FILES}
-            )
+        PRIVATE
+        ${DRIVER_COMPONENT_SOURCE_FILES}
+    )
     target_include_directories(${PROJECT_NAME}
-            PUBLIC
-            ${DRIVER_COMPONENT}/inc
-            )
-endforeach ()
+        PUBLIC
+        ${DRIVER_COMPONENT}/inc
+    )
+endforeach()
 
 # 如果使用方没有提供自定义, 那么使用默认, 否则将自定义复制到custom_inc下
 
 # 临时放自定义配置文件的目录
 set(CUSTOM_INC_DIR ${CMAKE_CURRENT_BINARY_DIR}/custom_inc)
-if (NOT DRIVERS_USER_FILE)
+
+if(NOT DRIVERS_USER_FILE)
     message(STATUS "Using default drivers_user.h file")
     set(DRIVERS_USER_FILE ${CMAKE_CURRENT_LIST_DIR}/drivers_user_sample.h)
-else ()
+else()
     message(STATUS "Using custom drivers_user.h file from ${DRIVERS_USER_FILE}")
-endif ()
+endif()
+
 configure_file(${DRIVERS_USER_FILE} ${CUSTOM_INC_DIR}/drivers_user.h COPYONLY)
 target_include_directories(${PROJECT_NAME}
-        PUBLIC
-        ${CUSTOM_INC_DIR}
-        )
+    PUBLIC
+    ${CUSTOM_INC_DIR}
+)
+
 
 # # Enable a build target that produces a ZIP file of all sources
 # set(CPACK_SOURCE_GENERATOR "ZIP")
 # set(CPACK_SOURCE_IGNORE_FILES
-#   \\.git/
-#   \\.github/
-#   _build/
-#   \\.git
-#   \\.gitattributes
-#   \\.gitignore
-#   ".*~$"
+# \\.git/
+# \\.github/
+# _build/
+# \\.git
+# \\.gitattributes
+# \\.gitignore
+# ".*~$"
 # )
 # set(CPACK_VERBATIM_VARIABLES YES)
 # include(CPack)

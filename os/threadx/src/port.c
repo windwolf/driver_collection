@@ -1,6 +1,7 @@
 #include "os.h"
 
-void driver_thread_sleep(uint32_t ms) {
+void driver_thread_sleep(uint32_t ms)
+{
     tx_thread_sleep(ms);
 }
 
@@ -38,4 +39,13 @@ bool driver_events_set(DRIVER_EVENTS *events, uint32_t flags)
 bool driver_events_reset(DRIVER_EVENTS *events, uint32_t flags)
 {
     return tx_event_flags_set(events, flags, TX_AND) == TX_SUCCESS;
+};
+
+void driver_delay_ms(uint32_t ms)
+{
+    tx_thread_sleep(ms);
+};
+void driver_delay_us(uint32_t us)
+{
+    tx_thread_sleep(0);
 };

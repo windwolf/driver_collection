@@ -36,6 +36,9 @@ extern "C"
 
     bool driver_events_reset(DRIVER_EVENTS *events, uint32_t flags);
 
+    void driver_delay_ms(uint32_t ms);
+    void driver_delay_us(uint32_t us);
+
 #ifdef __cplusplus
 }
 #endif

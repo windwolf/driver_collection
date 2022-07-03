@@ -6,6 +6,7 @@ extern "C"
 {
 #endif
 
+#include "bsp_shared.h"
 #include "bsp_pin.h"
 #include "bsp_i2c.h"
 #include "bsp_spi.h"

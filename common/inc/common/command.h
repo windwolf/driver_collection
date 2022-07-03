@@ -67,6 +67,7 @@ extern "C"
         CommandFrame *_curFrame;
         CommandDeviceSendFuncType _device_send;
     } Command;
+
     OP_RESULT command_create(Command *command, CommandDeviceSendFuncType deviceSendFunc);
     OP_RESULT command_send(Command *command, CommandFrame *commandFrame);
 

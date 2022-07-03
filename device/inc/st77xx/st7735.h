@@ -113,14 +113,15 @@ extern "C"
 
     OP_RESULT st7735_display(ST77XX *instance, uint8_t on);
     OP_RESULT st7735_pixel_draw(ST77XX *instance, uint16_t x, uint16_t y, uint16_t color);
-    OP_RESULT st7735_hline_draw(ST77XX *instance, uint32_t x1, uint32_t y, uint32_t x2, uint16_t *data);
+    OP_RESULT st7735_hline_draw(ST77XX *instance, uint16_t x1, uint16_t y, uint16_t x2, uint16_t *data);
     OP_RESULT st7735_vline_draw(ST77XX *instance, uint16_t x, uint16_t y1, uint16_t y2, uint16_t *data);
 
     OP_RESULT st7735_rect_draw(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t *data);
-    //DEVICE_STATUS st7735_rect_fill(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color);
+    OP_RESULT st7735_rect_fill(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
     OP_RESULT st7735_bitmap_draw(ST77XX *instance, uint32_t x, uint32_t y, uint8_t *pBmp);
 
     OP_RESULT st7735_id_read(ST77XX *instance, uint32_t *id);
+
 #ifdef __cplusplus
 }
 #endif

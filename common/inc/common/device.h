@@ -9,8 +9,6 @@ extern "C"
 #include "shared.h"
 #include "buffer.h"
 
-
-
 #define ALIGN(n) __attribute__((aligned(n)))
 
     typedef enum DeviceDataWidth
@@ -70,6 +68,7 @@ extern "C"
 
     OP_RESULT pin_device_set(PinDevice *device, PIN_DEVICE_STATUS parent);
     OP_RESULT pin_device_get(PinDevice *device, PIN_DEVICE_STATUS *parent);
+    bool pin_device_is_set(PinDevice *device);
     OP_RESULT pin_device_toggle(PinDevice *device);
 
     /* spi device */
@@ -169,7 +168,7 @@ extern "C"
     OP_RESULT uart_device_deinit(UartDevice *device);
 
     OP_RESULT uart_device_tx(UartDevice *device, uint8_t *data, uint32_t size);
-    //DEVICE_STATUS uart_device_rx(UartDevice *device, uint8_t *data, uint32_t size, uint8_t stopOnIdle);
+    // DEVICE_STATUS uart_device_rx(UartDevice *device, uint8_t *data, uint32_t size, uint8_t stopOnIdle);
 
     OP_RESULT uart_device_circular_rx_start(UartDevice *device, uint8_t *data, uint32_t size);
     OP_RESULT uart_device_circular_rx_stop(UartDevice *device);
@@ -182,16 +181,16 @@ extern "C"
         DeviceBase base;
         uint16_t dmaThershold;
 
-        uint32_t cardType; /*!< Specifies the card Type                         */
-        uint32_t cardVersion; /*!< Specifies the card version                      */
-        uint32_t class; /*!< Specifies the class of the card class           */
-        uint32_t relCardAdd; /*!< Specifies the Relative Card Address             */
-        uint32_t blockNbr; /*!< Specifies the Card Capacity in blocks           */
-        uint32_t blockSize; /*!< Specifies one block size in bytes               */
-        uint32_t logBlockNbr; /*!< Specifies the Card logical Capacity in blocks   */
+        uint32_t cardType;     /*!< Specifies the card Type                         */
+        uint32_t cardVersion;  /*!< Specifies the card version                      */
+        uint32_t class;        /*!< Specifies the class of the card class           */
+        uint32_t relCardAdd;   /*!< Specifies the Relative Card Address             */
+        uint32_t blockNbr;     /*!< Specifies the Card Capacity in blocks           */
+        uint32_t blockSize;    /*!< Specifies one block size in bytes               */
+        uint32_t logBlockNbr;  /*!< Specifies the Card logical Capacity in blocks   */
         uint32_t logBlockSize; /*!< Specifies logical block size in bytes           */
-        uint32_t cardSpeed; /*!< Specifies the card Speed  */
-        
+        uint32_t cardSpeed;    /*!< Specifies the card Speed  */
+
         SdDeviceEventHandlerFuncType onTxComplete;
         SdDeviceEventHandlerFuncType onRxComplete;
 

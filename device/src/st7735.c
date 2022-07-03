@@ -2,7 +2,9 @@
 #include "../../common/inc/common/device.h"
 #include "stdio.h"
 
-#define ST7735_EVENT_BUSY 0x01
+#define ST7735_EVENT_BUSY (0x01)
+
+#define ST7735_INTERNAL_BUFFER_SIZE (16)
 
 OP_RESULT st7735_create(ST77XX *instance, Command *command)
 {
@@ -215,7 +217,7 @@ OP_RESULT st7735_pixel_draw(ST77XX *instance, uint16_t x, uint16_t y, uint16_t c
     return OP_RESULT_OK;
 }
 
-OP_RESULT st7735_hline_draw(ST77XX *instance, uint32_t x1, uint32_t y, uint32_t x2, uint16_t *data)
+OP_RESULT st7735_hline_draw(ST77XX *instance, uint16_t x1, uint16_t y, uint16_t x2, uint16_t *data)
 {
 
     OP_RESULT ret = OP_RESULT_OK;
@@ -284,39 +286,42 @@ OP_RESULT st7735_rect_draw(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t 
     return ret;
 }
 
-// DEVICE_STATUS st7735_rect_fill(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color)
-// {
-//     DEVICE_STATUS ret = DEVICE_STATUS_OK;
+OP_RESULT st7735_rect_fill(ST77XX *instance, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color)
+{
+    OP_RESULT ret = OP_RESULT_OK;
 
-//     if (x1 > instance->width || x2 > instance->width)
-//     {
-//         return OP_RESULT_GENERAL_ERROR;
-//     }
-//     if (y1 > instance->height || y2 > instance->height)
-//     {
-//         return OP_RESULT_GENERAL_ERROR;
-//     }
+    if (x1 > instance->width || x2 > instance->width)
+    {
+        return OP_RESULT_GENERAL_ERROR;
+    }
+    if (y1 > instance->height || y2 > instance->height)
+    {
+        return OP_RESULT_GENERAL_ERROR;
+    }
 
-//     ret = st7735_display_window_set(instance, x1, y1, x2, y2);
+    ret = st7735_display_window_set(instance, x1, y1, x2, y2);
 
-//     if (ret != DEVICE_STATUS_OK)
-//     {
-//         return ret;
-//     }
-//     // uint8_t *buf = (uint8_t *)(instance->buffer);
-//     uint16_t *buf = (uint16_t *)(instance->buffer.data);
-//     uint32_t size = (x2 - x1 + 1) * (y2 - y1 + 1);
-//     for (uint32_t i = 0; i < size; i++)
-//     {
-//         buf[i] = color;
-//         // buf[i << 1] = (uint8_t)(color >> 8);
-//         // buf[(i << 1) + 1] = (uint8_t)(color);
-//     }
+    if (ret != OP_RESULT_OK)
+    {
+        return ret;
+    }
 
-//     st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, buf, size);
-//     // st77xx_command_write_8(instance, ST7735_CMD_MEMORY_WRITE, buf, size * 2);
-//     return ret;
-// }
+    uint16_t buf[ST7735_INTERNAL_BUFFER_SIZE];
+    for (uint32_t i = 0; i < ST7735_INTERNAL_BUFFER_SIZE; i++)
+    {
+        buf[i] = color;
+    }
+    uint32_t size = (x2 - x1 + 1) * (y2 - y1 + 1);
+
+    for (uint32_t i = 0; i < size / 8; i++)
+    {
+        st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, buf, size * 2);
+    }
+
+    st77xx_command_write_16(instance, ST7735_CMD_MEMORY_WRITE, buf, (size % 8) / 2);
+
+    return ret;
+}
 
 OP_RESULT st7735_id_read(ST77XX *instance, uint32_t *id)
 {
@@ -370,3 +375,5 @@ OP_RESULT st7735_bitmap_draw(ST77XX *instance, uint32_t x, uint32_t y, uint8_t *
 
     return OP_RESULT_OK;
 }
+
+

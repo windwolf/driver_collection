@@ -93,7 +93,6 @@ extern "C"
 
   typedef struct CanvasInfo
   {
-    uint8_t *buffer;
     uint16_t width;
     uint16_t height;
     PIXEL_SIZE pixelSize;
@@ -102,7 +101,7 @@ extern "C"
 
   bool FONTS_CalcSpace(uint16_t x, uint16_t y, char *str, FontInfo *fontInfo, uint8_t spacing, SpaceInfo *spaceInfo);
 
-  bool FONTS_FillData(CanvasInfo *canvas, uint16_t x, uint16_t y, char *str, FontInfo *fontInfo, FontDrawInfo *fontDrawInfo);
+  bool FONTS_FillData(uint8_t *buffer, CanvasInfo *canvas, uint16_t x, uint16_t y, char *str, FontInfo *fontInfo, FontDrawInfo *fontDrawInfo);
 
 #ifdef __cplusplus
 }

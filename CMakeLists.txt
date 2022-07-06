@@ -52,7 +52,6 @@ target_include_directories(${PROJECT_NAME}
     ${CUSTOM_INC_DIR}
 )
 
-
 # # Enable a build target that produces a ZIP file of all sources
 # set(CPACK_SOURCE_GENERATOR "ZIP")
 # set(CPACK_SOURCE_IGNORE_FILES

@@ -1,6 +1,8 @@
 #include "../inc/bsp_i2c.h"
 #include "../inc/bsp_shared.h"
 
+#ifdef HAL_I2C_MODULE_ENABLED
+
 typedef enum I2C_INDEX
 {
     I2C1_INDEX = 0,
@@ -179,3 +181,5 @@ OP_RESULT i2c_device_mem_read(I2CDevice *device, uint16_t deviceAddress, uint16_
                                    size /*TODO: 确认要不要x2 */);
     }
 };
+
+#endif // HAL_I2C_MODULE_ENABLED

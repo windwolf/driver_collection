@@ -2,6 +2,8 @@
 #include "../inc/bsp_shared.h"
 #include "os.h"
 
+#ifdef HAL_GPIO_MODULE_ENABLED
+
 #define SCL_SET(device) (pin_device_set(device->scl, PIN_DEVICE_STATUS_SET))
 #define SCL_RESET(device) (pin_device_set(device->scl, PIN_DEVICE_STATUS_RESET))
 #define SDA_SET(device) (pin_device_set(device->sda, PIN_DEVICE_STATUS_SET))
@@ -174,3 +176,5 @@ static void _softi2c_writeByte(SoftI2CDevice *device, uint8_t byte)
         driver_delay_us(4);
     }
 }
+
+#endif // HAL_GPIO_MODULE_ENABLED

@@ -1,6 +1,8 @@
 #include "../inc/bsp_spi.h"
 #include "../inc/bsp_shared.h"
 
+#ifdef HAL_SPI_MODULE_ENABLED
+
 typedef enum SPI_INDEX
 {
     SPI1_INDEX = 0,
@@ -117,7 +119,7 @@ static uint32_t bits_switch(SPI_HandleTypeDef *handle, DeviceDataWidth width, ui
     default:
         return 0;
     }
-    //return;
+    // return;
 };
 
 OP_RESULT spi_device_create(SpiDevice *device, SPI_HandleTypeDef *instance, uint16_t dmaThershold)
@@ -181,3 +183,5 @@ OP_RESULT spi_device_rx(SpiDevice *device, void *data, uint32_t size, DeviceData
         return HAL_SPI_Receive_IT(handle, (uint8_t *)data, size);
     }
 };
+
+#endif // HAL_SPI_MODULE_ENABLED

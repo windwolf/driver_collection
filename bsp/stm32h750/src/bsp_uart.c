@@ -1,6 +1,8 @@
 #include "../inc/bsp_uart.h"
 #include "../inc/bsp_shared.h"
 
+#ifdef HAL_UART_MODULE_ENABLED
+
 typedef enum UART_INDEX
 {
     UART4_INDEX = 0,
@@ -118,3 +120,5 @@ OP_RESULT uart_device_circular_rx_stop(UartDevice *device)
     }
     return HAL_UART_DMAStop(handle);
 };
+
+#endif // HAL_UART_MODULE_ENABLED

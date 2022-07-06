@@ -1,6 +1,8 @@
 #include "../inc/bsp_shared.h"
 #include "../inc/bsp_spi.h"
 
+#ifdef HAL_SPI_MODULE_ENABLED
+
 typedef enum SPI_INDEX
 {
     SPI1_INDEX = 0,
@@ -175,3 +177,5 @@ OP_RESULT spi_device_rx(SpiDevice *device, void *data, uint32_t size, DeviceData
         return HAL_SPI_Receive_IT(handle, (uint8_t *)data, size);
     }
 };
+
+#endif // HAL_SPI_MODULE_ENABLED

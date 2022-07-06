@@ -1,5 +1,7 @@
 #include "../inc/bsp_pin.h"
 
+#ifdef HAL_GPIO_MODULE_ENABLED
+
 OP_RESULT pin_device_create(PinDevice *device, GPIO_TypeDef *handle, uint16_t pinMask, PIN_DEVICE_STATUS_INVERSE inverse)
 {
     device_base_create((DeviceBase *)device);
@@ -47,4 +49,7 @@ OP_RESULT pin_device_toggle(struct PinDevice *device)
 OP_RESULT pin_device_mode_set(PinDevice *device, PIN_DEVICE_MODE mode)
 {
     LL_GPIO_SetPinMode((GPIO_TypeDef *)device->base.instance, device->pinMask, (mode == PIN_DEVICE_MODE_INPUT) ? LL_GPIO_MODE_INPUT : LL_GPIO_MODE_OUTPUT);
-}
+    return OP_RESULT_OK;
+};
+
+#endif // HAL_GPIO_MODULE_ENABLED

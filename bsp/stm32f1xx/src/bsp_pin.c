@@ -44,3 +44,8 @@ OP_RESULT pin_device_toggle(struct PinDevice *device)
     HAL_GPIO_TogglePin((GPIO_TypeDef *)device->base.instance, device->pinMask);
     return OP_RESULT_OK;
 };
+
+OP_RESULT pin_device_mode_set(PinDevice *device, PIN_DEVICE_MODE mode)
+{
+    LL_GPIO_SetPinMode((GPIO_TypeDef *)device->base.instance, device->pinMask, (mode == PIN_DEVICE_MODE_INPUT) ? LL_GPIO_MODE_INPUT : LL_GPIO_MODE_OUTPUT);
+}

@@ -55,12 +55,12 @@ OP_RESULT st7735_reset(ST77XX *instance)
 {
     // LOG("ST7735:SWRST s")
     st77xx_command(instance, ST7735_CMD_SOFTWARE_RESET);
-    tx_thread_sleep(120);
+    driver_delay_ms(120);
     // LOG("ST7735:SWRST e")
 
     // LOG("ST7735:SWRST s")
     st77xx_command(instance, ST7735_CMD_SOFTWARE_RESET);
-    tx_thread_sleep(120);
+    driver_delay_ms(120);
     // LOG("ST7735:SWRST e")
 
     // LOG("ST7735:SLPOUT s")
@@ -375,5 +375,3 @@ OP_RESULT st7735_bitmap_draw(ST77XX *instance, uint32_t x, uint32_t y, uint8_t *
 
     return OP_RESULT_OK;
 }
-
-

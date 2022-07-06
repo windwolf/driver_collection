@@ -3,8 +3,8 @@
 #include "os.h"
 
 #define SCL_SET(device) (pin_device_set(device->scl, PIN_DEVICE_STATUS_SET))
-#define SCL_RESET(device) (pin_device_set(device->sda, PIN_DEVICE_STATUS_RESET))
-#define SDA_SET(device) (pin_device_set(device->scl, PIN_DEVICE_STATUS_SET))
+#define SCL_RESET(device) (pin_device_set(device->scl, PIN_DEVICE_STATUS_RESET))
+#define SDA_SET(device) (pin_device_set(device->sda, PIN_DEVICE_STATUS_SET))
 #define SDA_RESET(device) (pin_device_set(device->sda, PIN_DEVICE_STATUS_RESET))
 #define SDA_IS_SET(device) (pin_device_is_set(device->sda))
 #define UNWRAP_DEVICE(device) ((SoftI2CDevice *)(device->base.instance))
@@ -36,7 +36,7 @@ OP_RESULT i2c_device_write(I2CDevice *device, uint16_t deviceAddress, void *data
 {
     SoftI2CDevice *dev = UNWRAP_DEVICE(device);
     _softi2c_start(dev);
-    _softi2c_writeByte(dev, (uint8_t)deviceAddress | 0xFE); // Slave address,SA0=0
+    _softi2c_writeByte(dev, (uint8_t)deviceAddress & 0xFE); // Slave address,SA0=0
     if (!_softi2c_waitAck(dev, 20))
     {
         return OP_RESULT_TIMEOUT;
@@ -57,7 +57,7 @@ OP_RESULT i2c_device_mem_write(I2CDevice *device, uint16_t deviceAddress, uint16
 {
     SoftI2CDevice *dev = UNWRAP_DEVICE(device);
     _softi2c_start(dev);
-    _softi2c_writeByte(dev, (uint8_t)deviceAddress | 0xFE); // Slave address,SA0=0
+    _softi2c_writeByte(dev, (uint8_t)deviceAddress & 0xFE); // Slave address,SA0=0
     if (!_softi2c_waitAck(dev, 20))
     {
         return OP_RESULT_TIMEOUT;
@@ -108,6 +108,8 @@ OP_RESULT i2c_device_mem_read(I2CDevice *device, uint16_t deviceAddress, uint16_
 
 static void _softi2c_start(SoftI2CDevice *device)
 {
+    pin_device_mode_set(device->sda, PIN_DEVICE_MODE_OUTPUT);
+    pin_device_mode_set(device->scl, PIN_DEVICE_MODE_OUTPUT);
     SDA_SET(device);
     SCL_SET(device);
     driver_delay_us(4);
@@ -119,6 +121,8 @@ static void _softi2c_start(SoftI2CDevice *device)
 
 static void _softi2c_stop(SoftI2CDevice *device)
 {
+    SCL_RESET(device);
+    driver_delay_us(4);
     SDA_RESET(device);
     driver_delay_us(4);
     SCL_SET(device);
@@ -131,6 +135,10 @@ static bool _softi2c_waitAck(SoftI2CDevice *device, uint32_t timeout)
 {
     bool ack = false;
 
+    SCL_RESET(device);
+    driver_delay_us(2);
+    pin_device_mode_set(device->sda, PIN_DEVICE_MODE_INPUT);
+    driver_delay_us(2);
     SCL_SET(device);
     driver_delay_us(4);
     for (uint8_t i = 20; i > 0; i--)
@@ -141,8 +149,7 @@ static bool _softi2c_waitAck(SoftI2CDevice *device, uint32_t timeout)
             break;
         }
     }
-    SCL_SET(device);
-    driver_delay_us(4);
+    pin_device_mode_set(device->sda, PIN_DEVICE_MODE_OUTPUT);
     return ack;
 }
 

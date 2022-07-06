@@ -7,7 +7,7 @@ extern "C"
 #endif
 
 #include "../../../common/inc/common/command.h"
-#include "tx_api.h"
+#include "os.h"
 #include "stdint.h"
 
 #include "st77xx.h"

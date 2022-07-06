@@ -86,7 +86,7 @@ extern "C"
         uint8_t displayStartLine; // 0-63
         uint8_t displayOffset;    // 0-63
         uint8_t multiplexRatio;   // 16-63
-
+        bool displayInverted;
         uint8_t phase1period; // 0-15
         uint8_t phase2period; // 0-15
 
@@ -96,7 +96,8 @@ extern "C"
         uint8_t clkDivide; // 0-15
 
         uint8_t cmd_buffer[SSD1306_CMD_BUFFER_SIZE];
-        uint8_t data_buffer[SSD1306_DATA_BUFFER_SIZE]; 
+        uint8_t data_buffer[SSD1306_DATA_BUFFER_SIZE];
+        uint16_t buffer_size;
     } SSD1306;
 
     void ssd1306_create(SSD1306 *instance, I2CDevice *i2c);

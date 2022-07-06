@@ -47,6 +47,12 @@ extern "C"
         PIN_DEVICE_STATUS_INVERSE_INVERSE = 1,
     } PIN_DEVICE_STATUS_INVERSE;
 
+    typedef enum PIN_DEVICE_MODE
+    {
+        PIN_DEVICE_MODE_INPUT = 0,
+        PIN_DEVICE_MODE_OUTPUT = 1,
+    } PIN_DEVICE_MODE;
+
     struct PinDevice;
 
     typedef void (*PinDeviceEventHandlerFuncType)(struct PinDevice *device);
@@ -70,6 +76,7 @@ extern "C"
     OP_RESULT pin_device_get(PinDevice *device, PIN_DEVICE_STATUS *parent);
     bool pin_device_is_set(PinDevice *device);
     OP_RESULT pin_device_toggle(PinDevice *device);
+    OP_RESULT pin_device_mode_set(PinDevice *device, PIN_DEVICE_MODE mode);
 
     /* spi device */
 

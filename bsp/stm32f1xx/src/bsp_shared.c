@@ -1,4 +1,5 @@
 #include "../inc/bsp_shared.h"
+#include "stm32f1xx_hal.h"
 
 void bsp_delay_ms(uint32_t ms)
 {

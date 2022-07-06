@@ -134,7 +134,7 @@ bool FONTS_FillData(CanvasInfo *canvas, uint16_t x, uint16_t y, char *str, FontI
         uint8_t memX = canvas->direction == CANVAS_MEMORY_LAYOUT_DIRECTION_HORIZONTAL ? x : y;
         uint8_t memY = canvas->direction == CANVAS_MEMORY_LAYOUT_DIRECTION_HORIZONTAL ? y : x;
         uint8_t canvasMemWidth = canvas->direction == CANVAS_MEMORY_LAYOUT_DIRECTION_HORIZONTAL ? canvas->width : canvas->height;
-        uint8_t canvasMemHeight = canvas->direction == CANVAS_MEMORY_LAYOUT_DIRECTION_HORIZONTAL ? canvas->height : canvas->width;
+        // uint8_t canvasMemHeight = canvas->direction == CANVAS_MEMORY_LAYOUT_DIRECTION_HORIZONTAL ? canvas->height : canvas->width;
         for (uint16_t i = 0; i < len; i++)
         {
             // draw spacing;

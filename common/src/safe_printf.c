@@ -1,19 +1,19 @@
 #include "../inc/common/safe_printf.h"
-#include "tx_api.h"
+#include "os.h"
 
-static TX_MUTEX _printfMutex;
+static DRIVER_MUTEX _printfMutex;
 
 void safe_printf_init()
 {
-    tx_mutex_create(&_printfMutex, "_printfMutex", TX_NO_INHERIT);
+    driver_mutex_create(&_printfMutex, "_printfMutex");
 }
 
 void _begin_safe_printf()
 {
-    tx_mutex_get(&_printfMutex, TX_WAIT_FOREVER);
+    driver_mutex_get(&_printfMutex);
 }
 
 void _end_safe_printf()
 {
-    tx_mutex_put(&_printfMutex);
+    driver_mutex_put(&_printfMutex);
 }

@@ -120,11 +120,11 @@ void ssd1306_set_pos(SSD1306 *instance, uint8_t page, uint8_t column)
 
         instance->cmd_buffer[0] = SSD1306_CMD_SET_PAGE_ADDRESS;
         instance->cmd_buffer[1] = page;
-        instance->cmd_buffer[2] = 7;
+        instance->cmd_buffer[2] = (instance->height - 1) / 8;
         ssd1306_cmd(instance, 3);
         instance->cmd_buffer[0] = SSD1306_CMD_SET_COLUMN_ADDRESS;
         instance->cmd_buffer[1] = column;
-        instance->cmd_buffer[2] = 127;
+        instance->cmd_buffer[2] = instance->width - 1;
         ssd1306_cmd(instance, 3);
     }
 }

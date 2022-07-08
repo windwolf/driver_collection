@@ -7,7 +7,7 @@ extern "C"
 #endif
 
 #include "../../../common/inc/common/device.h"
-#include "../../../common/inc/common/buffer.h"
+#include "buffer.h"
 #include "../../../common/inc/common/command.h"
 #include "../../../common/inc/common/block.h"
 #include "stdint.h"

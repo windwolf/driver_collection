@@ -16,11 +16,6 @@ static void ssd1306_cmd(SSD1306 *instance, uint8_t cmdSize)
     }
     else
     {
-        // for (uint8_t i = 0; i < cmdSize; i++)
-        // {
-        //     i2c_device_mem_write(instance->i2c, 0x78, SSD1306_COMMAND_STREAM, &instance->cmd_buffer[i], 1, DEVICE_DATAWIDTH_8);
-        // }
-
         i2c_device_mem_write(instance->i2c, 0x78, SSD1306_COMMAND_STREAM, instance->cmd_buffer, cmdSize, DEVICE_DATAWIDTH_8);
     }
 }
@@ -32,10 +27,6 @@ static void ssd1306_data(SSD1306 *instance, uint8_t *data, uint16_t size)
     }
     else
     {
-        // for (uint16_t i = 0; i < size; i++)
-        // {
-        //     i2c_device_mem_write(instance->i2c, 0x78, SSD1306_DATA_STREAM, &data[i], 1, DEVICE_DATAWIDTH_8);
-        // }
         i2c_device_mem_write(instance->i2c, 0x78, SSD1306_DATA_STREAM, data, size, DEVICE_DATAWIDTH_8);
     }
 }

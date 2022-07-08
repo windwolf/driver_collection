@@ -13,7 +13,7 @@ extern "C"
 
 #ifdef HAL_UART_MODULE_ENABLED
 
-    OP_RESULT usart_device_create(UartDevice *device, UART_HandleTypeDef *huart, uint16_t dmaThershold);
+    OP_RESULT uart_device_create(UartDevice *device, UART_HandleTypeDef *huart, uint16_t dmaThershold);
 
 #endif // HAL_UART_MODULE_ENABLED
 

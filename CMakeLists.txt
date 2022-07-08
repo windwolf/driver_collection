@@ -1,19 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 
-function(switch_bsp_port drivers_dir)
-    # driver的BSP源文件和头文件
-    list_source_files(${drivers_dir}/bsp/${DRIVERS_BSP_PORT_NAME}/src BSP_SOURCE_FILES)
-    set(BSP_INCLUDE_PATH ${drivers_dir}/bsp/${DRIVERS_BSP_PORT_NAME}/inc)
-    target_sources(${PROJECT_NAME}
-        PRIVATE
-        ${BSP_SOURCE_FILES}
-    )
-    target_include_directories(${PROJECT_NAME}
-        PRIVATE
-        ${BSP_INCLUDE_PATH}
-    )
-endfunction()
-
 if(NOT DEFINED DRIVERS_BSP_PORT_NAME)
     message(FATAL_ERROR "Error: DRIVERS_BSP_PORT_NAME not defined")
 else()
@@ -21,12 +7,20 @@ else()
 endif()
 
 # BSP PORT
-switch_bsp_port(${CMAKE_CURRENT_LIST_DIR})
+list_source_files(${CMAKE_CURRENT_LIST_DIR}/bsp/${DRIVERS_BSP_PORT_NAME} _BSP_SOURCE_FILES)
+set(BSP_INCLUDE_PATH ${CMAKE_CURRENT_LIST_DIR}/bsp/${DRIVERS_BSP_PORT_NAME})
+target_sources(${PROJECT_NAME}
+    PRIVATE
+    ${_BSP_SOURCE_FILES}
+)
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+    ${BSP_INCLUDE_PATH}
+)
 
 process_src_dir(${CMAKE_CURRENT_LIST_DIR}/common ${PROJECT_NAME})
 process_src_dir(${CMAKE_CURRENT_LIST_DIR}/device ${PROJECT_NAME})
 process_src_dir(${CMAKE_CURRENT_LIST_DIR}/fonts ${PROJECT_NAME})
-process_src_dir(${CMAKE_CURRENT_LIST_DIR}/test ${PROJECT_NAME})
 
 # 如果使用方没有提供自定义, 那么使用默认, 否则将自定义复制到custom_inc下
 
@@ -45,17 +39,3 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC
     ${CUSTOM_INC_DIR}
 )
-
-# # Enable a build target that produces a ZIP file of all sources
-# set(CPACK_SOURCE_GENERATOR "ZIP")
-# set(CPACK_SOURCE_IGNORE_FILES
-# \\.git/
-# \\.github/
-# _build/
-# \\.git
-# \\.gitattributes
-# \\.gitignore
-# ".*~$"
-# )
-# set(CPACK_VERBATIM_VARIABLES YES)
-# include(CPack)

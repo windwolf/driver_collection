@@ -10,7 +10,7 @@ static inline void _stream_tx_complete(Stream *stream)
     {
         stream->onTxComplete(stream);
     }
-    driver_events_set(&(stream->events), STREAM_EVENT_TX_READY);
+    ww_os_events_set(&(stream->events), STREAM_EVENT_TX_READY);
 };
 
 static inline void _stream_rx_ready(Stream *stream, uint16_t pos)
@@ -21,12 +21,12 @@ static inline void _stream_rx_ready(Stream *stream, uint16_t pos)
     {
         stream->onRxReady(stream);
     }
-    driver_events_set(&(stream->events), STREAM_EVENT_RX_READY);
+    ww_os_events_set(&(stream->events), STREAM_EVENT_RX_READY);
 };
 
 static inline void _stream_error(Stream *stream, OP_RESULT error)
 {
-    driver_events_reset(&(stream->events), STREAM_EVENT_RX_READY);
+    ww_os_events_reset(&(stream->events), STREAM_EVENT_RX_READY);
     if (stream->onError)
     {
         stream->onError(stream, error);
@@ -50,8 +50,8 @@ OP_RESULT stream_create(Stream *stream, UartDevice *device, RingBuffer *rxBuffer
 {
     stream->device = device;
     stream->rxBuffer = rxBuffer;
-    driver_events_create(&(stream->events), "stream");
-    driver_events_set(&(stream->events), STREAM_EVENT_TX_READY);
+    ww_os_events_create(&(stream->events), "stream");
+    ww_os_events_set(&(stream->events), STREAM_EVENT_TX_READY);
     _uart_device_register(device, stream,
                           &_stream_device_tx_cplt,
                           &_stream_device_rx_cplt,
@@ -71,13 +71,13 @@ OP_RESULT stream_server_stop(Stream *stream)
 
 OP_RESULT stream_send(Stream *stream, uint8_t *data, uint32_t size)
 {
-    driver_events_reset(&(stream->events), STREAM_EVENT_TX_READY);
+    ww_os_events_reset(&(stream->events), STREAM_EVENT_TX_READY);
     return uart_device_tx(stream->device, data, size);
 }
 
 OP_RESULT stream_send_cplt_wait(Stream *stream, uint32_t timeout)
 {
-    return driver_events_get(&stream->events, STREAM_EVENT_TX_READY, DRIVER_EVENTS_OPTION_AND, timeout);
+    return ww_os_events_get(&stream->events, STREAM_EVENT_TX_READY, DRIVER_EVENTS_OPTION_AND, timeout);
 }
 /**
  * @brief 阻塞等待rx准备数据.
@@ -88,7 +88,7 @@ OP_RESULT stream_send_cplt_wait(Stream *stream, uint32_t timeout)
  */
 OP_RESULT stream_receive_ready_wait(Stream *stream, uint32_t timeout)
 {
-    if (driver_events_get(&stream->events, STREAM_EVENT_RX_READY, DRIVER_EVENTS_OPTION_AND, timeout))
+    if (ww_os_events_get(&stream->events, STREAM_EVENT_RX_READY, DRIVER_EVENTS_OPTION_AND, timeout))
     {
         return OP_RESULT_OK;
     }

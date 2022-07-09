@@ -114,23 +114,23 @@ static void _softi2c_start(SoftI2CDevice *device)
     pin_device_mode_set(device->scl, PIN_DEVICE_MODE_OUTPUT);
     SDA_SET(device);
     SCL_SET(device);
-    driver_delay_us(4);
+    bsp_delay_us(4);
     SDA_RESET(device);
-    driver_delay_us(4);
+    bsp_delay_us(4);
     SCL_RESET(device); // hold the bus
-    driver_delay_us(4);
+    bsp_delay_us(4);
 }
 
 static void _softi2c_stop(SoftI2CDevice *device)
 {
     SCL_RESET(device);
-    driver_delay_us(4);
+    bsp_delay_us(4);
     SDA_RESET(device);
-    driver_delay_us(4);
+    bsp_delay_us(4);
     SCL_SET(device);
-    driver_delay_us(4);
+    bsp_delay_us(4);
     SDA_SET(device);
-    driver_delay_us(4);
+    bsp_delay_us(4);
 }
 
 static bool _softi2c_waitAck(SoftI2CDevice *device, uint32_t timeout)
@@ -138,11 +138,11 @@ static bool _softi2c_waitAck(SoftI2CDevice *device, uint32_t timeout)
     bool ack = false;
 
     SCL_RESET(device);
-    driver_delay_us(2);
+    bsp_delay_us(2);
     pin_device_mode_set(device->sda, PIN_DEVICE_MODE_INPUT);
-    driver_delay_us(2);
+    bsp_delay_us(2);
     SCL_SET(device);
-    driver_delay_us(4);
+    bsp_delay_us(4);
     for (uint8_t i = 20; i > 0; i--)
     {
         if (!(SDA_IS_SET(device)))
@@ -161,7 +161,7 @@ static void _softi2c_writeByte(SoftI2CDevice *device, uint8_t byte)
     while (i--)
     {
         SCL_RESET(device);
-        driver_delay_us(4);
+        bsp_delay_us(4);
         if (byte & 0x80)
         {
             SDA_SET(device);
@@ -170,10 +170,10 @@ static void _softi2c_writeByte(SoftI2CDevice *device, uint8_t byte)
         {
             SDA_RESET(device);
         }
-        driver_delay_us(4);
+        bsp_delay_us(4);
         byte <<= 1;
         SCL_SET(device);
-        driver_delay_us(4);
+        bsp_delay_us(4);
     }
 }
 

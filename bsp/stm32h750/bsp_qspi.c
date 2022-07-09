@@ -136,7 +136,7 @@ static void _qspi_error(QSPI_HandleTypeDef *instance)
 
 static void _command_qspi_result_match(QSPI_HandleTypeDef *instance)
 {
-    driver_events_set(&(_cc->base.events), FSCC_EVENT_AUTO_POLLING_CPLT);
+    ww_os_events_set(&(_cc->base.events), FSCC_EVENT_AUTO_POLLING_CPLT);
     if (_cc->onStatusPollingResult)
     {
         _cc->onStatusPollingResult(_cc);
@@ -146,7 +146,7 @@ static void _command_qspi_result_match(QSPI_HandleTypeDef *instance)
 OP_RESULT command_qspi_auto_polling_wait(CommandQspi *command)
 {
     ULONG actualFlags;
-    if (driver_events_get(&command->base.events, FSCC_EVENT_AUTO_POLLING_CPLT, DRIVER_EVENTS_OPTION_OR, DRIVER_TIMEOUT_FOREVER))
+    if (ww_os_events_get(&command->base.events, FSCC_EVENT_AUTO_POLLING_CPLT, DRIVER_EVENTS_OPTION_OR, DRIVER_TIMEOUT_FOREVER))
     {
         return OP_RESULT_OK;
     }
@@ -160,7 +160,7 @@ OP_RESULT command_qspi_autopolling(CommandQspi *command, CommandFrame *pollingCo
 {
     QSPI_CommandTypeDef cmdHandler;
     _command_qspi_cmd_tranlate(pollingCommand, &cmdHandler);
-    if (!driver_events_reset(&command->base.events, FSCC_EVENT_AUTO_POLLING_CPLT))
+    if (!ww_os_events_reset(&command->base.events, FSCC_EVENT_AUTO_POLLING_CPLT))
     {
         return OP_RESULT_GENERAL_ERROR;
     }

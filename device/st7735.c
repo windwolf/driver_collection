@@ -55,12 +55,12 @@ OP_RESULT st7735_reset(ST77XX *instance)
 {
     // LOG("ST7735:SWRST s")
     st77xx_command(instance, ST7735_CMD_SOFTWARE_RESET);
-    driver_delay_ms(120);
+    ww_os_delay(120);
     // LOG("ST7735:SWRST e")
 
     // LOG("ST7735:SWRST s")
     st77xx_command(instance, ST7735_CMD_SOFTWARE_RESET);
-    driver_delay_ms(120);
+    ww_os_delay(120);
     // LOG("ST7735:SWRST e")
 
     // LOG("ST7735:SLPOUT s")

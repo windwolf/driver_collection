@@ -143,7 +143,7 @@ void ssd1306_clear(SSD1306 *instance)
 //初始化SSD1306
 void ssd1306_init(SSD1306 *instance)
 {
-    driver_delay_ms(100);
+    ww_os_delay(100);
 
     ssd1306_display(instance, false);
 
@@ -211,11 +211,11 @@ void ssd1306_init(SSD1306 *instance)
 
     ssd1306_clear(instance);
 
-    driver_delay_ms(100);
+    ww_os_delay(100);
 
     ssd1306_display(instance, true);
 
-    driver_delay_ms(100);
+    ww_os_delay(100);
 };
 
 void ssd1306_draw(SSD1306 *instance)

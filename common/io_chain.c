@@ -8,7 +8,7 @@ static void _op_chain_send_frame(IoChain *ioChain);
 
 static bool _io_chain_is_busy(IoChain *ioChain)
 {
-    return driver_events_get(&(ioChain->events), IO_CHAIN_READY, DRIVER_EVENTS_OPTION_AND, DRIVER_TIMEOUT_NOWAIT);
+    return ww_os_events_get(&(ioChain->events), IO_CHAIN_READY, DRIVER_EVENTS_OPTION_AND, DRIVER_TIMEOUT_NOWAIT);
 };
 
 static inline void _io_chain_tx_rx_cplt(SpiWithPinsDevice *device)
@@ -24,7 +24,7 @@ static void _io_chain_error(DeviceBase *device, OP_RESULT error)
     cmd->hasError = 1;
     if (_io_chain_is_busy(cmd))
     {
-        driver_events_set(&(cmd->events), IO_CHAIN_READY);
+        ww_os_events_set(&(cmd->events), IO_CHAIN_READY);
     }
 
     if (cmd->onError)
@@ -56,15 +56,15 @@ static void _op_chain_send_frame(IoChain *ioChain)
     {
         LOG_D("CMD-SF-E:");
         ioChain->hasError = 0;
-        driver_events_set(&(ioChain->events), IO_CHAIN_READY);
+        ww_os_events_set(&(ioChain->events), IO_CHAIN_READY);
     }
 };
 
 OP_RESULT io_chain_create(IoChain *ioChain, SpiWithPinsDevice *device)
 {
     ioChain->device = device;
-    driver_events_create(&(ioChain->events), "command");
-    driver_events_set(&(ioChain->events), IO_CHAIN_READY);
+    ww_os_events_create(&(ioChain->events), "command");
+    ww_os_events_set(&(ioChain->events), IO_CHAIN_READY);
     ioChain->hasError = 0;
     ioChain->_curIochainFrame = NULL;
     ioChain->_curIoChainFrameSize = 0;
@@ -94,7 +94,7 @@ OP_RESULT io_chain_send(IoChain *ioChain, IoChainFrame *ioChainFrame, uint32_t s
     ioChain->_curIoChainIndex = 0;
     ioChain->_curIoChainFrameSize = size;
 
-    driver_events_reset(&(ioChain->events), IO_CHAIN_READY);
+    ww_os_events_reset(&(ioChain->events), IO_CHAIN_READY);
     LOG_D("CMD-SND-CMD");
     _op_chain_send_frame(ioChain);
 
@@ -103,7 +103,7 @@ OP_RESULT io_chain_send(IoChain *ioChain, IoChainFrame *ioChainFrame, uint32_t s
 
 OP_RESULT io_chain_cplt_wait(IoChain *ioChain, uint32_t timeout)
 {
-    if (!driver_events_get(&(ioChain->events), IO_CHAIN_READY, DRIVER_EVENTS_OPTION_AND, timeout))
+    if (!ww_os_events_get(&(ioChain->events), IO_CHAIN_READY, DRIVER_EVENTS_OPTION_AND, timeout))
     {
         return OP_RESULT_GENERAL_ERROR;
     }

@@ -94,12 +94,12 @@ static inline void _w25qxx_cmd_line_cfg(CommandFrame *cmd, W25QXX_CMD_LINE_MODE 
 
 // static void _w25qxx_qspi_status_polling_result(W25QXX *instance)
 // {
-//     driver_events_set(&(instance->events), W25QXX_EVENT_OP_CPLT);
+//     ww_os_events_set(&(instance->events), W25QXX_EVENT_OP_CPLT);
 // };
 
 // static inline OP_RESULT _w25qxx_op_busy_check(W25QXX *instance)
 // {
-//     if (driver_events_get(&(instance->events), W25QXX_EVENT_OP_BUSY, DRIVER_EVENTS_OPTION_AND, DRIVER_TIMEOUT_NOWAIT))
+//     if (ww_os_events_get(&(instance->events), W25QXX_EVENT_OP_BUSY, DRIVER_EVENTS_OPTION_AND, DRIVER_TIMEOUT_NOWAIT))
 //     {
 //         return OP_RESULT_OK;
 //     }
@@ -300,7 +300,7 @@ static OP_RESULT _w25qxx_busy_wait(W25QXX *instance)
         }
         else
         {
-            driver_thread_sleep(1);
+            ww_os_thread_sleep(1);
         }
     } while (1);
 };
@@ -656,7 +656,7 @@ static inline OP_RESULT _w25qxx_reset_cmd(W25QXX *instance)
 
 OP_RESULT w25qxx_create(W25QXX *instance, Command *cc, uint8_t autoPolling)
 {
-    // driver_events_create(&(instance->events), "w25qxx");
+    // ww_os_events_create(&(instance->events), "w25qxx");
     instance->cc = cc;
     instance->command.addressBits = DEVICE_DATAWIDTH_24;
     instance->command.dummyCycles = 2;

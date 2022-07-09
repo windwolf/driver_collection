@@ -45,6 +45,8 @@ extern "C"
     void bsp_delay_ms(uint32_t ms); // delay ms
     void bsp_delay_us(uint32_t us); // delay us
 
+    uint32_t bsp_get_tick_count(void);
+
 #ifdef __cplusplus
 }
 #endif

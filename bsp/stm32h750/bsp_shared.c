@@ -1,5 +1,5 @@
 #include "bsp_shared.h"
-#include "stm32f1xx_hal.h"
+#include "stm32h7xx_hal.h"
 
 void bsp_delay_ms(uint32_t ms)
 {
@@ -27,6 +27,7 @@ void bsp_delay_us(uint32_t us)
     }
 }
 
-uint32_t bsp_get_tick_count(void) {
+uint32_t bsp_get_tick_count(void)
+{
     return HAL_GetTick();
 }

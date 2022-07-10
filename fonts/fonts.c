@@ -91,7 +91,7 @@ bool FONTS_CalcSpace(uint16_t x, uint16_t y, char *str, FontInfo *fontInfo, uint
     }
 }
 
-bool FONTS_FillData(uint8_t* buffer, CanvasInfo *canvas, uint16_t x, uint16_t y, char *str, FontInfo *fontInfo, FontDrawInfo *fontDrawInfo)
+bool FONTS_FillData(uint8_t *buffer, CanvasInfo *canvas, uint16_t x, uint16_t y, char *str, FontInfo *fontInfo, FontDrawInfo *fontDrawInfo)
 {
     // if (canvas->direction != fontInfo->direction)
     // {
@@ -104,7 +104,7 @@ bool FONTS_FillData(uint8_t* buffer, CanvasInfo *canvas, uint16_t x, uint16_t y,
     }
     else
     {
-        if ((y + fontInfo->height) >= canvas->height)
+        if ((y + fontInfo->height) > canvas->height)
         {
             return false;
         }
@@ -157,7 +157,7 @@ bool FONTS_FillData(uint8_t* buffer, CanvasInfo *canvas, uint16_t x, uint16_t y,
             }
 
             // draw charactor;
-            if ((x + fontInfo->width) >= canvas->width)
+            if ((x + fontInfo->width) > canvas->width)
             {
                 return false;
             }

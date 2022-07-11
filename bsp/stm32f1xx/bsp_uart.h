@@ -8,13 +8,13 @@ extern "C"
 
 #include "common/device.h"
 #include "stm32f1xx_hal.h"
-#include "stm32f1xx_ll_usart.h"
-#include "stm32f1xx_ll_dma.h"
+
 
 #ifdef HAL_UART_MODULE_ENABLED
 
     OP_RESULT uart_device_create(UartDevice *device, UART_HandleTypeDef *huart, uint16_t dmaThershold);
 
+    void uart_send_byte(const char *data, uint16_t len);
 #endif // HAL_UART_MODULE_ENABLED
 
 #ifdef __cplusplus

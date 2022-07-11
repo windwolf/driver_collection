@@ -1,5 +1,7 @@
 #include "bsp_uart.h"
 #include "bsp_shared.h"
+#include "stm32f1xx_ll_usart.h"
+#include "stm32f1xx_ll_dma.h"
 
 #ifdef HAL_UART_MODULE_ENABLED
 
@@ -118,5 +120,19 @@ OP_RESULT uart_device_circular_rx_stop(UartDevice *device)
     }
     return HAL_UART_DMAStop(handle);
 };
+
+void uart_send_byte(const char *data, uint16_t len)
+{
+    for (uint16_t todo = 0; todo < len; todo++)
+    {
+
+        /* 堵塞判断串口是否发送完成 */
+        while (LL_USART_IsActiveFlag_TC(USART1) == 0)
+            ;
+
+        /* 串口发送完成，将该字符发送 */
+        LL_USART_TransmitData8(USART1, (uint8_t)*data++);
+    }
+}
 
 #endif // HAL_UART_MODULE_ENABLED

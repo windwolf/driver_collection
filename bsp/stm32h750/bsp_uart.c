@@ -31,7 +31,7 @@ static void Uart_TxCpltCallback__(UART_HandleTypeDef *handle)
 static void Uart_RxEventCpltCallback__(UART_HandleTypeDef *handle, uint16_t pos)
 {
     UartDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
-    //if (device->_status.isDmaRx)
+    // if (device->_status.isDmaRx)
     {
         SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
     }
@@ -45,7 +45,7 @@ static void Uart_RxEventCpltCallback__(UART_HandleTypeDef *handle, uint16_t pos)
 static void Uart_ErrCpltCallback__(UART_HandleTypeDef *handle)
 {
     UartDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
-    //if (device->_status.isDmaRx)
+    // if (device->_status.isDmaRx)
     {
         SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
     }
@@ -120,5 +120,19 @@ OP_RESULT uart_device_circular_rx_stop(UartDevice *device)
     }
     return HAL_UART_DMAStop(handle);
 };
+
+void uart_send_byte(const char *data, uint16_t len)
+{
+    for (uint16_t todo = 0; todo < len; todo++)
+    {
+
+        /* 堵塞判断串口是否发送完成 */
+        while (LL_USART_IsActiveFlag_TC(USART1) == 0)
+            ;
+
+        /* 串口发送完成，将该字符发送 */
+        LL_USART_TransmitData8(USART1, (uint8_t)*data++);
+    }
+}
 
 #endif // HAL_UART_MODULE_ENABLED

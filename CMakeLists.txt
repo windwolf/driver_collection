@@ -21,6 +21,7 @@ target_include_directories(${PROJECT_NAME}
 process_src_dir(${CMAKE_CURRENT_LIST_DIR}/common ${PROJECT_NAME})
 process_src_dir(${CMAKE_CURRENT_LIST_DIR}/device ${PROJECT_NAME})
 process_src_dir(${CMAKE_CURRENT_LIST_DIR}/fonts ${PROJECT_NAME})
+process_src_dir(${CMAKE_CURRENT_LIST_DIR}/io ${PROJECT_NAME})
 
 # 如果使用方没有提供自定义, 那么使用默认, 否则将自定义复制到custom_inc下
 

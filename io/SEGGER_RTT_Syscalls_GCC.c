@@ -42,58 +42,30 @@
 *                                                                    *
 **********************************************************************
 *                                                                    *
-*       RTT version: 6.98b                                           *
+*       RTT version: 7.66f                                           *
 *                                                                    *
 **********************************************************************
 
 ---------------------------END-OF-HEADER------------------------------
 File    : SEGGER_RTT_Syscalls_GCC.c
 Purpose : Low-level functions for using printf() via RTT in GCC.
-          To use RTT for printf output, include this file in your
+          To use RTT for printf output, include this file in your 
           application.
-Revision: $Rev: 20755 $
+Revision: $Rev: 24316 $
 ----------------------------------------------------------------------
 */
 #if (defined __GNUC__) && !(defined __SES_ARM) && !(defined __CROSSWORKS_ARM) && !(defined __ARMCC_VERSION) && !(defined __CC_ARM)
 
-#ifdef USE_UART_PRINT
-#include "bsp_uart.h"
-#endif
-#ifdef USE_RTT_PRINT
+#include <reent.h>  // required for _write_r
 #include "SEGGER_RTT.h"
-#endif
-// OR:
 
-// Add syscalls.c with GCC
-
-#ifdef __GNUC__
-#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
-#else
-#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
-#endif /* __GNUC__ */
-
-/**
- * @brief  Retargets the C library printf function to the USART.
- * @param  None
- * @retval None
- */
-PUTCHAR_PROTOTYPE
-{
-#ifdef USE_UART_PRINT
-  uart_send_byte((const char *)&ch, 1);
-#endif
-#ifdef USE_RTT_PRINT
-  SEGGER_RTT_Write(0, (const char *)&ch, 1);
-  return ch;
-#endif
-}
 
 /*********************************************************************
- *
- *       Types
- *
- **********************************************************************
- */
+*
+*       Types
+*
+**********************************************************************
+*/
 //
 // If necessary define the _reent struct
 // to match the one passed by the used standard library.
@@ -101,58 +73,51 @@ PUTCHAR_PROTOTYPE
 struct _reent;
 
 /*********************************************************************
- *
- *       Function prototypes
- *
- **********************************************************************
- */
-_ssize_t _write(int file, const void *ptr, size_t len);
+*
+*       Function prototypes
+*
+**********************************************************************
+*/
+_ssize_t _write  (int file, const void *ptr, size_t len);
 _ssize_t _write_r(struct _reent *r, int file, const void *ptr, size_t len);
 
 /*********************************************************************
- *
- *       Global functions
- *
- **********************************************************************
- */
+*
+*       Global functions
+*
+**********************************************************************
+*/
 
 /*********************************************************************
- *
- *       _write()
- *
- * Function description
- *   Low-level write function.
- *   libc subroutines will use this system routine for output to all files,
- *   including stdout.
- *   Write data via RTT.
- */
-_ssize_t _write(int file, const void *ptr, size_t len)
-{
-#ifdef USE_UART_PRINT
-  uart_send_byte(ptr, len);
-#endif
-
-#ifdef USE_RTT_PRINT
-  (void)file; /* Not used, avoid warning */
+*
+*       _write()
+*
+* Function description
+*   Low-level write function.
+*   libc subroutines will use this system routine for output to all files,
+*   including stdout.
+*   Write data via RTT.
+*/
+_ssize_t _write(int file, const void *ptr, size_t len) {
+  (void) file;  /* Not used, avoid warning */
   SEGGER_RTT_Write(0, ptr, len);
-
-#endif
   return len;
 }
 
 /*********************************************************************
- *
- *       _write_r()
- *
- * Function description
- *   Low-level reentrant write function.
- *   libc subroutines will use this system routine for output to all files,
- *   including stdout.
- *   Write data via RTT.
- */
-_ssize_t _write_r(struct _reent *r, int file, const void *ptr, size_t len)
-{
-  _write(file, ptr, len);
+*
+*       _write_r()
+*
+* Function description
+*   Low-level reentrant write function.
+*   libc subroutines will use this system routine for output to all files,
+*   including stdout.
+*   Write data via RTT.
+*/
+_ssize_t _write_r(struct _reent *r, int file, const void *ptr, size_t len) {
+  (void) file;  /* Not used, avoid warning */
+  (void) r;     /* Not used, avoid warning */
+  SEGGER_RTT_Write(0, ptr, len);
   return len;
 }
 

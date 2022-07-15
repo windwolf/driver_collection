@@ -28,20 +28,20 @@ static void Uart_TxCpltCallback__(UART_HandleTypeDef *handle)
     }
 };
 
-static void Uart_RxCpltCallback__(UART_HandleTypeDef *handle)
-{
-    uint16_t pos = handle->RxXferSize - handle->RxXferCount;
-    UartDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
-    // if (device->_status.isDmaRx)
-    {
-        // SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
-    }
+// static void Uart_RxCpltCallback__(UART_HandleTypeDef *handle)
+// {
+//     uint16_t pos = handle->RxXferSize - handle->RxXferCount;
+//     UartDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
+//     // if (device->_status.isDmaRx)
+//     {
+//         // SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+//     }
 
-    if (device->onRxComplete)
-    {
-        device->onRxComplete(device, pos);
-    }
-}
+//     if (device->onRxComplete)
+//     {
+//         device->onRxComplete(device, pos);
+//     }
+// }
 
 static void Uart_ErrCpltCallback__(UART_HandleTypeDef *handle)
 {
@@ -56,6 +56,20 @@ static void Uart_ErrCpltCallback__(UART_HandleTypeDef *handle)
     }
 };
 
+static void Uart_RxEventCpltCallback__(UART_HandleTypeDef *handle, uint16_t pos)
+{
+    UartDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
+    // if (device->_status.isDmaRx)
+    //{
+    // SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    //}
+
+    if (device->onRxComplete)
+    {
+        device->onRxComplete(device, pos);
+    }
+}
+
 OP_RESULT uart_device_create(UartDevice *device, UART_HandleTypeDef *instance, uint16_t dmaThershold)
 {
     device_base_create((DeviceBase *)device);
@@ -65,9 +79,14 @@ OP_RESULT uart_device_create(UartDevice *device, UART_HandleTypeDef *instance, u
     device->dmaThershold = dmaThershold;
     device->onTxComplete = NULL;
     device->onRxComplete = NULL;
+
     HAL_UART_RegisterCallback(instance, HAL_UART_TX_COMPLETE_CB_ID, &Uart_TxCpltCallback__);
-    HAL_UART_RegisterCallback(instance, HAL_UART_RX_COMPLETE_CB_ID, &Uart_RxCpltCallback__);
+    HAL_UART_RegisterRxEventCallback(instance, &Uart_RxEventCpltCallback__);
     HAL_UART_RegisterCallback(instance, HAL_UART_ERROR_CB_ID, &Uart_ErrCpltCallback__);
+
+    // HAL_UART_RegisterCallback(instance, HAL_UART_TX_COMPLETE_CB_ID, &Uart_TxCpltCallback__);
+    // HAL_UART_RegisterCallback(instance, HAL_UART_RX_COMPLETE_CB_ID, &Uart_RxCpltCallback__);
+    // HAL_UART_RegisterCallback(instance, HAL_UART_ERROR_CB_ID, &Uart_ErrCpltCallback__);
     DEVICE_INSTANCE_REGISTER(device, instance->Instance);
     return OP_RESULT_OK;
 };

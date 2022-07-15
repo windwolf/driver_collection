@@ -18,10 +18,20 @@ target_include_directories(${PROJECT_NAME}
     ${BSP_INCLUDE_PATH}
 )
 
+if(NOT DEFINED USE_UART_PRINT)
+    message(STATUS "USE_UART_PRINT: not set, use default value : OFF")
+    set(USE_UART_PRINT OFF)
+else()
+    message(STATUS "USE_UART_PRINT: ${USE_UART_PRINT}")
+endif()
+
+if(${USE_UART_PRINT})
+    target_compile_definitions(${PROJECT_NAME} PUBLIC -DUSE_UART_PRINT)
+endif()
+
 process_src_dir(${CMAKE_CURRENT_LIST_DIR}/common ${PROJECT_NAME})
 process_src_dir(${CMAKE_CURRENT_LIST_DIR}/device ${PROJECT_NAME})
 process_src_dir(${CMAKE_CURRENT_LIST_DIR}/fonts ${PROJECT_NAME})
-process_src_dir(${CMAKE_CURRENT_LIST_DIR}/io ${PROJECT_NAME})
 
 # 如果使用方没有提供自定义, 那么使用默认, 否则将自定义复制到custom_inc下
 

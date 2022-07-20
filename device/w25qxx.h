@@ -212,10 +212,10 @@ extern "C"
 
     OP_RESULT w25qxx_mode_switch(W25QXX *instance, W25QXX_CMD_MODE cmdMode);
 
-    OP_RESULT w25qxx_read(W25QXX *instance, uint8_t *pData, uint32_t ReadAddr, uint32_t Size);
-    OP_RESULT w25qxx_write(W25QXX *instance, uint8_t *pData, uint32_t WriteAddr, uint32_t Size);
+    OP_RESULT w25qxx_read(W25QXX *instance, uint8_t *pData, uint32_t readAddr, uint32_t size);
+    OP_RESULT w25qxx_write(W25QXX *instance, uint8_t *pData, uint32_t writeAddr, uint32_t size);
 
-    OP_RESULT w25qxx_block_erase(W25QXX *instance, uint32_t Address);
+    OP_RESULT w25qxx_block_erase(W25QXX *instance, uint32_t address);
     OP_RESULT w25qxx_chip_erase(W25QXX *instance);
 
     OP_RESULT w25qxx_block_create(W25QXX *instance, Block *block, Buffer buffer);

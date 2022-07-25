@@ -220,6 +220,17 @@ extern "C"
 
     OP_RESULT sd_device_card_init(SdDevice *device);
 
+    typedef struct TimerDevice
+    {
+        DeviceBase base;
+    } TimerDevice;
+
+    OP_RESULT timer_device_init(TimerDevice *device);
+    OP_RESULT timer_device_deinit(TimerDevice *device);
+    OP_RESULT timer_device_start(TimerDevice *device);
+    OP_RESULT timer_device_stop(TimerDevice *device);
+    OP_RESULT timer_device_period_set(TimerDevice *device, uint32_t period);
+
 #ifdef __cplusplus
 }
 #endif

@@ -820,11 +820,11 @@ OP_RESULT w25qxx_id_read(W25QXX *instance)
         _w25qxx_cmd_line_cfg(cmd, W25QXX_CMD_LINE_MODE_444);
     }
     cmd->commandId = W25QXX_SPI_READ_ID_CMD;
-    cmd->address = 0x000000;
-    cmd->addressBits = DEVICE_DATAWIDTH_24;
+    cmd->address = 0x0000;
+    cmd->addressBits = DEVICE_DATAWIDTH_16;
     cmd->data = &instance->mdId;
     cmd->dataBits = DEVICE_DATAWIDTH_8;
-    cmd->dataSize = 2;
+    cmd->dataSize = 3;
     rst = command_send(cc, cmd);
     if (rst != OP_RESULT_OK)
     {

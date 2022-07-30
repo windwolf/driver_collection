@@ -150,7 +150,7 @@ extern "C"
     typedef struct W25QXX
     {
         DRIVER_EVENTS events;
-        uint16_t mdId;
+        uint32_t mdId;
         uint32_t jedecId;
         W25QXX_CMD_MODE cmdMode;
         union

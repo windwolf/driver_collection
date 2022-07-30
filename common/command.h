@@ -64,7 +64,7 @@ extern "C"
         uint32_t hasError;
         CommandErrorHandleFuncType onError;
 
-        CommandFrame *_curFrame;
+        // CommandFrame *_curFrame;
         CommandDeviceSendFuncType _device_send;
     } Command;
 
@@ -82,7 +82,7 @@ extern "C"
     {
         Command base;
         SpiWithPinsDevice *device;
-        uint8_t _phase; // 0 = init, 1 = cmd, 2 = addr, 3 = alt, 4 = dummy, 5 = data, 6 = end;
+        // uint8_t _phase; // 0 = init, 1 = cmd, 2 = addr, 3 = alt, 4 = dummy, 5 = data, 6 = end;
 
     } CommandSpi;
 

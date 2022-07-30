@@ -64,9 +64,9 @@ static void _spi_err(struct DeviceBase *device, OP_RESULT error)
 };
 
 OP_RESULT spi_with_pins_device_create(SpiWithPinsDevice *device, SpiDevice *spi,
-                                          PinDevice *csPin,
-                                          PinDevice *readPin,
-                                          PinDevice *dataPin)
+                                      PinDevice *csPin,
+                                      PinDevice *readPin,
+                                      PinDevice *dataPin)
 {
     device_base_create((DeviceBase *)device);
     device->spi = spi;
@@ -124,10 +124,12 @@ OP_RESULT spi_with_pins_device_rx(SpiWithPinsDevice *device, uint8_t isData, voi
 
 OP_RESULT spi_with_pins_device_session_begin(SpiWithPinsDevice *device)
 {
+    cs_disable(device->csPin);
     if (device->_isSessionBusy)
     {
         return OP_RESULT_BUSY;
     }
+
     device->_isSessionBusy = 1;
     return OP_RESULT_OK;
 };

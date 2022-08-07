@@ -142,13 +142,34 @@ void uart_send_byte(const char *data, uint16_t len)
 {
     for (uint16_t todo = 0; todo < len; todo++)
     {
-
+#ifdef UART_PRINT_CHANNEL1
         /* 堵塞判断串口是否发送完成 */
         while (LL_USART_IsActiveFlag_TC(USART1) == 0)
             ;
-
         /* 串口发送完成，将该字符发送 */
         LL_USART_TransmitData8(USART1, (uint8_t)*data++);
+#endif
+#ifdef UART_PRINT_CHANNEL2
+        /* 堵塞判断串口是否发送完成 */
+        while (LL_USART_IsActiveFlag_TC(USART2) == 0)
+            ;
+        /* 串口发送完成，将该字符发送 */
+        LL_USART_TransmitData8(USART2, (uint8_t)*data++);
+#endif
+#ifdef UART_PRINT_CHANNEL3
+        /* 堵塞判断串口是否发送完成 */
+        while (LL_USART_IsActiveFlag_TC(USART3) == 0)
+            ;
+        /* 串口发送完成，将该字符发送 */
+        LL_USART_TransmitData8(USART3, (uint8_t)*data++);
+#endif
+#ifdef UART_PRINT_CHANNEL4
+        /* 堵塞判断串口是否发送完成 */
+        while (LL_USART_IsActiveFlag_TC(USART4) == 0)
+            ;
+        /* 串口发送完成，将该字符发送 */
+        LL_USART_TransmitData8(USART4, (uint8_t)*data++);
+#endif
     }
 }
 

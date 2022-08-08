@@ -66,6 +66,7 @@ extern "C"
 
         // CommandFrame *_curFrame;
         CommandDeviceSendFuncType _device_send;
+        uint32_t timeout;
     } Command;
 
     OP_RESULT command_create(Command *command, CommandDeviceSendFuncType deviceSendFunc);

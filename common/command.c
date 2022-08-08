@@ -40,5 +40,5 @@ OP_RESULT command_end(Command *command)
 
 bool command_is_busy(Command *command)
 {
-    return !ww_os_events_get(&(command->events), COMMAND_READY, DRIVER_EVENTS_OPTION_AND, DRIVER_TIMEOUT_NOWAIT);
+    return !ww_os_events_get(&(command->events), COMMAND_READY, DRIVER_EVENTS_OPTION_AND, command->timeout);
 };

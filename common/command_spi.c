@@ -42,19 +42,19 @@ static OP_RESULT _five_step_command_client_spi_send(Command *command, CommandFra
     {
 
         spi_with_pins_device_tx(cmdSpi->device, 0, &commandStep->commandId, 1, DEVICE_DATAWIDTH_8);
-        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, DRIVER_TIMEOUT_FOREVER);
+        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, command->timeout);
         ww_os_events_reset(&(command->events), COMMAND_STEP_DONE);
     }
     if (commandStep->addressMode != COMMAND_FRAME_MODE_SKIP)
     {
         spi_with_pins_device_tx(cmdSpi->device, 1, &commandStep->address, 1, commandStep->addressBits);
-        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, DRIVER_TIMEOUT_FOREVER);
+        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, command->timeout);
         ww_os_events_reset(&(command->events), COMMAND_STEP_DONE);
     }
     if (commandStep->altDataMode != COMMAND_FRAME_MODE_SKIP)
     {
         spi_with_pins_device_tx(cmdSpi->device, 1, &commandStep->altData, 1, commandStep->altDataBits);
-        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, DRIVER_TIMEOUT_FOREVER);
+        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, command->timeout);
         ww_os_events_reset(&(command->events), COMMAND_STEP_DONE);
     }
     if (commandStep->dummyCycles != 0)
@@ -74,7 +74,7 @@ static OP_RESULT _five_step_command_client_spi_send(Command *command, CommandFra
         {
             spi_with_pins_device_rx(cmdSpi->device, 1, commandStep->data, commandStep->dataSize, commandStep->dataBits, 0);
         }
-        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, DRIVER_TIMEOUT_FOREVER);
+        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, command->timeout);
         ww_os_events_reset(&(command->events), COMMAND_STEP_DONE);
     }
     spi_with_pins_device_session_end(cmdSpi->device);

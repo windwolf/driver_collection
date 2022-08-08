@@ -81,7 +81,7 @@ OP_RESULT i2c_device_read(I2CDevice *device, uint16_t deviceAddress, void *data,
     }
     device->_rxBuffer.data = data;
     device->_rxBuffer.size = size * (width - 1);
-    if (size > device->dmaThershold)
+    if (device->options.useRxDma && (size > device->options.dmaThershold))
     {
         device->_status.isDmaRx = 1;
         return HAL_I2C_Read_DMA((I2C_HandleTypeDef *)device->base.instance,
@@ -106,7 +106,7 @@ OP_RESULT i2c_device_write(I2CDevice *device, uint16_t deviceAddress, void *data
     {
         return OP_RESULT_NOT_SUPPORT;
     }
-    if (size > device->dmaThershold)
+    if (device->options.useTxDma && (size > device->options.dmaThershold))
     {
         device->_status.isDmaTx = 1;
         SCB_CleanDCache_by_Addr((uint32_t *)data, size * (width - 1));
@@ -133,7 +133,7 @@ OP_RESULT i2c_device_mem_write(I2CDevice *device, uint16_t deviceAddress, uint16
     {
         return OP_RESULT_NOT_SUPPORT;
     }
-    if (size > device->dmaThershold)
+    if (device->options.useTxDma && (size > device->options.dmaThershold))
     {
         device->_status.isDmaTx = 1;
         SCB_CleanDCache_by_Addr((uint32_t *)data, size * (width - 1));
@@ -162,7 +162,7 @@ OP_RESULT i2c_device_mem_read(I2CDevice *device, uint16_t deviceAddress, uint16_
     }
     device->_rxBuffer.data = data;
     device->_rxBuffer.size = size * (width - 1);
-    if (size > device->dmaThershold)
+    if (device->options.useRxDma && (size > device->options.dmaThershold))
     {
         device->_status.isDmaRx = 1;
         return HAL_I2C_Mem_Read_DMA((I2C_HandleTypeDef *)device->base.instance,

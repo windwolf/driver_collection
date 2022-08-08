@@ -86,10 +86,15 @@ extern "C"
     typedef struct SpiDevice
     {
         DeviceBase base;
-        uint16_t dmaThershold;
+
         SpiDeviceEventHandlerFuncType onTxComplete;
         SpiDeviceEventHandlerFuncType onRxComplete;
-
+        struct
+        {
+            uint16_t dmaThershold;
+            uint8_t useTxDma : 1;
+            uint8_t useRxDma : 1;
+        } options;
         /** @private **/
         Buffer _rxBuffer;
         struct
@@ -116,10 +121,16 @@ extern "C"
     typedef struct I2CDevice
     {
         DeviceBase base;
-        uint16_t dmaThershold;
 
         I2CMemDeviceEventHandlerFuncType onWriteComplete;
         I2CMemDeviceEventHandlerFuncType onReadComplete;
+
+        struct
+        {
+            uint16_t dmaThershold;
+            uint8_t useTxDma : 1;
+            uint8_t useRxDma : 1;
+        } options;
 
         /** @private **/
         Buffer _rxBuffer;
@@ -152,11 +163,15 @@ extern "C"
     typedef struct UartDevice
     {
         DeviceBase base;
-        uint16_t dmaThershold;
 
         UartDeviceEventHandlerFuncType onTxComplete;
         UartDeviceRxEventHandlerFuncType onRxComplete;
-
+        struct
+        {
+            uint16_t dmaThershold;
+            uint8_t useTxDma : 1;
+            uint8_t useRxDma : 1;
+        } options;
         /** @private **/
         Buffer _rxBuffer;
         struct

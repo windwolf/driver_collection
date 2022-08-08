@@ -15,7 +15,15 @@ DEFINE_DEVICE_REGISTER_ITEM(SPI1_BASE, SPI1_INDEX)
 DEFINE_DEVICE_REGISTER_ITEM(SPI2_BASE, SPI2_INDEX)
 DEFINE_DEVICE_REGISTER_END(SPI)
 
-static void Spi_TxCpltCallback__(SPI_HandleTypeDef *handle)
+typedef struct SizeInfo
+{
+    uint32_t sizeInBytes;
+    uint32_t sizeInDMADataWidth;
+    uint32_t sizeInSPIDataWidth;
+} SizeInfo;
+
+static void
+Spi_TxCpltCallback__(SPI_HandleTypeDef *handle)
 {
     SpiDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
     if (device->onTxComplete)
@@ -52,14 +60,13 @@ static void Spi_ErrCallback__(SPI_HandleTypeDef *handle)
     }
 };
 
-static uint32_t bits_switch(SPI_HandleTypeDef *handle, DeviceDataWidth width, uint32_t size)
+static void bits_switch(SPI_HandleTypeDef *handle, DeviceDataWidth width, uint32_t size, SizeInfo *sizeInfo)
 {
 
-    uint32_t stream_number_tx = (((uint32_t)((uint32_t *)handle->hdmatx->Instance) & 0xFFU) - 0x010UL) / 0x018UL;
-    uint32_t dma_base_tx = (uint32_t)((uint32_t *)handle->hdmatx->Instance) - stream_number_tx * 0x018UL - 0x010UL;
-    uint32_t stream_number_rx = (((uint32_t)((uint32_t *)handle->hdmarx->Instance) & 0xFFU) - 0x010UL) / 0x018UL;
-    uint32_t dma_base_rx = (uint32_t)((uint32_t *)handle->hdmarx->Instance) - stream_number_rx * 0x018UL - 0x010UL;
-
+    uint32_t stream_number_tx = (((uint32_t)((uint32_t *)handle->hdmatx->Instance) & 0xFFU) - 0x08UL) / 0x014UL;
+    uint32_t dma_base_tx = (uint32_t)((uint32_t *)handle->hdmatx->Instance) - stream_number_tx * 0x014UL - 0x08UL;
+    uint32_t stream_number_rx = (((uint32_t)((uint32_t *)handle->hdmarx->Instance) & 0xFFU) - 0x08UL) / 0x014UL;
+    uint32_t dma_base_rx = (uint32_t)((uint32_t *)handle->hdmarx->Instance) - stream_number_rx * 0x014UL - 0x08UL;
     switch (width)
     {
     case DEVICE_DATAWIDTH_8:
@@ -73,7 +80,10 @@ static uint32_t bits_switch(SPI_HandleTypeDef *handle, DeviceDataWidth width, ui
         LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_MDATAALIGN_BYTE);
         LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_PDATAALIGN_BYTE);
         LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_PDATAALIGN_BYTE);
-        return size;
+        sizeInfo->sizeInBytes = size;
+        sizeInfo->sizeInDMADataWidth = size;
+        sizeInfo->sizeInSPIDataWidth = size;
+        break;
     case DEVICE_DATAWIDTH_16:
         handle->Init.DataSize = SPI_DATASIZE_16BIT;
         LL_SPI_SetDataWidth(handle->Instance, LL_SPI_DATAWIDTH_16BIT);
@@ -85,33 +95,42 @@ static uint32_t bits_switch(SPI_HandleTypeDef *handle, DeviceDataWidth width, ui
         LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_MDATAALIGN_HALFWORD);
         LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_PDATAALIGN_HALFWORD);
         LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_PDATAALIGN_HALFWORD);
-        return size << 1;
+        sizeInfo->sizeInBytes = size << 1;
+        sizeInfo->sizeInDMADataWidth = size;
+        sizeInfo->sizeInSPIDataWidth = size;
+        break;
     case DEVICE_DATAWIDTH_24:
-    //     handle->Init.DataSize = SPI_DATASIZE_24BIT;
-    //     LL_SPI_SetDataWidth(handle->Instance, LL_SPI_DATAWIDTH_24BIT);
-    //     handle->hdmatx->Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-    //     handle->hdmarx->Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-    //     handle->hdmatx->Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-    //     handle->hdmarx->Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-    //     LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_MDATAALIGN_WORD);
-    //     LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_MDATAALIGN_WORD);
-    //     LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_PDATAALIGN_WORD);
-    //     LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_PDATAALIGN_WORD);
-    //     return size << 2;
-    // case DEVICE_DATAWIDTH_32:
-    //     handle->Init.DataSize = SPI_DATASIZE_32BIT;
-    //     LL_SPI_SetDataWidth(handle->Instance, LL_SPI_DATAWIDTH_32BIT);
-    //     handle->hdmatx->Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-    //     handle->hdmarx->Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-    //     handle->hdmatx->Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-    //     handle->hdmarx->Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-    //     LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_MDATAALIGN_WORD);
-    //     LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_MDATAALIGN_WORD);
-    //     LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_PDATAALIGN_WORD);
-    //     LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_PDATAALIGN_WORD);
-    //     return size << 2;
+        handle->Init.DataSize = SPI_DATASIZE_8BIT;
+        LL_SPI_SetDataWidth(handle->Instance, LL_SPI_DATAWIDTH_8BIT);
+        handle->hdmatx->Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+        handle->hdmarx->Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+        handle->hdmatx->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+        handle->hdmarx->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+        LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_MDATAALIGN_BYTE);
+        LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_MDATAALIGN_BYTE);
+        LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_PDATAALIGN_BYTE);
+        LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_PDATAALIGN_BYTE);
+        sizeInfo->sizeInBytes = size * 3;
+        sizeInfo->sizeInDMADataWidth = size * 3;
+        sizeInfo->sizeInSPIDataWidth = size * 3;
+        break;
+    case DEVICE_DATAWIDTH_32:
+        handle->Init.DataSize = SPI_DATASIZE_16BIT;
+        LL_SPI_SetDataWidth(handle->Instance, LL_SPI_DATAWIDTH_16BIT);
+        handle->hdmatx->Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+        handle->hdmarx->Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+        handle->hdmatx->Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+        handle->hdmarx->Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+        LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_MDATAALIGN_HALFWORD);
+        LL_DMA_SetMemorySize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_MDATAALIGN_HALFWORD);
+        LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_tx, stream_number_tx, LL_DMA_PDATAALIGN_HALFWORD);
+        LL_DMA_SetPeriphSize((DMA_TypeDef *)dma_base_rx, stream_number_rx, LL_DMA_PDATAALIGN_HALFWORD);
+        sizeInfo->sizeInBytes = size << 2;
+        sizeInfo->sizeInDMADataWidth = size << 2;
+        sizeInfo->sizeInSPIDataWidth = size << 2;
+        break;
     default:
-        return 0;
+        break;
     }
     // return;
 };
@@ -122,7 +141,7 @@ OP_RESULT spi_device_create(SpiDevice *device, SPI_HandleTypeDef *instance, uint
     device->base.instance = instance;
     device->_rxBuffer.data = 0;
     device->_rxBuffer.size = 0;
-    device->dmaThershold = dmaThershold;
+    device->options.dmaThershold = dmaThershold;
     device->onTxComplete = NULL;
     device->onRxComplete = NULL;
     HAL_SPI_RegisterCallback(instance, HAL_SPI_TX_COMPLETE_CB_ID, &Spi_TxCpltCallback__);
@@ -138,43 +157,45 @@ OP_RESULT spi_device_deinit(SpiDevice *device) { return OP_RESULT_OK; };
 OP_RESULT spi_device_tx(SpiDevice *device, void *data, uint32_t size, DeviceDataWidth width)
 {
     SPI_HandleTypeDef *handle = (SPI_HandleTypeDef *)(device->base.instance);
-    // uint32_t byteSize = bits_switch(handle, width, size);
+    SizeInfo sizeInfo;
+    bits_switch(handle, width, size, &sizeInfo);
     if (size < 0)
     {
         return OP_RESULT_GENERAL_ERROR;
     }
-    if (size > device->dmaThershold)
+    if (device->options.useTxDma && (size > device->options.dmaThershold))
     {
         device->_status.isDmaTx = 1;
         // SCB_CleanDCache_by_Addr((uint32_t *)data, byteSize);
-        return HAL_SPI_Transmit_DMA(handle, data, size);
+        return HAL_SPI_Transmit_DMA(handle, data, sizeInfo.sizeInDMADataWidth);
     }
     else
     {
         device->_status.isDmaTx = 0;
-        return HAL_SPI_Transmit_IT(handle, data, size);
+        return HAL_SPI_Transmit_IT(handle, data, sizeInfo.sizeInSPIDataWidth);
     }
 };
 
 OP_RESULT spi_device_rx(SpiDevice *device, void *data, uint32_t size, DeviceDataWidth width, uint8_t dummyCycleCount)
 {
     SPI_HandleTypeDef *handle = (SPI_HandleTypeDef *)(device->base.instance);
-    uint32_t byteSize = bits_switch(handle, width, size);
+    SizeInfo sizeInfo;
+    bits_switch(handle, width, size, &sizeInfo);
     if (size < 0)
     {
         return OP_RESULT_GENERAL_ERROR;
     }
     device->_rxBuffer.data = data;
-    device->_rxBuffer.size = byteSize;
-    if (size > device->dmaThershold)
+    device->_rxBuffer.size = sizeInfo.sizeInBytes;
+    if (device->options.useRxDma && (size > device->options.dmaThershold))
     {
         device->_status.isDmaRx = 1;
-        return HAL_SPI_Receive_DMA(handle, (uint8_t *)data, size);
+        return HAL_SPI_Receive_DMA(handle, (uint8_t *)data, sizeInfo.sizeInDMADataWidth);
     }
     else
     {
         device->_status.isDmaRx = 0;
-        return HAL_SPI_Receive_IT(handle, (uint8_t *)data, size);
+        return HAL_SPI_Receive_IT(handle, (uint8_t *)data, sizeInfo.sizeInSPIDataWidth);
     }
 };
 

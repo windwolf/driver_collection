@@ -900,6 +900,7 @@ OP_RESULT w25qxx_read(W25QXX *instance, uint8_t *pData, uint32_t readAddr, uint3
 //     return DEVICE_STATUS_OK;
 // };
 
+// should be less than 256 bytes
 OP_RESULT w25qxx_write(W25QXX *instance, uint8_t *pData, uint32_t writeAddr, uint32_t size)
 {
     OP_RESULT rst;

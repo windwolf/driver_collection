@@ -10,6 +10,13 @@ extern "C"
 #include "graph.h"
 
 #define TIMER_CHANNEL uint8_t
+#define TIMER_CHANNEL_1 0x01
+#define TIMER_CHANNEL_2 0x02
+#define TIMER_CHANNEL_3 0x03
+#define TIMER_CHANNEL_4 0x04
+#define TIMER_CHANNEL_5 0x05
+#define TIMER_CHANNEL_6 0x06
+#define TIMER_CHANNEL_7 0x07
 
     typedef struct Led
     {

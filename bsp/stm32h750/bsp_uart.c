@@ -61,7 +61,7 @@ OP_RESULT uart_device_create(UartDevice *device, UART_HandleTypeDef *instance, u
     device->base.instance = instance;
     device->_rxBuffer.data = 0;
     device->_rxBuffer.size = 0;
-    device->dmaThershold = dmaThershold;
+    device->options.dmaThershold = dmaThershold;
     device->onTxComplete = NULL;
     device->onRxComplete = NULL;
     HAL_UART_RegisterCallback(instance, HAL_UART_TX_COMPLETE_CB_ID, &Uart_TxCpltCallback__);
@@ -72,6 +72,7 @@ OP_RESULT uart_device_create(UartDevice *device, UART_HandleTypeDef *instance, u
 };
 
 OP_RESULT uart_device_init(UartDevice *device) { return OP_RESULT_OK; };
+
 OP_RESULT uart_device_deinit(UartDevice *device) { return OP_RESULT_OK; };
 
 OP_RESULT uart_device_tx(UartDevice *device, uint8_t *data, uint32_t size)
@@ -81,7 +82,7 @@ OP_RESULT uart_device_tx(UartDevice *device, uint8_t *data, uint32_t size)
     {
         return OP_RESULT_BUSY;
     }
-    if (size > device->dmaThershold)
+    if (device->options.useTxDma && (size > device->options.dmaThershold))
     {
         device->_status.isDmaTx = 1;
         SCB_CleanDCache_by_Addr((uint32_t *)data, size);
@@ -110,6 +111,7 @@ OP_RESULT uart_device_circular_rx_start(UartDevice *device, uint8_t *data, uint3
 
     return HAL_UARTEx_ReceiveToIdle_DMA(handle, data, size);
 };
+
 OP_RESULT uart_device_circular_rx_stop(UartDevice *device)
 {
     UART_HandleTypeDef *handle = device->base.instance;

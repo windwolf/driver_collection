@@ -135,7 +135,7 @@ static OP_RESULT _w25qxx_status1_get(W25QXX *instance)
     {
         return rst;
     }
-    return command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    return command_cplt_wait(cc, instance->timeout);
 };
 
 static OP_RESULT _w25qxx_status2_get(W25QXX *instance)
@@ -164,7 +164,7 @@ static OP_RESULT _w25qxx_status2_get(W25QXX *instance)
     {
         return rst;
     }
-    return command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    return command_cplt_wait(cc, instance->timeout);
 };
 
 static OP_RESULT _w25qxx_status3_get(W25QXX *instance)
@@ -193,7 +193,7 @@ static OP_RESULT _w25qxx_status3_get(W25QXX *instance)
     {
         return rst;
     }
-    return command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    return command_cplt_wait(cc, instance->timeout);
 };
 
 static OP_RESULT _w25qxx_status1_set(W25QXX *instance)
@@ -222,7 +222,7 @@ static OP_RESULT _w25qxx_status1_set(W25QXX *instance)
     {
         return rst;
     }
-    return command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    return command_cplt_wait(cc, instance->timeout);
 };
 
 static OP_RESULT _w25qxx_status2_set(W25QXX *instance)
@@ -251,7 +251,7 @@ static OP_RESULT _w25qxx_status2_set(W25QXX *instance)
     {
         return rst;
     }
-    return command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    return command_cplt_wait(cc, instance->timeout);
 };
 
 static OP_RESULT _w25qxx_status3_set(W25QXX *instance)
@@ -280,7 +280,7 @@ static OP_RESULT _w25qxx_status3_set(W25QXX *instance)
     {
         return rst;
     }
-    return command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    return command_cplt_wait(cc, instance->timeout);
 };
 
 static OP_RESULT _w25qxx_busy_wait(W25QXX *instance)
@@ -335,7 +335,7 @@ static inline OP_RESULT _w25qxx_read_cmd(W25QXX *instance, uint8_t *pData, uint3
     {
         return rst;
     }
-    rst = command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    rst = command_cplt_wait(cc, instance->timeout);
     return rst;
 }
 
@@ -377,7 +377,7 @@ static OP_RESULT _w25qxx_read_parameter_set(W25QXX *instance)
         {
             return rst;
         }
-        return command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+        return command_cplt_wait(cc, instance->timeout);
     }
     else
     {
@@ -408,7 +408,7 @@ static inline OP_RESULT _w25qxx_4k_sector_erase_cmd(W25QXX *instance, uint32_t a
     {
         return rst;
     }
-    rst = command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    rst = command_cplt_wait(cc, instance->timeout);
     return rst;
 };
 
@@ -434,7 +434,7 @@ static inline OP_RESULT _w25qxx_32k_block_erase_cmd(W25QXX *instance, uint32_t a
     {
         return rst;
     }
-    rst = command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    rst = command_cplt_wait(cc, instance->timeout);
     return rst;
 }
 
@@ -460,7 +460,7 @@ static inline OP_RESULT _w25qxx_64k_block_erase_cmd(W25QXX *instance, uint32_t a
     {
         return rst;
     }
-    rst = command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    rst = command_cplt_wait(cc, instance->timeout);
     return rst;
 }
 
@@ -484,7 +484,7 @@ static inline OP_RESULT _w25qxx_chip_erase_cmd(W25QXX *instance)
     {
         return rst;
     }
-    rst = command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    rst = command_cplt_wait(cc, instance->timeout);
     return rst;
 }
 
@@ -508,7 +508,7 @@ static inline OP_RESULT _w25qxx_write_enable_cmd(W25QXX *instance)
     {
         return rst;
     }
-    return command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    return command_cplt_wait(cc, instance->timeout);
 };
 
 static inline OP_RESULT _w25qxx_write_cmd(W25QXX *instance, uint8_t *pData, uint32_t writeAddr, uint32_t size)
@@ -538,7 +538,7 @@ static inline OP_RESULT _w25qxx_write_cmd(W25QXX *instance, uint8_t *pData, uint
     {
         return rst;
     }
-    return command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    return command_cplt_wait(cc, instance->timeout);
 }
 
 static inline OP_RESULT _w25qxx_qpi_enter_cmd(W25QXX *instance)
@@ -553,7 +553,7 @@ static inline OP_RESULT _w25qxx_qpi_enter_cmd(W25QXX *instance)
     {
         return rst;
     }
-    return command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    return command_cplt_wait(cc, instance->timeout);
 };
 
 static inline OP_RESULT _w25qxx_qpi_exit_cmd(W25QXX *instance)
@@ -568,7 +568,7 @@ static inline OP_RESULT _w25qxx_qpi_exit_cmd(W25QXX *instance)
     {
         return rst;
     }
-    return command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    return command_cplt_wait(cc, instance->timeout);
 };
 
 static inline OP_RESULT _w25qxx_reset_cmd(W25QXX *instance)
@@ -591,7 +591,7 @@ static inline OP_RESULT _w25qxx_reset_cmd(W25QXX *instance)
     {
         return rst;
     }
-    rst = command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    rst = command_cplt_wait(cc, instance->timeout);
     if (rst != OP_RESULT_OK)
     {
         return rst;
@@ -602,7 +602,7 @@ static inline OP_RESULT _w25qxx_reset_cmd(W25QXX *instance)
     {
         return rst;
     }
-    return command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    return command_cplt_wait(cc, instance->timeout);
 };
 
 // static inline DEVICE_STATUS _w25qxx_spi_write(W25QXX *instance, uint8_t *pData, uint32_t writeAddr, uint32_t size)
@@ -654,13 +654,16 @@ static inline OP_RESULT _w25qxx_reset_cmd(W25QXX *instance)
 //     return DEVICE_STATUS_OK;
 // };
 
-OP_RESULT w25qxx_create(W25QXX *instance, Command *cc, uint8_t autoPolling)
+OP_RESULT w25qxx_create(W25QXX *instance, Command *cc, uint8_t autoPolling, uint32_t timeout)
 {
     // ww_os_events_create(&(instance->events), "w25qxx");
     instance->cc = cc;
+
     instance->command.addressBits = DEVICE_DATAWIDTH_24;
     instance->command.dummyCycles = 2;
     instance->autoPolling = autoPolling;
+    instance->timeout = timeout;
+    cc->timeout = instance->timeout;
     return OP_RESULT_OK;
 };
 
@@ -830,7 +833,7 @@ OP_RESULT w25qxx_id_read(W25QXX *instance)
     {
         return rst;
     }
-    rst = command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    rst = command_cplt_wait(cc, instance->timeout);
     if (rst != OP_RESULT_OK)
     {
         return rst;
@@ -853,7 +856,7 @@ OP_RESULT w25qxx_id_read(W25QXX *instance)
     {
         return rst;
     }
-    return command_cplt_wait(cc, DRIVER_TIMEOUT_FOREVER);
+    return command_cplt_wait(cc, instance->timeout);
 };
 
 OP_RESULT w25qxx_read(W25QXX *instance, uint8_t *pData, uint32_t readAddr, uint32_t size)
@@ -897,6 +900,7 @@ OP_RESULT w25qxx_read(W25QXX *instance, uint8_t *pData, uint32_t readAddr, uint3
 //     return DEVICE_STATUS_OK;
 // };
 
+// should be less than 256 bytes
 OP_RESULT w25qxx_write(W25QXX *instance, uint8_t *pData, uint32_t writeAddr, uint32_t size)
 {
     OP_RESULT rst;

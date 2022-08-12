@@ -76,7 +76,7 @@ OP_RESULT uart_device_create(UartDevice *device, UART_HandleTypeDef *instance, u
     device->base.instance = instance;
     device->_rxBuffer.data = 0;
     device->_rxBuffer.size = 0;
-    device->dmaThershold = dmaThershold;
+    device->options.dmaThershold = dmaThershold;
     device->onTxComplete = NULL;
     device->onRxComplete = NULL;
 
@@ -101,7 +101,7 @@ OP_RESULT uart_device_tx(UartDevice *device, uint8_t *data, uint32_t size)
     {
         return OP_RESULT_BUSY;
     }
-    if (size > device->dmaThershold)
+    if (device->options.useTxDma && (size > device->options.dmaThershold))
     {
         device->_status.isDmaTx = 1;
         // SCB_CleanDCache_by_Addr((uint32_t *)data, size);

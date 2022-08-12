@@ -128,7 +128,7 @@ OP_RESULT spi_device_create(SpiDevice *device, SPI_HandleTypeDef *instance, uint
     device->base.instance = instance;
     device->_rxBuffer.data = 0;
     device->_rxBuffer.size = 0;
-    device->dmaThershold = dmaThershold;
+    device->options.dmaThershold = dmaThershold;
     device->onTxComplete = NULL;
     device->onRxComplete = NULL;
     HAL_SPI_RegisterCallback(instance, HAL_SPI_TX_COMPLETE_CB_ID, &Spi_TxCpltCallback__);
@@ -149,7 +149,7 @@ OP_RESULT spi_device_tx(SpiDevice *device, void *data, uint32_t size, DeviceData
     {
         return OP_RESULT_GENERAL_ERROR;
     }
-    if (size > device->dmaThershold)
+    if (device->options.useTxDma && (size > device->options.dmaThershold))
     {
         device->_status.isDmaTx = 1;
         SCB_CleanDCache_by_Addr((uint32_t *)data, byteSize);
@@ -172,7 +172,7 @@ OP_RESULT spi_device_rx(SpiDevice *device, void *data, uint32_t size, DeviceData
     }
     device->_rxBuffer.data = data;
     device->_rxBuffer.size = byteSize;
-    if (size > device->dmaThershold)
+    if (device->options.useRxDma && (size > device->options.dmaThershold))
     {
         device->_status.isDmaRx = 1;
         return HAL_SPI_Receive_DMA(handle, (uint8_t *)data, size);

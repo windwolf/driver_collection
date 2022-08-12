@@ -2,8 +2,6 @@
 
 #define COMMAND_STEP_DONE 0x02UL
 
-static void _send_phase_end(CommandSpi *command);
-
 static inline void _tx_rx_cplt_(SpiWithPinsDevice *device)
 {
     CommandSpi *cmd = (CommandSpi *)device->base.parent;
@@ -29,13 +27,6 @@ static void _error(DeviceBase *device, OP_RESULT error)
     _do_error(cmd, error);
 };
 
-static void _send_phase_end(CommandSpi *command)
-{
-    spi_with_pins_device_session_end(command->device);
-    command->base.hasError = 0;
-    command_end(&(command->base));
-};
-
 static OP_RESULT _five_step_command_client_spi_send(Command *command, CommandFrame *commandStep)
 {
     if (command_is_busy(command))
@@ -46,31 +37,32 @@ static OP_RESULT _five_step_command_client_spi_send(Command *command, CommandFra
     CommandSpi *cmdSpi = (CommandSpi *)command;
     command_start(command);
     ww_os_events_reset(&(command->events), COMMAND_STEP_DONE);
-
+    spi_with_pins_device_session_begin(cmdSpi->device);
     if (commandStep->commandMode != COMMAND_FRAME_MODE_SKIP)
     {
-        spi_with_pins_device_session_begin(cmdSpi->device);
+
         spi_with_pins_device_tx(cmdSpi->device, 0, &commandStep->commandId, 1, DEVICE_DATAWIDTH_8);
-        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, DRIVER_TIMEOUT_FOREVER);
+        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, command->timeout);
         ww_os_events_reset(&(command->events), COMMAND_STEP_DONE);
     }
     if (commandStep->addressMode != COMMAND_FRAME_MODE_SKIP)
     {
         spi_with_pins_device_tx(cmdSpi->device, 1, &commandStep->address, 1, commandStep->addressBits);
-        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, DRIVER_TIMEOUT_FOREVER);
+        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, command->timeout);
         ww_os_events_reset(&(command->events), COMMAND_STEP_DONE);
     }
     if (commandStep->altDataMode != COMMAND_FRAME_MODE_SKIP)
     {
         spi_with_pins_device_tx(cmdSpi->device, 1, &commandStep->altData, 1, commandStep->altDataBits);
-        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, DRIVER_TIMEOUT_FOREVER);
+        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, command->timeout);
         ww_os_events_reset(&(command->events), COMMAND_STEP_DONE);
     }
     if (commandStep->dummyCycles != 0)
     {
-        _send_phase_end(cmdSpi);
+        spi_with_pins_device_session_end(cmdSpi->device);
         command->hasError = 1;
         _do_error(cmdSpi, OP_RESULT_NOT_SUPPORT);
+        command_end(command);
     }
     else if (commandStep->dataSize > 0 && commandStep->dataMode != COMMAND_FRAME_MODE_SKIP)
     {
@@ -82,10 +74,12 @@ static OP_RESULT _five_step_command_client_spi_send(Command *command, CommandFra
         {
             spi_with_pins_device_rx(cmdSpi->device, 1, commandStep->data, commandStep->dataSize, commandStep->dataBits, 0);
         }
-        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, DRIVER_TIMEOUT_FOREVER);
+        ww_os_events_get(&(command->events), COMMAND_STEP_DONE, DRIVER_EVENTS_OPTION_AND, command->timeout);
         ww_os_events_reset(&(command->events), COMMAND_STEP_DONE);
     }
-    _send_phase_end(cmdSpi);
+    spi_with_pins_device_session_end(cmdSpi->device);
+    command->hasError = 0;
+    command_end(command);
     return OP_RESULT_OK;
 };
 

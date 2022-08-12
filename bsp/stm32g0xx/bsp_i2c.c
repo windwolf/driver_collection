@@ -2,27 +2,68 @@
 #include "bsp_shared.h"
 #include "os/os.h"
 
-#ifdef HAL_GPIO_MODULE_ENABLED
+#ifdef HAL_I2C_MODULE_ENABLED
 
-#define SCL_SET(device) (pin_device_set(device->scl, PIN_DEVICE_STATUS_SET))
-#define SCL_RESET(device) (pin_device_set(device->scl, PIN_DEVICE_STATUS_RESET))
-#define SDA_SET(device) (pin_device_set(device->sda, PIN_DEVICE_STATUS_SET))
-#define SDA_RESET(device) (pin_device_set(device->sda, PIN_DEVICE_STATUS_RESET))
-#define SDA_IS_SET(device) (pin_device_is_set(device->sda))
-#define UNWRAP_DEVICE(device) ((SoftI2CDevice *)(device->base.instance))
+typedef enum I2C_INDEX
+{
+    I2C1_INDEX = 0,
+    I2C2_INDEX,
+    I2C_COUNT,
+} I2C_INDEX;
 
-static void _softi2c_start(SoftI2CDevice *device);
-static void _softi2c_stop(SoftI2CDevice *device);
-static bool _softi2c_waitAck(SoftI2CDevice *device, uint32_t timeout);
-static void _softi2c_writeByte(SoftI2CDevice *device, uint8_t byte);
+DEFINE_DEVICE_REGISTER_BEGIN(I2C, I2C_COUNT)
+DEFINE_DEVICE_REGISTER_ITEM(I2C1_BASE, I2C1_INDEX)
+DEFINE_DEVICE_REGISTER_ITEM(I2C2_BASE, I2C2_INDEX)
+DEFINE_DEVICE_REGISTER_END(I2C)
 
-OP_RESULT i2c_device_create(I2CDevice *device, SoftI2CDevice *instance)
+static void I2C_TxCpltCallback__(I2C_HandleTypeDef *handle)
+{
+    I2CDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
+    if (device->onWriteComplete)
+    {
+        device->onWriteComplete(device);
+    }
+};
+
+static void I2C_RxCpltCallback__(I2C_HandleTypeDef *handle)
+{
+    I2CDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
+    if (device->_status.isDmaRx)
+    {
+        // SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    }
+    if (device->onReadComplete)
+    {
+        device->onReadComplete(device);
+    }
+}
+
+static void I2C_ErrCallback__(I2C_HandleTypeDef *handle)
+{
+    I2CDevice *device = DEVICE_INSTANCE_FIND(handle->Instance);
+    if (device->_status.isDmaRx)
+    {
+        // SCB_InvalidateDCache_by_Addr(device->_rxBuffer.data, device->_rxBuffer.size);
+    }
+    if (device->base.onError)
+    {
+        device->base.onError((DeviceBase *)device, handle->ErrorCode);
+    }
+};
+
+OP_RESULT i2c_device_create(I2CDevice *device, I2C_HandleTypeDef *instance, uint16_t dmaThershold)
 {
     device_base_create((DeviceBase *)device);
     device->base.instance = instance;
-
+    device->_rxBuffer.data = 0;
+    device->_rxBuffer.size = 0;
+    device->options.dmaThershold = dmaThershold;
+    HAL_I2C_RegisterCallback(instance, HAL_I2C_MEM_TX_COMPLETE_CB_ID, &I2C_TxCpltCallback__);
+    HAL_I2C_RegisterCallback(instance, HAL_I2C_MEM_RX_COMPLETE_CB_ID, &I2C_RxCpltCallback__);
+    HAL_I2C_RegisterCallback(instance, HAL_I2C_ERROR_CB_ID, &I2C_ErrCallback__);
     device->onReadComplete = NULL;
     device->onWriteComplete = NULL;
+    DEVICE_INSTANCE_REGISTER(device, instance->Instance);
     return OP_RESULT_OK;
 };
 
@@ -31,150 +72,107 @@ OP_RESULT i2c_device_deinit(I2CDevice *device) { return OP_RESULT_OK; };
 
 OP_RESULT i2c_device_read(I2CDevice *device, uint16_t deviceAddress, void *data, uint32_t size, DeviceDataWidth width)
 {
-    return OP_RESULT_NOT_SUPPORT;
+    if (width > DEVICE_DATAWIDTH_16)
+    {
+        return OP_RESULT_NOT_SUPPORT;
+    }
+    device->_rxBuffer.data = data;
+    device->_rxBuffer.size = size * (width + 1);
+    if (device->options.useRxDma && (size > device->options.dmaThershold))
+    {
+        device->_status.isDmaRx = 1;
+        return HAL_I2C_Master_Receive_DMA((I2C_HandleTypeDef *)device->base.instance,
+                                          deviceAddress,
+                                          (uint8_t *)data,
+                                          device->_rxBuffer.size);
+    }
+    else
+    {
+        device->_status.isDmaRx = 0;
+        return HAL_I2C_Master_Receive_IT((I2C_HandleTypeDef *)device->base.instance,
+                                         deviceAddress,
+                                         (uint8_t *)data,
+                                         device->_rxBuffer.size);
+    }
 };
-
 OP_RESULT i2c_device_write(I2CDevice *device, uint16_t deviceAddress, void *data, uint32_t size, DeviceDataWidth width)
 {
-    SoftI2CDevice *dev = UNWRAP_DEVICE(device);
-    _softi2c_start(dev);
-    _softi2c_writeByte(dev, (uint8_t)deviceAddress & 0xFE); // Slave address,SA0=0
-    if (!_softi2c_waitAck(dev, 20))
+    if (width > DEVICE_DATAWIDTH_16)
     {
-        return OP_RESULT_TIMEOUT;
+        return OP_RESULT_NOT_SUPPORT;
     }
-    for (uint32_t i = 0; i < size; i++)
+    if (device->options.useTxDma && (size > device->options.dmaThershold))
     {
-        _softi2c_writeByte(dev, ((uint8_t *)data)[i]);
-        if (!_softi2c_waitAck(dev, 20))
-        {
-            return OP_RESULT_TIMEOUT;
-        }
+        device->_status.isDmaTx = 1;
+        // SCB_CleanDCache_by_Addr((uint32_t *)data, size * (width - 1));
+        return HAL_I2C_Master_Transmit_DMA((I2C_HandleTypeDef *)device->base.instance,
+                                           deviceAddress,
+                                           (uint8_t *)data,
+                                           size * (width + 1));
     }
-    _softi2c_stop(dev);
-    return OP_RESULT_OK;
+    else
+    {
+        device->_status.isDmaTx = 0;
+        return HAL_I2C_Master_Transmit_IT((I2C_HandleTypeDef *)device->base.instance,
+                                          deviceAddress,
+                                          (uint8_t *)data,
+                                          size * (width + 1));
+    }
 };
 
 OP_RESULT i2c_device_mem_write(I2CDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width)
 {
-    SoftI2CDevice *dev = UNWRAP_DEVICE(device);
-    _softi2c_start(dev);
-    _softi2c_writeByte(dev, (uint8_t)deviceAddress & 0xFE); // Slave address,SA0=0
-    if (!_softi2c_waitAck(dev, 20))
-    {
-        return OP_RESULT_TIMEOUT;
-    }
-
-    if (width == DEVICE_DATAWIDTH_8)
-    {
-        _softi2c_writeByte(dev, (uint8_t)memAddress);
-        if (!_softi2c_waitAck(dev, 20))
-        {
-            return OP_RESULT_TIMEOUT;
-        }
-    }
-    else if (width == DEVICE_DATAWIDTH_16)
-    {
-        _softi2c_writeByte(dev, (uint8_t)(memAddress >> 8));
-        if (!_softi2c_waitAck(dev, 20))
-        {
-            return OP_RESULT_TIMEOUT;
-        }
-        _softi2c_writeByte(dev, (uint8_t)memAddress);
-        if (!_softi2c_waitAck(dev, 20))
-        {
-            return OP_RESULT_TIMEOUT;
-        }
-    }
-    else
+    if (width > DEVICE_DATAWIDTH_16)
     {
         return OP_RESULT_NOT_SUPPORT;
     }
-
-    for (uint32_t i = 0; i < size; i++)
+    if (device->options.useTxDma && (size > device->options.dmaThershold))
     {
-        _softi2c_writeByte(dev, ((uint8_t *)data)[i]);
-        if (!_softi2c_waitAck(dev, 20))
-        {
-            return OP_RESULT_TIMEOUT;
-        }
+        device->_status.isDmaTx = 1;
+        // SCB_CleanDCache_by_Addr((uint32_t *)data, size * (width - 1));
+        return HAL_I2C_Mem_Write_DMA((I2C_HandleTypeDef *)device->base.instance,
+                                     deviceAddress, memAddress,
+                                     width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
+                                     (uint8_t *)data,
+                                     size /*TODO: 确认要不要x2 */);
     }
-    _softi2c_stop(dev);
-    return OP_RESULT_OK;
+    else
+    {
+        device->_status.isDmaTx = 0;
+        return HAL_I2C_Mem_Write_IT((I2C_HandleTypeDef *)device->base.instance,
+                                    deviceAddress, memAddress,
+                                    width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
+                                    (uint8_t *)data,
+                                    size /*TODO: 确认要不要x2 */);
+    }
 };
 
 OP_RESULT i2c_device_mem_read(I2CDevice *device, uint16_t deviceAddress, uint16_t memAddress, void *data, uint32_t size, DeviceDataWidth width)
 {
-    return OP_RESULT_NOT_SUPPORT;
+    if (width > DEVICE_DATAWIDTH_16)
+    {
+        return OP_RESULT_NOT_SUPPORT;
+    }
+    device->_rxBuffer.data = data;
+    device->_rxBuffer.size = size * (width - 1);
+    if (device->options.useRxDma && (size > device->options.dmaThershold))
+    {
+        device->_status.isDmaRx = 1;
+        return HAL_I2C_Mem_Read_DMA((I2C_HandleTypeDef *)device->base.instance,
+                                    deviceAddress, memAddress,
+                                    width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
+                                    (uint8_t *)data,
+                                    size /*TODO: 确认要不要x2 */);
+    }
+    else
+    {
+        device->_status.isDmaRx = 0;
+        return HAL_I2C_Mem_Read_IT((I2C_HandleTypeDef *)device->base.instance,
+                                   deviceAddress, memAddress,
+                                   width == DEVICE_DATAWIDTH_8 ? I2C_MEMADD_SIZE_8BIT : I2C_MEMADD_SIZE_16BIT,
+                                   (uint8_t *)data,
+                                   size /*TODO: 确认要不要x2 */);
+    }
 };
 
-static void _softi2c_start(SoftI2CDevice *device)
-{
-    pin_device_mode_set(device->sda, PIN_DEVICE_MODE_OUTPUT);
-    pin_device_mode_set(device->scl, PIN_DEVICE_MODE_OUTPUT);
-    SDA_SET(device);
-    SCL_SET(device);
-    bsp_delay_us(4);
-    SDA_RESET(device);
-    bsp_delay_us(4);
-    SCL_RESET(device); // hold the bus
-    bsp_delay_us(4);
-}
-
-static void _softi2c_stop(SoftI2CDevice *device)
-{
-    SCL_RESET(device);
-    bsp_delay_us(4);
-    SDA_RESET(device);
-    bsp_delay_us(4);
-    SCL_SET(device);
-    bsp_delay_us(4);
-    SDA_SET(device);
-    bsp_delay_us(4);
-}
-
-static bool _softi2c_waitAck(SoftI2CDevice *device, uint32_t timeout)
-{
-    bool ack = false;
-
-    SCL_RESET(device);
-    bsp_delay_us(2);
-    pin_device_mode_set(device->sda, PIN_DEVICE_MODE_INPUT);
-    bsp_delay_us(2);
-    SCL_SET(device);
-    bsp_delay_us(4);
-    for (uint8_t i = 20; i > 0; i--)
-    {
-        if (!(SDA_IS_SET(device)))
-        {
-            ack = true;
-            break;
-        }
-    }
-    pin_device_mode_set(device->sda, PIN_DEVICE_MODE_OUTPUT);
-    return ack;
-}
-
-static void _softi2c_writeByte(SoftI2CDevice *device, uint8_t byte)
-{
-    uint8_t i = 8;
-    while (i--)
-    {
-        SCL_RESET(device);
-        bsp_delay_us(4);
-        if (byte & 0x80)
-        {
-            SDA_SET(device);
-        }
-        else
-        {
-            SDA_RESET(device);
-        }
-        bsp_delay_us(4);
-        byte <<= 1;
-        SCL_SET(device);
-        bsp_delay_us(4);
-    }
-}
-
-#endif // HAL_GPIO_MODULE_ENABLED
+#endif // HAL_I2C_MODULE_ENABLED

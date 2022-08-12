@@ -202,9 +202,10 @@ extern "C"
                 uint32_t dummyCycles : 5;
             };
         };
+        uint32_t timeout;
     } W25QXX;
 
-    OP_RESULT w25qxx_create(W25QXX *instance, Command *cc, uint8_t autoPolling);
+    OP_RESULT w25qxx_create(W25QXX *instance, Command *cc, uint8_t autoPolling, uint32_t timeout);
     OP_RESULT w25qxx_reset(W25QXX *instance);
     OP_RESULT w25qxx_status_get(W25QXX *instance);
     OP_RESULT w25qxx_status_set(W25QXX *instance);

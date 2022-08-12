@@ -10,16 +10,11 @@ extern "C"
 #include "stm32g0xx_hal.h"
 #include "stm32g0xx_ll_dma.h"
 
-#ifdef HAL_GPIO_MODULE_ENABLED
+#ifdef HAL_I2C_MODULE_ENABLED
 
-    typedef struct SoftI2CDevice
-    {
-        PinDevice *scl;
-        PinDevice *sda;
-    } SoftI2CDevice;
-    OP_RESULT i2c_device_create(I2CDevice *device, SoftI2CDevice *instance);
+    OP_RESULT i2c_device_create(I2CDevice *device, I2C_HandleTypeDef *instance, uint16_t dmaThershold);
 
-#endif // HAL_GPIO_MODULE_ENABLED
+#endif // HAL_I2C_MODULE_ENABLED
 
 #ifdef __cplusplus
 }

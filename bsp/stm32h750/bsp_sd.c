@@ -129,7 +129,7 @@ OP_RESULT sd_device_card_init(SdDevice *device)
     device->cardSpeed = cardInfo.CardSpeed;
     device->cardType = cardInfo.CardType;
     device->cardVersion = cardInfo.CardVersion;
-    device->class = cardInfo.Class;
+    device->cardClass = cardInfo.Class;
     device->logBlockSize = cardInfo.LogBlockSize;
     device->logBlockNbr = cardInfo.LogBlockNbr;
     device->relCardAdd = cardInfo.RelCardAdd;

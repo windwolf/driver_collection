@@ -31,7 +31,7 @@ Result CommandSpi::media_operate(CommandFramePhase phase, void *data,
         break;
     case CommandFramePhase_DummyCycle:
         waitHandler.set_value((void *)Result_NotSupport);
-        waitHandler.error_set();
+        waitHandler.error_set(this);
         break;
     case CommandFramePhase_Data:
         _spi.config_get().dataWidth = dataWidth;
@@ -53,13 +53,13 @@ Result CommandSpi::media_operate(CommandFramePhase phase, void *data,
 Result CommandSpi::media_session_start(WaitHandler &waitHandler)
 {
     _spi.session_begin();
-    waitHandler.done_set();
+    waitHandler.done_set(this);
     return Result_OK;
 };
 Result CommandSpi::media_session_finish(WaitHandler &waitHandler)
 {
     _spi.session_end();
-    waitHandler.done_set();
+    waitHandler.done_set(this);
     return Result_OK;
 };
 

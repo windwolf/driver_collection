@@ -137,7 +137,7 @@ void SSD1306::clear()
 {
     for (uint16_t i = 0; i < bufferSize; i++)
     {
-        _cmdBuffer[i] = 0x00;
+        dataBuffer[i] = 0x00;
     }
 
     SSD1306_MEMORY_ADDRESSING_MODE oldMode = _config.memoryMode;

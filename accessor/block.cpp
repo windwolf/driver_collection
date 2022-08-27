@@ -1,9 +1,21 @@
 #include "block.hpp"
 
 #include "string.h"
+#include "stdlib.h"
 
 #define LOG_MODULE "block"
 #include "log.h"
+
+#define max(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a > _b ? _a : _b; })
+
+
+     #define min(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a < _b ? _a : _b; })
 
 namespace ww::accessor
 {

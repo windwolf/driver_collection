@@ -16,26 +16,33 @@ Result UartStream::deinit()
     _uart.deinit();
     return Result_OK;
 };
-Result UartStream::server_start(CallbackWaitHandler &waitHandler)
+
+void UartStream::_rx_done_callback(void *sender, void *event, void *receiver)
+{
+    UartStream *stream = (UartStream *)receiver;
+    uint16_t pos = (uint16_t)(uint32_t)event;
+    stream->rxBuffer_get().write_index_sync(pos);
+    if (stream->_rxWaitHandler != nullptr)
+    {
+        stream->_rxWaitHandler->done_set(stream);
+    }
+};
+void UartStream::_rx_error_callback(void *sender, void *event, void *receiver)
+{
+    UartStream *stream = (UartStream *)receiver;
+    stream->server_stop();
+};
+
+Result UartStream::server_start(WaitHandler &waitHandler)
 {
     _rxWaitHandler = &waitHandler;
-    _rxWaitHandler->done_callback_set(
-        [](void *sender, void *event, void *receiver) {
-            UartStream *stream = (UartStream *)receiver;
-            uint16_t pos = (uint16_t)(uint32_t)event;
-            stream->rxBuffer_get().write_index_sync(pos);
-        });
-    _rxWaitHandler->error_callback_set(
-        [](void *sender, void *event, void *receiver) {
-            UartStream *stream = (UartStream *)receiver;
-            stream->server_stop();
-        });
     return _uart.start((uint8_t *)_rxBuffer.data_ptr_get(),
-                       _rxBuffer.mem_size_get(), waitHandler);
+                       _rxBuffer.mem_size_get(), _rxServerWaitHandler);
 };
 
 Result UartStream::server_stop()
 {
+    _rxWaitHandler = nullptr;
     return _uart.stop();
 };
 

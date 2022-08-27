@@ -13,10 +13,15 @@ class UartStream
 {
   public:
     UartStream(UART &uart, RingBuffer &rx_buffer)
-        : _uart(uart), _rxBuffer(rx_buffer){};
+        : _uart(uart), _rxBuffer(rx_buffer), _rxServerWaitHandler(this)
+    {
+        _rxServerWaitHandler.done_callback_set(&UartStream::_rx_done_callback);
+        _rxServerWaitHandler.error_callback_set(
+            &UartStream::_rx_error_callback);
+    };
     Result init();
     Result deinit();
-    Result server_start(CallbackWaitHandler &waitHandler);
+    Result server_start(WaitHandler &waitHandler);
 
     Result server_stop();
 
@@ -27,7 +32,10 @@ class UartStream
   private:
     UART &_uart;
     RingBuffer &_rxBuffer;
-    CallbackWaitHandler *_rxWaitHandler;
+    CallbackWaitHandler _rxServerWaitHandler;
+    WaitHandler *_rxWaitHandler;
+    static void _rx_done_callback(void *sender, void *event, void *receiver);
+    static void _rx_error_callback(void *sender, void *event, void *receiver);
 }; // namespace ww::peripheralclassUartStream
 } // namespace ww::accessor
 

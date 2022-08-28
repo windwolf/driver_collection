@@ -93,6 +93,9 @@ Result RX8010::init()
 
     i2cCfg.slaveAddress = RX8010_ADDRESS;
     i2cCfg.dataWidth = DATAWIDTH_8;
+    _i2c.init();
+    _waitHandler.init();
+
     uint8_t data;
     Thread::sleep(50);
 

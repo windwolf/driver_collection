@@ -19,7 +19,7 @@ class RX8010
            uint32_t errorFlag)
         : _i2c(i2c), _waitHandler(eventGroup, doneFlag, errorFlag){};
     Result init();
-    Result deinit();
+    void deinit();
     Result datetime_get(DateTime &datetime);
     Result datetime_set(DateTime &datetime);
 

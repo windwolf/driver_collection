@@ -127,22 +127,11 @@ using namespace ww::os;
 
 Result W25QXX::init()
 {
-    _cmdSpi.init();
-    auto &cfg = Block::config_Get();
-    cfg = BlockConfig{
-        .readBlockSize = 0,
-        .writeBlockSize = W25QXX_PAGE_SIZE,
-        .eraseBlockSize = W25QXX_BLOCK_SIZE,
-        .readMode = BlockMode_Random,
-        .writeMode = BlockMode_Wrap,
-        .eraseMode = BlockMode_RandomBlock,
-        .needEraseBeforeWrite = true,
-    };
-    return Block::init();
+    return _cmdSpi.init();
 };
-Result W25QXX::deinit()
+void W25QXX::deinit()
 {
-    return Block::deinit();
+    _cmdSpi.deinit();
 };
 
 Result W25QXX::reset()
@@ -668,4 +657,41 @@ Result W25QXX::_chip_erase_cmd()
     rst = _cmdSpi.send(cmd);
     return rst;
 };
+
+Result BlockableW25QXX::init()
+{
+
+    auto &cfg = Block::config_Get();
+    cfg = BlockConfig{
+        .readBlockSize = 0,
+        .writeBlockSize = W25QXX_PAGE_SIZE,
+        .eraseBlockSize = W25QXX_BLOCK_SIZE,
+        .readMode = BlockMode_Random,
+        .writeMode = BlockMode_Wrap,
+        .eraseMode = BlockMode_RandomBlock,
+        .needEraseBeforeWrite = true,
+    };
+
+    Block::init();
+    return _w25qxx.init();
+};
+void BlockableW25QXX::deinit()
+{
+    Block::deinit();
+    _w25qxx.deinit();
+};
+
+Result BlockableW25QXX::media_read(void *data, uint32_t num, uint32_t size)
+{
+    return _w25qxx.media_read(data, num, size);
+};
+Result BlockableW25QXX::media_write(void *data, uint32_t num, uint32_t size)
+{
+    return _w25qxx.media_write(data, num, size);
+};
+Result BlockableW25QXX::media_erase(uint32_t num, uint32_t size)
+{
+    return _w25qxx.media_erase(num, size);
+}
+
 } // namespace ww::device

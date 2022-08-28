@@ -78,16 +78,14 @@ union W25QXX_Status3Register {
     };
 };
 
-class W25QXX : public Block
+class W25QXX
 {
   public:
-    W25QXX(SpiWithPins &spi, Buffer buffer, EventGroup &eventGroup,
-           uint32_t doneFlag, uint32_t errorFlag, uint32_t readyFlag,
-           uint32_t timeout)
-        : Block(buffer),
-          _cmdSpi(spi, eventGroup, doneFlag, errorFlag, readyFlag, timeout){};
+    W25QXX(SpiWithPins &spi, EventGroup &eventGroup, uint32_t doneFlag,
+           uint32_t errorFlag, uint32_t readyFlag, uint32_t timeout)
+        : _cmdSpi(spi, eventGroup, doneFlag, errorFlag, readyFlag, timeout){};
     Result init();
-    Result deinit();
+    void deinit();
     Result reset();
 
     Result mode_switch(W25QXX_CommandMode cmdMode);
@@ -96,10 +94,9 @@ class W25QXX : public Block
     Result chip_erase();
     Result id_read(uint32_t &mdId, uint32_t &jedecId);
 
-  protected:
-    virtual Result media_read(void *data, uint32_t num, uint32_t dataSize);
-    virtual Result media_write(void *data, uint32_t num, uint32_t dataSize);
-    virtual Result media_erase(uint32_t num, uint32_t dataSize);
+    Result media_read(void *data, uint32_t num, uint32_t dataSize);
+    Result media_write(void *data, uint32_t num, uint32_t dataSize);
+    Result media_erase(uint32_t num, uint32_t dataSize);
 
   private:
     CommandSpi _cmdSpi;
@@ -121,6 +118,21 @@ class W25QXX : public Block
     Result _qpi_enter_cmd();
     Result _qpi_exit_cmd();
     Result _reset_cmd();
+};
+
+class BlockableW25QXX : public Block
+{
+  public:
+    BlockableW25QXX(W25QXX &w25qxx, Buffer buffer)
+        : Block(buffer), _w25qxx(w25qxx){};
+    Result init();
+    void deinit();
+
+  protected:
+    W25QXX &_w25qxx;
+    virtual Result media_read(void *data, uint32_t num, uint32_t dataSize);
+    virtual Result media_write(void *data, uint32_t num, uint32_t dataSize);
+    virtual Result media_erase(uint32_t num, uint32_t dataSize);
 };
 
 } // namespace ww::device

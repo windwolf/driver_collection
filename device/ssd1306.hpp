@@ -98,17 +98,16 @@ struct SSD1306Config
     uint8_t clkDivide : 4; // 0-15
 };
 
-class SSD1306
+class SSD1306 : public Initializable
 {
   public:
     uint8_t dataBuffer[SSD1306_DATA_BUFFER_SIZE];
     uint16_t bufferSize;
 
-    SSD1306(I2cMaster &i2c) : _i2c(i2c), _waitHandler(){};
+    SSD1306(I2cMaster &i2c);
 
     SSD1306Config &config_get();
-    Result init();
-    Result deinit();
+
     void lcd_init();
     void pos_set(uint8_t page, uint8_t column);
     void contrast_set(uint8_t contrast);

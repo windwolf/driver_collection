@@ -11,12 +11,11 @@ using namespace ww::graph;
 using namespace ww::peripheral;
 #define TIMER_CHANNEL uint8_t
 
-class LED
+class LED : public Initializable
 {
   public:
-    LED(Pwm &pwm, PwmChannel rChannel, PwmChannel gChannel, PwmChannel bChannel)
-        : _pwm(pwm), _rChannel(rChannel), _gChannel(gChannel),
-          _bChannel(bChannel){};
+    LED(Pwm &pwm, PwmChannel rChannel, PwmChannel gChannel,
+        PwmChannel bChannel);
     Result start();
     Result stop();
     Result color_set(Color color);

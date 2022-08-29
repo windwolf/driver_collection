@@ -87,15 +87,19 @@ Result RX8010::_i2c_write(uint32_t address, void *data, uint32_t dataSize)
     return _waitHandler.wait(TIMEOUT_FOREVER);
 };
 
-Result RX8010::init()
+RX8010::RX8010(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag,
+               uint32_t errorFlag)
+    : _i2c(i2c), _waitHandler(eventGroup, doneFlag, errorFlag)
 {
+    MEMBER_INIT_ERROR_CHECK(_i2c)
+    MEMBER_INIT_ERROR_CHECK(_waitHandler)
     auto &i2cCfg = _i2c.config_get();
-
     i2cCfg.slaveAddress = RX8010_ADDRESS;
     i2cCfg.dataWidth = DATAWIDTH_8;
-    _i2c.init();
-    _waitHandler.init();
+};
 
+Result RX8010::init()
+{
     uint8_t data;
     Thread::sleep(50);
 
@@ -124,6 +128,7 @@ Result RX8010::init()
             Thread::sleep(10);
         }
         while (data & VALUE_FLAG_VLF)
+
             // software reset?
             data &= 0x7C;
         rst = _i2c_write(REG_FLAG, &data, 1);
@@ -164,8 +169,7 @@ Result RX8010::init()
         {
             return rst;
         }
-        DateTime dt = DateTime();
-        datetime_set(dt);
+        datetime_set(DateTime());
     }
     else
     {
@@ -230,7 +234,7 @@ Result RX8010::datetime_get(DateTime &datetime)
     return Result_OK;
 };
 
-Result RX8010::datetime_set(DateTime &datetime)
+Result RX8010::datetime_set(const DateTime &datetime)
 {
     uint8_t ctrl;
     uint8_t data[3];

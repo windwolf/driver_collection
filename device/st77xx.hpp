@@ -21,13 +21,11 @@ struct ST77xxConfig
     uint16_t yOffset;
 };
 
-class ST77xx
+class ST77xx : Initializable
 {
   public:
-    ST77xx(CommandSpi &cmdSpi) : _cmdSpi(cmdSpi){};
+    ST77xx(CommandSpi &cmdSpi);
     ST77xxConfig &config_get();
-    Result init();
-    Result deinit();
 
   protected:
     ST77xxConfig _config;

@@ -43,10 +43,6 @@ Result ST7735::init()
     _nvGamma[15] = 0x10U;
     return Result_OK;
 };
-Result ST7735::deinit()
-{
-    return Result_OK;
-};
 Result ST7735::reset()
 {
     ST77xx::_command(ST7735_CMD_SOFTWARE_RESET);

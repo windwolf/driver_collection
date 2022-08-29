@@ -3,13 +3,19 @@
 namespace ww::device
 {
 
+LED::LED(Pwm &pwm, PwmChannel rChannel, PwmChannel gChannel,
+         PwmChannel bChannel)
+    : _pwm(pwm), _rChannel(rChannel), _gChannel(gChannel), _bChannel(bChannel)
+{
+    initErrorCode = _pwm.initErrorCode;
+};
+
 Result LED::start()
 {
     _pwm.config_get() = PwmConfig{
         .channelsEnable = (_rChannel | _gChannel | _bChannel),
         .fullScaleDuty = 256,
     };
-    _pwm.init();
     return _pwm.start();
 }; // namespace ww::device
 

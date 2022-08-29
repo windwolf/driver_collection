@@ -54,16 +54,12 @@ struct CommandFrame
     };
 };
 
-class Command
+class Command : public Initializable
 {
   public:
     Command(EventGroup &eventGroup, uint32_t doneFlag, uint32_t errorFlag,
-            uint32_t readyFlag, uint32_t timeout)
-        : _eventGroup(eventGroup),
-          _waitHandler(eventGroup, doneFlag, errorFlag), _timeout(timeout),
-          _readyFlag(readyFlag){};
-    Result init();
-    Result deinit();
+            uint32_t readyFlag, uint32_t timeout);
+
     Result send(CommandFrame &frame);
 
   protected:

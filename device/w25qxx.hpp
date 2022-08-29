@@ -78,14 +78,12 @@ union W25QXX_Status3Register {
     };
 };
 
-class W25QXX
+class W25QXX : public Initializable
 {
   public:
     W25QXX(SpiWithPins &spi, EventGroup &eventGroup, uint32_t doneFlag,
-           uint32_t errorFlag, uint32_t readyFlag, uint32_t timeout)
-        : _cmdSpi(spi, eventGroup, doneFlag, errorFlag, readyFlag, timeout){};
-    Result init();
-    void deinit();
+           uint32_t errorFlag, uint32_t readyFlag, uint32_t timeout);
+
     Result reset();
 
     Result mode_switch(W25QXX_CommandMode cmdMode);
@@ -123,10 +121,7 @@ class W25QXX
 class BlockableW25QXX : public Block
 {
   public:
-    BlockableW25QXX(W25QXX &w25qxx, Buffer buffer)
-        : Block(buffer), _w25qxx(w25qxx){};
-    Result init();
-    void deinit();
+    BlockableW25QXX(W25QXX &w25qxx, Buffer buffer);
 
   protected:
     W25QXX &_w25qxx;

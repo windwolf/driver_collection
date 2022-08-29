@@ -2,16 +2,14 @@
 
 namespace ww::accessor
 {
+Command::Command(EventGroup &eventGroup, uint32_t doneFlag, uint32_t errorFlag,
+                 uint32_t readyFlag, uint32_t timeout)
+    : _eventGroup(eventGroup), _waitHandler(eventGroup, doneFlag, errorFlag),
+      _timeout(timeout), _readyFlag(readyFlag)
+{
+    initErrorCode = _eventGroup.set(_readyFlag);
+};
 
-Result Command::init()
-{
-    _eventGroup.set(_readyFlag);
-    return Result_OK;
-};
-Result Command::deinit()
-{
-    return Result_OK;
-};
 Result Command::_session_begin()
 {
     uint32_t events;

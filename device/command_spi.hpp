@@ -11,11 +11,7 @@ class CommandSpi : public Command
 {
   public:
     CommandSpi(SpiWithPins &spi, EventGroup &eventGroup, uint32_t doneFlag,
-               uint32_t errorFlag, uint32_t readyFlag, uint32_t timeout)
-        : Command(eventGroup, doneFlag, errorFlag, readyFlag, timeout),
-          _spi(spi){};
-    Result init();
-    Result deinit();
+               uint32_t errorFlag, uint32_t readyFlag, uint32_t timeout);
 
   protected:
     virtual Result media_operate(CommandFramePhase phase, void *data,

@@ -118,7 +118,7 @@ class ST7735 : public ST77xx
   public:
     ST7735(CommandSpi &cmdSpi) : ST77xx(cmdSpi){};
     Result init();
-    Result deinit();
+
     Result reset();
     Result inversion(bool on);
     Result sleep(bool on);

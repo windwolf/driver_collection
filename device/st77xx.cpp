@@ -5,19 +5,12 @@ namespace ww::device
 using namespace ww::accessor;
 using namespace ww::peripheral;
 
+ST77xx::ST77xx(CommandSpi &cmdSpi)
+    : _cmdSpi(cmdSpi){MEMBER_INIT_ERROR_CHECK(_cmdSpi)};
+
 ST77xxConfig &ST77xx::config_get()
 {
     return _config;
-};
-
-Result ST77xx::init()
-{
-    _cmdSpi.init();
-    return Result_OK;
-};
-Result ST77xx::deinit()
-{
-    return Result_OK;
 };
 
 void ST77xx::_setup_command(CommandFrame &cmd)
@@ -28,6 +21,7 @@ void ST77xx::_setup_command(CommandFrame &cmd)
     cmd.dataMode = CommandFrameMode_1line;
     cmd.dummyCycles = 0;
 };
+
 Result ST77xx::_command(uint8_t cmdId)
 {
     Result rst;
@@ -55,4 +49,5 @@ Result ST77xx::_command_data(uint8_t cmdId, void *data, uint16_t size,
     rst = _cmdSpi.send(cmd);
     return rst;
 };
+
 } // namespace ww::device

@@ -11,17 +11,15 @@ using namespace ww::peripheral;
 using namespace ww::os;
 using namespace ww::temporal;
 
-class RX8010
+class RX8010 : public Initializable
 {
 
   public:
     RX8010(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag,
-           uint32_t errorFlag)
-        : _i2c(i2c), _waitHandler(eventGroup, doneFlag, errorFlag){};
+           uint32_t errorFlag);
     Result init();
-    void deinit();
     Result datetime_get(DateTime &datetime);
-    Result datetime_set(DateTime &datetime);
+    Result datetime_set(const DateTime &datetime);
 
   private:
     I2cMaster &_i2c;

@@ -1,4 +1,6 @@
 #include "command_spi.hpp"
+#define LOG_MODULE "cmdspi"
+#include "log.h"
 
 namespace ww::device
 {
@@ -6,14 +8,15 @@ namespace ww::device
 using namespace ww::accessor;
 using namespace ww::peripheral;
 
-Result CommandSpi::init()
+CommandSpi::CommandSpi(SpiWithPins &spi, EventGroup &eventGroup,
+                       uint32_t doneFlag, uint32_t errorFlag,
+                       uint32_t readyFlag, uint32_t timeout)
+    : Command(eventGroup, doneFlag, errorFlag, readyFlag, timeout), _spi(spi)
 {
+    BASE_INIT_ERROR_CHECK()
+    MEMBER_INIT_ERROR_CHECK(spi)
+
     _spi.pinconfig_get().autoCs = false;
-    return Command::init();
-};
-Result CommandSpi::deinit()
-{
-    return Command::deinit();
 };
 
 Result CommandSpi::media_operate(CommandFramePhase phase, void *data,

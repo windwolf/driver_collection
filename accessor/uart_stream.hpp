@@ -9,18 +9,11 @@ namespace ww::accessor
 
 using namespace ww::peripheral;
 
-class UartStream
+class UartStream : public Initializable
 {
   public:
-    UartStream(UART &uart, RingBuffer &rx_buffer)
-        : _uart(uart), _rxBuffer(rx_buffer), _rxServerWaitHandler(this)
-    {
-        _rxServerWaitHandler.done_callback_set(&UartStream::_rx_done_callback);
-        _rxServerWaitHandler.error_callback_set(
-            &UartStream::_rx_error_callback);
-    };
-    Result init();
-    Result deinit();
+    UartStream(UART &uart, RingBuffer &rx_buffer);
+
     Result server_start(WaitHandler &waitHandler);
 
     Result server_stop();

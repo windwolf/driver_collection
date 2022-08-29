@@ -12,16 +12,13 @@ namespace ww::device
 using namespace ww::peripheral;
 using namespace ww::os;
 
-Result SSD1306::init()
+SSD1306::SSD1306(I2cMaster &i2c) : _i2c(i2c), _waitHandler()
 {
+    MEMBER_INIT_ERROR_CHECK(_i2c)
+    MEMBER_INIT_ERROR_CHECK(_waitHandler)
     bufferSize = _config.width * _config.height / 8;
     _i2c.config_get().slaveAddress = 0x78;
     _i2c.config_get().dataWidth = DATAWIDTH_8;
-    return _i2c.init();
-};
-Result SSD1306::deinit()
-{
-    return Result_OK;
 };
 
 SSD1306Config &SSD1306::config_get()

@@ -6,35 +6,14 @@
 #define LOG_MODULE "block"
 #include "log.h"
 
-#define max(a,b) \
-   ({ __typeof__ (a) _a = (a); \
-       __typeof__ (b) _b = (b); \
-     _a > _b ? _a : _b; })
-
-
-     #define min(a,b) \
-   ({ __typeof__ (a) _a = (a); \
-       __typeof__ (b) _b = (b); \
-     _a < _b ? _a : _b; })
-
 namespace ww::accessor
 {
 
-BlockConfig &Block::config_Get()
+Block::Block(Buffer &buffer, const BlockConfig &config)
+    : _config(config), _buffer(buffer)
 {
-    return _config;
+    initErrorCode = _process_config();
 };
-
-Result Block::init()
-{
-    _process_config();
-    return Result_OK;
-};
-Result Block::deinit()
-{
-    return Result_OK;
-};
-
 Result Block::_process_config()
 {
     if (_config.readMode == BlockMode_RandomBlock)

@@ -30,13 +30,11 @@ struct BlockConfig
     bool needEraseBeforeWrite;
 };
 
-class Block
+class Block : public Initializable
 {
   public:
-    Block(Buffer &buffer) : _buffer(buffer){};
-    BlockConfig &config_Get();
-    Result init();
-    Result deinit();
+    Block(Buffer &buffer, const BlockConfig &config);
+
     Result read(void *data, uint32_t address, uint32_t size);
     Result write(void *data, uint32_t address, uint32_t size);
     Result erase(uint32_t address, uint32_t size);

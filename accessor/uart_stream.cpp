@@ -4,17 +4,12 @@ namespace ww::accessor
 
 using namespace ww::peripheral;
 
-Result UartStream::init()
+UartStream::UartStream(UART &uart, RingBuffer &rx_buffer)
+    : _uart(uart), _rxBuffer(rx_buffer), _rxServerWaitHandler(this)
 {
-    // TODO: set buffer datawidth to 8bits
-    _uart.init();
-    return Result_OK;
-};
-
-Result UartStream::deinit()
-{
-    _uart.deinit();
-    return Result_OK;
+    _rxServerWaitHandler.done_callback_set(&UartStream::_rx_done_callback);
+    _rxServerWaitHandler.error_callback_set(&UartStream::_rx_error_callback);
+    initErrorCode = _uart.initErrorCode;
 };
 
 void UartStream::_rx_done_callback(void *sender, void *event, void *receiver)

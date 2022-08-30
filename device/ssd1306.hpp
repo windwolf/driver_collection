@@ -26,20 +26,17 @@ using namespace ww::peripheral;
 
 #define SSD1306_CMD_SET_MEMORY_ADDRESSING_MODE 0x20
 
-#define SSD1306_CMD_SET_COLUMN_START_ADDRESS_LOWER                             \
-    0x00 // 0x00-0x0F  set column start address
+#define SSD1306_CMD_SET_COLUMN_START_ADDRESS_LOWER 0x00  // 0x00-0x0F  set column start address
 #define SSD1306_CMD_SET_COLUMN_START_ADDRESS_HIGHER 0x10 // 0x10-0x1F
 #define SSD1306_CMD_SET_COLUMN_ADDRESS 0x21
 #define SSD1306_CMD_SET_PAGE_ADDRESS 0x22
-#define SSD1306_CMD_SET_PAGE_START_ADDRESS                                     \
-    0xB0 // 0xB0-0xB7 set page start address
+#define SSD1306_CMD_SET_PAGE_START_ADDRESS 0xB0 // 0xB0-0xB7 set page start address
 
 #define SSD1306_CMD_SET_MULTIPLEX_RATIO 0xA8
 
-#define SSD1306_CMD_SET_DISPLAY_START_LINE                                     \
-    0x40                                     // 0x40-0x7F map RAM to ROW offset.
-#define SSD1306_CMD_SET_DISPLAY_OFFSET 0xD3  // map ROW to COM offset.
-#define SSD1306_CMD_SET_MULTIPLEX_RATIO 0xA8 // Act on the ROW.
+#define SSD1306_CMD_SET_DISPLAY_START_LINE 0x40 // 0x40-0x7F map RAM to ROW offset.
+#define SSD1306_CMD_SET_DISPLAY_OFFSET 0xD3     // map ROW to COM offset.
+#define SSD1306_CMD_SET_MULTIPLEX_RATIO 0xA8    // Act on the ROW.
 #define SSD1306_CMD_SET_SEGMENT_REMAP_NORMAL 0xA0
 #define SSD1306_CMD_SET_SEGMENT_REMAP_INVERSE 0xA1
 #define SSD1306_CMD_SET_COM_OUTPUT_SCAN_DIRECTION_NORMAL 0xC0
@@ -104,7 +101,7 @@ class SSD1306 : public Initializable
     uint8_t dataBuffer[SSD1306_DATA_BUFFER_SIZE];
     uint16_t bufferSize;
 
-    SSD1306(I2cMaster &i2c);
+    SSD1306(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag, uint32_t errorFlag);
 
     SSD1306Config &config_get();
 
@@ -119,7 +116,7 @@ class SSD1306 : public Initializable
     uint8_t _cmdBuffer[SSD1306_CMD_BUFFER_SIZE];
     SSD1306Config _config;
     I2cMaster &_i2c;
-    PollingWaitHandler _waitHandler;
+    EventGroupWaitHandler _waitHandler;
     void data_send(uint8_t *data, uint16_t dataSize);
     void cmd_send(uint8_t cmdSize);
     void mem_mode_set();

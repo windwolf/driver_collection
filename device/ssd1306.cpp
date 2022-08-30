@@ -12,7 +12,8 @@ namespace ww::device
 using namespace ww::peripheral;
 using namespace ww::os;
 
-SSD1306::SSD1306(I2cMaster &i2c) : _i2c(i2c), _waitHandler()
+SSD1306::SSD1306(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag, uint32_t errorFlag)
+    : _i2c(i2c), _waitHandler(eventGroup, doneFlag, errorFlag)
 {
     MEMBER_INIT_ERROR_CHECK(_i2c)
     MEMBER_INIT_ERROR_CHECK(_waitHandler)
@@ -110,11 +111,9 @@ void SSD1306::pos_set(uint8_t page, uint8_t column)
     {
         _cmdBuffer[0] = SSD1306_CMD_SET_PAGE_START_ADDRESS | page;
         cmd_send(1);
-        _cmdBuffer[0] =
-            SSD1306_CMD_SET_COLUMN_START_ADDRESS_LOWER | (column & 0x0F);
+        _cmdBuffer[0] = SSD1306_CMD_SET_COLUMN_START_ADDRESS_LOWER | (column & 0x0F);
         cmd_send(1);
-        _cmdBuffer[0] =
-            SSD1306_CMD_SET_COLUMN_START_ADDRESS_HIGHER | (column >> 4);
+        _cmdBuffer[0] = SSD1306_CMD_SET_COLUMN_START_ADDRESS_HIGHER | (column >> 4);
         cmd_send(1);
     }
     else
@@ -158,8 +157,7 @@ void SSD1306::lcd_init()
 
     mem_mode_set();
 
-    _cmdBuffer[0] =
-        SSD1306_CMD_SET_DISPLAY_START_LINE | _config.displayStartLine;
+    _cmdBuffer[0] = SSD1306_CMD_SET_DISPLAY_START_LINE | _config.displayStartLine;
     cmd_send(1);
 
     if (_config.comInverted)
@@ -209,8 +207,7 @@ void SSD1306::lcd_init()
     cmd_send(2);
 
     _cmdBuffer[0] = SSD1306_CMD_SET_COM_PINS_CONFIGURATION;
-    _cmdBuffer[1] =
-        0x02 | (_config.comLeftRightRemap << 5) | (_config.comAlternative << 4);
+    _cmdBuffer[1] = 0x02 | (_config.comLeftRightRemap << 5) | (_config.comAlternative << 4);
     cmd_send(2);
 
     _cmdBuffer[0] = SSD1306_CMD_SET_VCOMH_DESELECT_LEVEL;

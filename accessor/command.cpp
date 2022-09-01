@@ -101,7 +101,6 @@ Result Command::send(CommandFrame &frame, WaitHandler &waitHandler)
     waitHandler.wait(scope, _timeout);
 
     waitHandler.scope_end();
-    waitHandler.reset();
     waitHandler.done_set(this);
     _waitHandler = nullptr;
     return rst;

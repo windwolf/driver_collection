@@ -277,7 +277,6 @@ Result W25QXX::media_read(void *data, uint32_t num, uint32_t size, WaitHandler &
         rst = _read_cmd((uint8_t *)data, num, size);
     } while (0);
     waitHandler.scope_end();
-    waitHandler.reset();
     waitHandler.done_set(this);
     _waitHandler = nullptr;
     return rst;
@@ -307,7 +306,6 @@ Result W25QXX::media_write(void *data, uint32_t num, uint32_t size, WaitHandler 
         rst = _busy_wait();
     } while (0);
     waitHandler.scope_end();
-    waitHandler.reset();
     waitHandler.done_set(this);
     _waitHandler = nullptr;
     return rst;
@@ -341,7 +339,6 @@ Result W25QXX::media_erase(uint32_t num, uint32_t size, WaitHandler &waitHandler
     } while (0);
 
     waitHandler.scope_end();
-    waitHandler.reset();
     waitHandler.done_set(this);
     _waitHandler = nullptr;
     return rst;

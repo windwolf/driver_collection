@@ -158,7 +158,6 @@ Result Block::read(void *data, uint32_t address, uint32_t size, WaitHandler &wai
     } while (0);
 
     waitHandler.scope_end();
-    waitHandler.reset();
     if (rst != Result_OK)
     {
         waitHandler.error_set(this);
@@ -297,7 +296,6 @@ Result Block::write(void *data, uint32_t address, uint32_t size, WaitHandler &wa
     } while (0);
 
     waitHandler.scope_end();
-    waitHandler.reset();
     if (rst != Result_OK)
     {
         waitHandler.error_set(this);
@@ -395,7 +393,6 @@ Result Block::erase(uint32_t address, uint32_t size, WaitHandler &waitHandler)
     } while (0);
 
     waitHandler.scope_end();
-    waitHandler.reset();
     if (rst != Result_OK)
     {
         waitHandler.error_set(this);

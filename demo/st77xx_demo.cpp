@@ -12,24 +12,28 @@ using namespace ww::os;
 using namespace ww::peripheral;
 using namespace ww::graph;
 
-static SPI_HandleTypeDef hspi4;
-// static Pin csPin();
-static Pin dcPin(*GPIOE, GPIO_PIN_13);
-static SpiWithPins spi4pDev(hspi4, nullptr, nullptr, &dcPin);
-static EventGroup eg("");
-
-static CommandSpi st7735_cmd(spi4pDev, 500);
 #define ST7735_BUFFER_SIZE 160 * 80 * 2
-// static uint8_t st7735Buffer[ST7735_BUFFER_SIZE];
-static WaitHandler wh(eg, 0x01, 0x02);
-static ST7735 st7735(st7735_cmd, wh);
-
 #define LCD_DATA_SIZE 100
-static uint16_t lcddata[LCD_DATA_SIZE];
 
-static void test05_init()
+struct ST77xxDemo
 {
-    auto &cfg = st7735.config_get();
+    ST77xxDemo()
+        : dcPin(*GPIOE, GPIO_PIN_13), spi4pDev(hspi4, nullptr, nullptr, &dcPin), eg(""),
+          st7735_cmd(spi4pDev, 500), wh(eg, 0x01, 0x02), st7735(st7735_cmd, wh){};
+    SPI_HandleTypeDef hspi4;
+    Pin dcPin;
+    SpiWithPins spi4pDev;
+    EventGroup eg;
+    CommandSpi st7735_cmd;
+    WaitHandler wh;
+    ST7735 st7735;
+    uint16_t lcddata[LCD_DATA_SIZE];
+};
+
+static void test05_init(ST77xxDemo &demo)
+{
+    demo.dcPin.config_get().inverse = false;
+    auto &cfg = demo.st7735.config_get();
     cfg.xOffset = 1;
     cfg.yOffset = 26;
     cfg.width = 160;
@@ -37,38 +41,39 @@ static void test05_init()
     cfg.colorMode = ST7735_COLOR_MODE_16BIT;
     cfg.orientation = ST7735_DISPLAY_DIRECTION_XY_EXCHANGE_Y_MIRROR |
                       ST7735_DISPLAY_COLOR_DIRECTION_BGR | ST7735_DISPLAY_REFRESH_ORDER_T2B_L2R;
-    st7735.init();
-    st7735.reset();
+    demo.st7735.init();
+    demo.st7735.reset();
     // st77xx_inversion(&st7735, 1);
     for (size_t i = 0; i < LCD_DATA_SIZE; i++)
     {
-        lcddata[i] = (0xF800);
+        demo.lcddata[i] = (0xF800);
     }
 }
 
-static void test05()
+static void test05(ST77xxDemo &demo)
 {
     Color565 color0 = {.value = 0x28A5};
     // Color565 color1 = {.value = 0x001F};
     Color565 color2 = {.value = 0xF800};
     Color565 color3 = {.value = 0x04F1};
-    st7735.rect_fill(0, 0, st7735.config_get().width, st7735.config_get().height,
-                     color0.value); // inv:1=red; inv:0=yellow
+    demo.st7735.rect_fill(0, 0, demo.st7735.config_get().width, demo.st7735.config_get().height,
+                          color0.value); // inv:1=red; inv:0=yellow
     // st7735.hline_draw(10, 10, 20,
     //                   &color1.value); // inv:1=red+green; inv:0=sky+pink
-    st7735.rect_fill(20, 20, 30, 30, color2.value); // inv:1=blue; inv:0=sky
-    st7735.rect_fill(40, 20, 50, 50, color3.value); // inv:1=red; inv:0=yellow
+    demo.st7735.rect_fill(20, 20, 30, 30, color2.value); // inv:1=blue; inv:0=sky
+    demo.st7735.rect_fill(40, 20, 50, 50, color3.value); // inv:1=red; inv:0=yellow
 }
 
 static void run()
 {
+    ST77xxDemo demo;
     float num = 0.1;
 
-    test05_init();
+    test05_init(demo);
     /* This thread simply sits in while-forever-sleep loop.  */
     while (1)
     {
-        test05();
+        test05(demo);
         num += 0.15;
 
         /* Sleep for 1000 ticks.  */
@@ -87,7 +92,6 @@ static void run()
 
 void st77xx_demo()
 {
-    dcPin.config_get().inverse = false;
 
     /* Create the main thread.  */
     run();

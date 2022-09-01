@@ -75,7 +75,7 @@ Result RX8010::_i2c_read(uint32_t address, void *data, uint32_t dataSize)
     {
         return rst;
     }
-    return _waitHandler.wait(TIMEOUT_FOREVER);
+    return _waitHandler.wait(_scope, TIMEOUT_FOREVER);
 };
 Result RX8010::_i2c_write(uint32_t address, void *data, uint32_t dataSize)
 {
@@ -84,11 +84,10 @@ Result RX8010::_i2c_write(uint32_t address, void *data, uint32_t dataSize)
     {
         return rst;
     }
-    return _waitHandler.wait(TIMEOUT_FOREVER);
+    return _waitHandler.wait(_scope, TIMEOUT_FOREVER);
 };
 
-RX8010::RX8010(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag,
-               uint32_t errorFlag)
+RX8010::RX8010(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag, uint32_t errorFlag)
     : _i2c(i2c), _waitHandler(eventGroup, doneFlag, errorFlag)
 {
     MEMBER_INIT_ERROR_CHECK(_i2c)
@@ -96,6 +95,12 @@ RX8010::RX8010(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag,
     auto &i2cCfg = _i2c.config_get();
     i2cCfg.slaveAddress = RX8010_ADDRESS;
     i2cCfg.dataWidth = DATAWIDTH_8;
+    _scope = _waitHandler.scope_begin();
+};
+
+RX8010::~RX8010()
+{
+    _waitHandler.scope_end();
 };
 
 Result RX8010::init()

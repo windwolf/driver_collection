@@ -81,8 +81,7 @@ union W25QXX_Status3Register {
 class W25QXX : public Initializable
 {
   public:
-    W25QXX(SpiWithPins &spi, EventGroup &eventGroup, uint32_t doneFlag,
-           uint32_t errorFlag, uint32_t readyFlag, uint32_t timeout);
+    W25QXX(SpiWithPins &spi, uint32_t timeout);
 
     Result reset();
 
@@ -92,21 +91,17 @@ class W25QXX : public Initializable
     Result chip_erase();
     Result id_read(uint32_t &mdId, uint32_t &jedecId);
 
-    Result media_read(void *data, uint32_t num, uint32_t dataSize);
-    Result media_write(void *data, uint32_t num, uint32_t dataSize);
-    Result media_erase(uint32_t num, uint32_t dataSize);
+    Result media_read(void *data, uint32_t num, uint32_t dataSize, WaitHandler &waitHandler);
+    Result media_write(void *data, uint32_t num, uint32_t dataSize, WaitHandler &waitHandler);
+    Result media_erase(uint32_t num, uint32_t dataSize, WaitHandler &waitHandler);
 
   private:
-    CommandSpi _cmdSpi;
-    W25QXX_CommandMode _cmdMode;
-    uint8_t _dummyCycles;
     Result _status_get(uint8_t reg_num, uint8_t &status);
     Result _status_set(uint8_t reg_num, uint8_t status);
 
     Result _busy_wait();
     Result _read_parameter_set();
-    static void _cmdline_config(CommandFrame &frame,
-                                W25QXX_CMD_LINE_MODE lineMode);
+    static void _cmdline_config(CommandFrame &frame, W25QXX_CMD_LINE_MODE lineMode);
     Result _write_enable_cmd();
     Result _write_cmd(uint8_t *pData, uint32_t writeAddr, uint32_t dataSize);
     Result _read_cmd(uint8_t *pData, uint32_t readAddr, uint32_t size);
@@ -116,6 +111,15 @@ class W25QXX : public Initializable
     Result _qpi_enter_cmd();
     Result _qpi_exit_cmd();
     Result _reset_cmd();
+    Result _spi_cmd_send(CommandFrame &frame);
+
+  private:
+    CommandSpi _cmdSpi;
+    uint32_t _timeout;
+    W25QXX_CommandMode _cmdMode;
+    uint8_t _dummyCycles;
+    WaitHandler *_waitHandler;
+    uint32_t _scope;
 };
 
 class BlockableW25QXX : public Block
@@ -125,9 +129,11 @@ class BlockableW25QXX : public Block
 
   protected:
     W25QXX &_w25qxx;
-    virtual Result media_read(void *data, uint32_t num, uint32_t dataSize);
-    virtual Result media_write(void *data, uint32_t num, uint32_t dataSize);
-    virtual Result media_erase(uint32_t num, uint32_t dataSize);
+    virtual Result media_read(void *data, uint32_t num, uint32_t dataSize,
+                              WaitHandler &waitHandler);
+    virtual Result media_write(void *data, uint32_t num, uint32_t dataSize,
+                               WaitHandler &waitHandler);
+    virtual Result media_erase(uint32_t num, uint32_t dataSize, WaitHandler &waitHandler);
 };
 
 } // namespace ww::device

@@ -9,10 +9,13 @@
 namespace ww::accessor
 {
 
-Block::Block(Buffer &buffer, const BlockConfig &config)
-    : _config(config), _buffer(buffer)
+Block::Block(Buffer &buffer) : _buffer(buffer){};
+
+Result Block::config_set(const BlockConfig &config)
 {
+    _config = config;
     initErrorCode = _process_config();
+    return initErrorCode;
 };
 Result Block::_process_config()
 {
@@ -39,9 +42,7 @@ Result Block::_process_config()
     uint32_t maxBlockSize = (_config.readBlockSize > _config.writeBlockSize)
                                 ? _config.readBlockSize
                                 : _config.writeBlockSize;
-    maxBlockSize = (maxBlockSize > _config.eraseBlockSize)
-                       ? maxBlockSize
-                       : _config.eraseBlockSize;
+    maxBlockSize = (maxBlockSize > _config.eraseBlockSize) ? maxBlockSize : _config.eraseBlockSize;
     _procedConfig._maxBlockSize = maxBlockSize;
 
     _procedConfig._readBlockSizeBits = fast_log2(_config.readBlockSize);
@@ -53,195 +54,403 @@ Result Block::_process_config()
     return Result_OK;
 };
 
-Result Block::read(void *data, uint32_t address, uint32_t size)
+Result Block::read(void *data, uint32_t address, uint32_t size, WaitHandler &waitHandler)
 {
     Result rst;
-    if (_config.readMode == BlockMode_Random)
+    if (_waitHandler != nullptr)
     {
-        return media_read(data, address, size);
+        return Result_Busy;
     }
-    else if (_config.readMode == BlockMode_Blockwise)
-    {
-        uint32_t blkAddress = address & ~(_procedConfig._readBlockSizeMask);
-        uint32_t blkSize = size & ~(_procedConfig._readBlockSizeMask);
-        if ((address != blkAddress) || (size != blkSize))
-        {
-            // not aligned
-            return Result_InvalidParameter;
-        }
-        return media_read(data, address >> _procedConfig._readBlockSizeBits,
-                          size >> _procedConfig._readBlockSizeBits);
-    }
-    else if (_config.readMode == BlockMode_Block)
-    {
-        return media_read(data, address, size);
-    }
-    else if (_config.readMode == BlockMode_Wrap)
-    {
-        uint32_t sizeInBlock, remainSize;
-        remainSize = size;
+    _waitHandler = &waitHandler;
 
-        uint8_t *curDataPtr = (uint8_t *)data;
-        do
-        {
-            sizeInBlock = _config.readBlockSize -
-                          (address & (_procedConfig._readBlockSizeMask));
-            if (sizeInBlock > remainSize)
-            {
-                sizeInBlock = remainSize;
-            }
-            rst = media_read(curDataPtr, address, sizeInBlock);
+    uint32_t scope = waitHandler.scope_begin();
 
+    do
+    {
+        if (_config.readMode == BlockMode_Random)
+        {
+            rst = media_read(data, address, size, waitHandler);
             if (rst != Result_OK)
             {
-                return rst;
+                break;
             }
+            rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+            if (rst != Result_OK)
+            {
+                break;
+            }
+        }
+        else if (_config.readMode == BlockMode_Blockwise)
+        {
+            uint32_t blkAddress = address & ~(_procedConfig._readBlockSizeMask);
+            uint32_t blkSize = size & ~(_procedConfig._readBlockSizeMask);
+            if ((address != blkAddress) || (size != blkSize))
+            {
+                // not aligned
+                return Result_InvalidParameter;
+            }
+            rst = media_read(data, address >> _procedConfig._readBlockSizeBits,
+                             size >> _procedConfig._readBlockSizeBits, waitHandler);
+            if (rst != Result_OK)
+            {
+                break;
+            }
+            return waitHandler.wait(scope, TIMEOUT_FOREVER);
+            if (rst != Result_OK)
+            {
+                break;
+            }
+        }
+        else if (_config.readMode == BlockMode_Block)
+        {
+            rst = media_read(data, address, size, waitHandler);
+            if (rst != Result_OK)
+            {
+                break;
+            }
+            return waitHandler.wait(scope, TIMEOUT_FOREVER);
+            if (rst != Result_OK)
+            {
+                break;
+            }
+        }
+        else if (_config.readMode == BlockMode_Wrap)
+        {
+            uint32_t sizeInBlock, remainSize;
+            remainSize = size;
 
-            remainSize -= sizeInBlock;
-            curDataPtr += sizeInBlock;
-            address += sizeInBlock;
-        } while (remainSize > 0);
+            uint8_t *curDataPtr = (uint8_t *)data;
+            do
+            {
+                sizeInBlock =
+                    _config.readBlockSize - (address & (_procedConfig._readBlockSizeMask));
+                if (sizeInBlock > remainSize)
+                {
+                    sizeInBlock = remainSize;
+                }
 
-        return Result_OK;
+                remainSize -= sizeInBlock;
+
+                rst = media_read(curDataPtr, address, sizeInBlock, waitHandler);
+
+                if (rst != Result_OK)
+                {
+                    break;
+                }
+                return waitHandler.wait(scope, TIMEOUT_FOREVER);
+                if (rst != Result_OK)
+                {
+                    break;
+                }
+
+                curDataPtr += sizeInBlock;
+                address += sizeInBlock;
+            } while (remainSize > 0);
+
+            rst = Result_OK;
+            break;
+        }
+        else
+        {
+            rst = Result_NotSupport;
+            break;
+        }
+    } while (0);
+
+    waitHandler.scope_end();
+    waitHandler.reset();
+    if (rst != Result_OK)
+    {
+        waitHandler.error_set(this);
     }
     else
     {
-        return Result_NotSupport;
+        waitHandler.done_set(this);
     }
+    _waitHandler = nullptr;
+    return rst;
 };
-Result Block::write(void *data, uint32_t address, uint32_t size)
+Result Block::write(void *data, uint32_t address, uint32_t size, WaitHandler &waitHandler)
 {
     Result rst;
-    if (_config.writeMode == BlockMode_Blockwise)
+    if (_waitHandler != nullptr)
     {
-        uint32_t blkAddress = address & ~(_procedConfig._writeBlockSizeMask);
-        uint32_t blkSize = size & ~(_procedConfig._writeBlockSizeMask);
-        if ((address != blkAddress) || (size != blkSize))
-        {
-            // not aligned
-            return Result_InvalidParameter;
-        }
+        return Result_Busy;
     }
-    if (_config.needEraseBeforeWrite)
+    _waitHandler = &waitHandler;
+
+    uint32_t scope = waitHandler.scope_begin();
+
+    do
     {
-        uint8_t *buffer = this->_buffer.data;
-
-        uint32_t wRemainSize = size;
-        uint32_t wAddr = address;
-
-        uint8_t *wData = (uint8_t *)data;
-        uint32_t erBlkSize = max(_config.eraseBlockSize, _config.readBlockSize);
-        uint32_t erBlkMask = erBlkSize - 1;
-        do
+        if (_config.writeMode == BlockMode_Blockwise)
         {
-            uint32_t erBlkAddr = wAddr & ~erBlkMask;
-            uint32_t wPosInBlk = wAddr & erBlkMask;
-            uint32_t wSizeInBlk = min(wRemainSize, erBlkSize - wPosInBlk);
-
-            if ((erBlkAddr != wAddr) || (wRemainSize < erBlkSize))
+            uint32_t blkAddress = address & ~(_procedConfig._writeBlockSizeMask);
+            uint32_t blkSize = size & ~(_procedConfig._writeBlockSizeMask);
+            if ((address != blkAddress) || (size != blkSize))
             {
-                // address not aligned to erBlock or tail fragment.
-                // read->memcpy->erase->write.
-                rst = read(buffer, erBlkAddr,
-                           erBlkSize); // read entire block
-                if (rst != Result_OK)
-                {
-                    return rst;
-                }
-                memcpy((void *)(buffer + wPosInBlk), (const void *)wData,
-                       wSizeInBlk);
-                rst = erase(erBlkAddr, erBlkSize);
-                if (rst != Result_OK)
-                {
-                    return rst;
-                }
-                rst = _write_directly(buffer, erBlkAddr,
-                                      erBlkSize); // write entire block
-                if (rst != Result_OK)
-                {
-                    return rst;
-                }
+                // not aligned
+                rst = Result_InvalidParameter;
+                break;
             }
-            else
-            {
-                // address aligned to erBlock. middle entire blocks. directly
-                // erase->write.
-                uint32_t blkCount = wRemainSize / erBlkSize;
-                rst = erase(erBlkAddr, erBlkSize * blkCount);
-                if (rst != Result_OK)
-                {
-                    return rst;
-                }
-                rst = _write_directly(wData, erBlkAddr, erBlkSize * blkCount);
-                if (rst != Result_OK)
-                {
-                    return rst;
-                }
-            }
+        }
+        if (_config.needEraseBeforeWrite)
+        {
+            uint8_t *buffer = this->_buffer.data;
 
-            wAddr += wSizeInBlk;
-            wData += wSizeInBlk;
-            wRemainSize -= wSizeInBlk;
-        } while (wRemainSize > 0);
-        return Result_OK;
+            uint32_t wRemainSize = size;
+            uint32_t wAddr = address;
+
+            uint8_t *wData = (uint8_t *)data;
+            uint32_t erBlkSize = max(_config.eraseBlockSize, _config.readBlockSize);
+            uint32_t erBlkMask = erBlkSize - 1;
+            do
+            {
+                uint32_t erBlkAddr = wAddr & ~erBlkMask;
+                uint32_t wPosInBlk = wAddr & erBlkMask;
+                uint32_t wSizeInBlk = min(wRemainSize, erBlkSize - wPosInBlk);
+
+                if ((erBlkAddr != wAddr) || (wRemainSize < erBlkSize))
+                {
+                    // address not aligned to erBlock or tail fragment.
+                    // read->memcpy->erase->write.
+                    rst = read(buffer, erBlkAddr, erBlkSize, waitHandler); // read entire block
+                    if (rst != Result_OK)
+                    {
+                        break;
+                    }
+                    rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+                    if (rst != Result_OK)
+                    {
+                        break;
+                    }
+                    memcpy((void *)(buffer + wPosInBlk), (const void *)wData, wSizeInBlk);
+                    rst = erase(erBlkAddr, erBlkSize, waitHandler);
+                    if (rst != Result_OK)
+                    {
+                        break;
+                    }
+                    rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+                    if (rst != Result_OK)
+                    {
+                        break;
+                    }
+                    rst = _write_directly(buffer, erBlkAddr, erBlkSize, waitHandler,
+                                          scope); // write entire block
+                    if (rst != Result_OK)
+                    {
+                        break;
+                    }
+                    rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+                    if (rst != Result_OK)
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    // address aligned to erBlock. middle entire blocks. directly
+                    // erase->write.
+                    uint32_t blkCount = wRemainSize / erBlkSize;
+                    rst = erase(erBlkAddr, erBlkSize * blkCount, waitHandler);
+                    if (rst != Result_OK)
+                    {
+                        break;
+                    }
+                    rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+                    if (rst != Result_OK)
+                    {
+                        break;
+                    }
+                    rst =
+                        _write_directly(wData, erBlkAddr, erBlkSize * blkCount, waitHandler, scope);
+                    if (rst != Result_OK)
+                    {
+                        break;
+                    }
+                    rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+                    if (rst != Result_OK)
+                    {
+                        break;
+                    }
+                }
+
+                wAddr += wSizeInBlk;
+                wData += wSizeInBlk;
+                wRemainSize -= wSizeInBlk;
+            } while (wRemainSize > 0);
+            return Result_OK;
+        }
+        else
+        {
+            rst = _write_directly(data, address, size, waitHandler, scope);
+            if (rst != Result_OK)
+            {
+                break;
+            }
+            rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+            if (rst != Result_OK)
+            {
+                break;
+            }
+        }
+    } while (0);
+
+    waitHandler.scope_end();
+    waitHandler.reset();
+    if (rst != Result_OK)
+    {
+        waitHandler.error_set(this);
     }
     else
     {
-        return _write_directly(data, address, size);
+        waitHandler.done_set(this);
     }
+    _waitHandler = nullptr;
+    return rst;
 };
-Result Block::erase(uint32_t address, uint32_t size)
+Result Block::erase(uint32_t address, uint32_t size, WaitHandler &waitHandler)
 {
-    // TODO: simplfy these mode.
-    if (_config.eraseMode == BlockMode_RandomBlock)
+    Result rst;
+    if (_waitHandler != nullptr)
     {
-        return media_erase(address, size);
+        return Result_Busy;
     }
-    else if (_config.eraseMode == BlockMode_Random)
+    _waitHandler = &waitHandler;
+
+    uint32_t scope = waitHandler.scope_begin();
+
+    do
     {
-        return media_erase(address, size);
-    }
-    else if (_config.eraseMode == BlockMode_Block)
-    {
-        return media_erase(address, size);
-    }
-    else if (_config.eraseMode == BlockMode_Blockwise)
-    {
-        uint32_t blkAddress = address & ~(_procedConfig._eraseBlockSizeMask);
-        uint32_t blkSize = size & ~(_procedConfig._eraseBlockSizeMask);
-        if ((address != blkAddress) || (size != blkSize))
+        // TODO: simplfy these mode.
+        if (_config.eraseMode == BlockMode_RandomBlock)
         {
-            // not aligned
-            return Result_InvalidParameter;
+            rst = media_erase(address, size, waitHandler);
+            if (rst != Result_OK)
+            {
+                break;
+            }
+            rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+            if (rst != Result_OK)
+            {
+                break;
+            }
         }
-        return media_erase(address >> (_procedConfig._eraseBlockSizeBits),
-                           size >> (_procedConfig._eraseBlockSizeBits));
-    }
-    else if (_config.eraseMode == BlockMode_Wrap)
+        else if (_config.eraseMode == BlockMode_Random)
+        {
+            rst = media_erase(address, size, waitHandler);
+            if (rst != Result_OK)
+            {
+                break;
+            }
+            rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+            if (rst != Result_OK)
+            {
+                break;
+            }
+        }
+        else if (_config.eraseMode == BlockMode_Block)
+        {
+            rst = media_erase(address, size, waitHandler);
+            if (rst != Result_OK)
+            {
+                break;
+            }
+            rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+            if (rst != Result_OK)
+            {
+                break;
+            }
+        }
+        else if (_config.eraseMode == BlockMode_Blockwise)
+        {
+            uint32_t blkAddress = address & ~(_procedConfig._eraseBlockSizeMask);
+            uint32_t blkSize = size & ~(_procedConfig._eraseBlockSizeMask);
+            if ((address != blkAddress) || (size != blkSize))
+            {
+                // not aligned
+                rst = Result_InvalidParameter;
+                break;
+            }
+            rst = media_erase(address >> (_procedConfig._eraseBlockSizeBits),
+                              size >> (_procedConfig._eraseBlockSizeBits), waitHandler);
+            if (rst != Result_OK)
+            {
+                break;
+            }
+            rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+            if (rst != Result_OK)
+            {
+                break;
+            }
+        }
+        else if (_config.eraseMode == BlockMode_Wrap)
+        {
+            rst = Result_OK;
+        }
+        else
+        {
+            rst = Result_NotSupport;
+        }
+    } while (0);
+
+    waitHandler.scope_end();
+    waitHandler.reset();
+    if (rst != Result_OK)
     {
-        return Result_OK;
+        waitHandler.error_set(this);
     }
     else
     {
-        return Result_NotSupport;
+        waitHandler.done_set(this);
     }
+    _waitHandler = nullptr;
+    return rst;
 };
 
-Result Block::_write_directly(void *data, uint32_t address, uint32_t size)
+Result Block::_write_directly(void *data, uint32_t address, uint32_t size, WaitHandler &waitHandler,
+                              uint32_t scope)
 {
     Result rst;
     if (_config.writeMode == BlockMode_Random)
     {
-        return media_write(data, address, size);
+        rst = media_write(data, address, size, waitHandler);
+        if (rst != Result_OK)
+        {
+            return rst;
+        }
+        rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+        if (rst != Result_OK)
+        {
+            return rst;
+        }
     }
     else if (_config.writeMode == BlockMode_Blockwise)
     {
-        return media_write(data, address >> (_procedConfig._writeBlockSizeBits),
-                           size >> (_procedConfig._writeBlockSizeBits));
+        rst = media_write(data, address >> (_procedConfig._writeBlockSizeBits),
+                          size >> (_procedConfig._writeBlockSizeBits), waitHandler);
+        if (rst != Result_OK)
+        {
+            return rst;
+        }
+        rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+        if (rst != Result_OK)
+        {
+            return rst;
+        }
     }
     else if (_config.writeMode == BlockMode_Block)
     {
-        return media_write(data, address, size);
+        rst = media_write(data, address, size, waitHandler);
+        if (rst != Result_OK)
+        {
+            return rst;
+        }
+        rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+        if (rst != Result_OK)
+        {
+            return rst;
+        }
     }
     else if (_config.writeMode == BlockMode_Wrap)
     {
@@ -252,13 +461,17 @@ Result Block::_write_directly(void *data, uint32_t address, uint32_t size)
         uint8_t *curDataPtr = (uint8_t *)data;
         do
         {
-            sizeInBlock = _config.writeBlockSize -
-                          (address & _procedConfig._writeBlockSizeMask);
+            sizeInBlock = _config.writeBlockSize - (address & _procedConfig._writeBlockSizeMask);
             if (sizeInBlock > remainSize)
             {
                 sizeInBlock = remainSize;
             }
-            rst = media_write(curDataPtr, address, sizeInBlock);
+            rst = media_write(curDataPtr, address, sizeInBlock, waitHandler);
+            if (rst != Result_OK)
+            {
+                return rst;
+            }
+            rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
             if (rst != Result_OK)
             {
                 return rst;
@@ -271,10 +484,8 @@ Result Block::_write_directly(void *data, uint32_t address, uint32_t size)
 
         return Result_OK;
     }
-    else
-    {
-        return Result_NotSupport;
-    }
-}
+
+    return Result_NotSupport;
+};
 
 } // namespace ww::accessor

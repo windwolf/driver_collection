@@ -17,10 +17,12 @@ static SPI_HandleTypeDef hspi4;
 static Pin dcPin(*GPIOE, GPIO_PIN_13);
 static SpiWithPins spi4pDev(hspi4, nullptr, nullptr, &dcPin);
 static EventGroup eg("");
-static CommandSpi st7735_cmd(spi4pDev, eg, 0x01, 0x02, 0x04, 500);
+
+static CommandSpi st7735_cmd(spi4pDev, 500);
 #define ST7735_BUFFER_SIZE 160 * 80 * 2
 // static uint8_t st7735Buffer[ST7735_BUFFER_SIZE];
-static ST7735 st7735(st7735_cmd);
+static WaitHandler wh(eg, 0x01, 0x02);
+static ST7735 st7735(st7735_cmd, wh);
 
 #define LCD_DATA_SIZE 100
 static uint16_t lcddata[LCD_DATA_SIZE];
@@ -34,8 +36,7 @@ static void test05_init()
     cfg.height = 80;
     cfg.colorMode = ST7735_COLOR_MODE_16BIT;
     cfg.orientation = ST7735_DISPLAY_DIRECTION_XY_EXCHANGE_Y_MIRROR |
-                      ST7735_DISPLAY_COLOR_DIRECTION_BGR |
-                      ST7735_DISPLAY_REFRESH_ORDER_T2B_L2R;
+                      ST7735_DISPLAY_COLOR_DIRECTION_BGR | ST7735_DISPLAY_REFRESH_ORDER_T2B_L2R;
     st7735.init();
     st7735.reset();
     // st77xx_inversion(&st7735, 1);
@@ -51,8 +52,7 @@ static void test05()
     // Color565 color1 = {.value = 0x001F};
     Color565 color2 = {.value = 0xF800};
     Color565 color3 = {.value = 0x04F1};
-    st7735.rect_fill(0, 0, st7735.config_get().width,
-                     st7735.config_get().height,
+    st7735.rect_fill(0, 0, st7735.config_get().width, st7735.config_get().height,
                      color0.value); // inv:1=red; inv:0=yellow
     // st7735.hline_draw(10, 10, 20,
     //                   &color1.value); // inv:1=red+green; inv:0=sky+pink
@@ -88,7 +88,6 @@ static void run()
 void st77xx_demo()
 {
     dcPin.config_get().inverse = false;
-    dcPin.init();
 
     /* Create the main thread.  */
     run();

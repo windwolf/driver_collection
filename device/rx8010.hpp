@@ -15,16 +15,16 @@ class RX8010 : public Initializable
 {
 
   public:
-    RX8010(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag,
-           uint32_t errorFlag);
+    RX8010(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag, uint32_t errorFlag);
+    ~RX8010();
     Result init();
     Result datetime_get(DateTime &datetime);
     Result datetime_set(const DateTime &datetime);
 
   private:
     I2cMaster &_i2c;
-    EventGroupWaitHandler _waitHandler;
-
+    WaitHandler _waitHandler;
+    uint32_t _scope;
     Result _i2c_read(uint32_t address, void *data, uint32_t dataSize);
     Result _i2c_write(uint32_t address, void *data, uint32_t dataSize);
 };

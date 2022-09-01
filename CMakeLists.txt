@@ -45,7 +45,7 @@ elseif(${UART_PRINT_CHANNEL} EQUAL 4)
     target_compile_definitions(${PROJECT_NAME} PUBLIC -DUART_PRINT_CHANNEL4)
 endif()
 
-if(${WWDEVICE_USE_DEMO})
+if(${ENABLE_DEMO})
     process_src_dir(${CMAKE_CURRENT_LIST_DIR}/demo ${PROJECT_NAME})
 endif()
 

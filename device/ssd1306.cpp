@@ -20,6 +20,7 @@ SSD1306::SSD1306(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag, uint
     bufferSize = _config.width * _config.height / 8;
     _i2c.config_get().slaveAddress = 0x78;
     _i2c.config_get().dataWidth = DATAWIDTH_8;
+    _scope = _waitHandler.scope_begin();
 };
 
 SSD1306Config &SSD1306::config_get()
@@ -40,12 +41,12 @@ void SSD1306::cmd_send(uint8_t cmdSize)
     if (cmdSize == 1)
     {
         _i2c.write(SSD1306_COMMAND_SINGLE, _cmdBuffer, cmdSize, _waitHandler);
-        _waitHandler.wait(TIMEOUT_FOREVER);
+        _waitHandler.wait(_scope, TIMEOUT_FOREVER);
     }
     else
     {
         _i2c.write(SSD1306_COMMAND_STREAM, _cmdBuffer, cmdSize, _waitHandler);
-        _waitHandler.wait(TIMEOUT_FOREVER);
+        _waitHandler.wait(_scope, TIMEOUT_FOREVER);
     }
 };
 void SSD1306::data_send(uint8_t *data, uint16_t dataSize)
@@ -53,12 +54,12 @@ void SSD1306::data_send(uint8_t *data, uint16_t dataSize)
     if (dataSize == 1)
     {
         _i2c.write(SSD1306_DATA_SINGLE, data, dataSize, _waitHandler);
-        _waitHandler.wait(TIMEOUT_FOREVER);
+        _waitHandler.wait(_scope, TIMEOUT_FOREVER);
     }
     else
     {
         _i2c.write(SSD1306_DATA_STREAM, data, dataSize, _waitHandler);
-        _waitHandler.wait(TIMEOUT_FOREVER);
+        _waitHandler.wait(_scope, TIMEOUT_FOREVER);
     }
 };
 

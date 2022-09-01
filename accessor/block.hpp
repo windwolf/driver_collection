@@ -8,6 +8,7 @@
 
 namespace ww::accessor
 {
+using namespace ww::os;
 
 enum BlockMode : uint8_t
 {
@@ -33,16 +34,21 @@ struct BlockConfig
 class Block : public Initializable
 {
   public:
-    Block(Buffer &buffer, const BlockConfig &config);
+    Block(Buffer &buffer);
+    Result config_set(const BlockConfig &config);
 
-    Result read(void *data, uint32_t address, uint32_t size);
-    Result write(void *data, uint32_t address, uint32_t size);
-    Result erase(uint32_t address, uint32_t size);
+    Result read(void *data, uint32_t address, uint32_t size, WaitHandler &waitHandler);
+    Result write(void *data, uint32_t address, uint32_t size, WaitHandler &waitHandler);
+    Result erase(uint32_t address, uint32_t size, WaitHandler &waitHandler);
 
   protected:
-    virtual Result media_read(void *data, uint32_t num, uint32_t size) = 0;
-    virtual Result media_write(void *data, uint32_t num, uint32_t size) = 0;
-    virtual Result media_erase(uint32_t num, uint32_t size) = 0;
+    Result _read(void *data, uint32_t address, uint32_t size);
+
+    virtual Result media_read(void *data, uint32_t num, uint32_t size,
+                              WaitHandler &waitHandler) = 0;
+    virtual Result media_write(void *data, uint32_t num, uint32_t size,
+                               WaitHandler &waitHandler) = 0;
+    virtual Result media_erase(uint32_t num, uint32_t size, WaitHandler &waitHandler) = 0;
 
   private:
     struct
@@ -57,7 +63,9 @@ class Block : public Initializable
     } _procedConfig;
     BlockConfig _config;
     Buffer _buffer;
-    Result _write_directly(void *data, uint32_t address, uint32_t size);
+    WaitHandler *_waitHandler;
+    Result _write_directly(void *data, uint32_t address, uint32_t size, WaitHandler &waitHandler,
+                           uint32_t scope);
     Result _process_config();
 };
 } // namespace ww::accessor

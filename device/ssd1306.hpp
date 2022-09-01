@@ -116,7 +116,8 @@ class SSD1306 : public Initializable
     uint8_t _cmdBuffer[SSD1306_CMD_BUFFER_SIZE];
     SSD1306Config _config;
     I2cMaster &_i2c;
-    EventGroupWaitHandler _waitHandler;
+    WaitHandler _waitHandler;
+    uint32_t _scope;
     void data_send(uint8_t *data, uint16_t dataSize);
     void cmd_send(uint8_t cmdSize);
     void mem_mode_set();

@@ -10,13 +10,11 @@ using namespace ww::peripheral;
 class CommandSpi : public Command
 {
   public:
-    CommandSpi(SpiWithPins &spi, EventGroup &eventGroup, uint32_t doneFlag,
-               uint32_t errorFlag, uint32_t readyFlag, uint32_t timeout);
+    CommandSpi(SpiWithPins &spi, uint32_t timeout);
 
   protected:
-    virtual Result media_operate(CommandFramePhase phase, void *data,
-                                 uint32_t dataSize, DataWidth dataWidth,
-                                 bool isWrite, WaitHandler &waitHandler);
+    virtual Result media_operate(CommandFramePhase phase, void *data, uint32_t dataSize,
+                                 DataWidth dataWidth, bool isWrite, WaitHandler &waitHandler);
     virtual Result media_session_start(WaitHandler &waitHandler);
     virtual Result media_session_finish(WaitHandler &waitHandler);
 

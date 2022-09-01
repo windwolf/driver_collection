@@ -125,12 +125,23 @@ namespace ww::device
 {
 using namespace ww::os;
 
-W25QXX::W25QXX(SpiWithPins &spi, EventGroup &eventGroup, uint32_t doneFlag,
-               uint32_t errorFlag, uint32_t readyFlag, uint32_t timeout)
-    : _cmdSpi(spi, eventGroup, doneFlag, errorFlag, readyFlag, timeout)
+W25QXX::W25QXX(SpiWithPins &spi, uint32_t timeout) : _cmdSpi(spi, timeout), _timeout(timeout)
 {
     MEMBER_INIT_ERROR_CHECK(_cmdSpi);
 };
+
+Result W25QXX::_spi_cmd_send(CommandFrame &frame)
+{
+    uint32_t scope = _waitHandler->scope_begin();
+    auto rst = _cmdSpi.send(frame, *_waitHandler);
+    if (rst != Result_OK)
+    {
+        return rst;
+    }
+    rst = _waitHandler->wait(scope, _timeout);
+    return rst;
+};
+
 Result W25QXX::reset()
 {
     Result rst;
@@ -188,8 +199,7 @@ Result W25QXX::mode_switch(W25QXX_CommandMode cmdMode)
         W25QXX_Status2Register reg2;
         if (_cmdMode == W25QXX_CommandMode_SPI)
         {
-            if (_dummyCycles != 2 && _dummyCycles != 4 && _dummyCycles != 6 &&
-                _dummyCycles != 8)
+            if (_dummyCycles != 2 && _dummyCycles != 4 && _dummyCycles != 6 && _dummyCycles != 8)
             {
                 _dummyCycles = 2;
             }
@@ -252,45 +262,89 @@ Result W25QXX::chip_erase()
     return _busy_wait();
 };
 
-Result W25QXX::media_read(void *data, uint32_t num, uint32_t size)
+Result W25QXX::media_read(void *data, uint32_t num, uint32_t size, WaitHandler &waitHandler)
 {
-    return _read_cmd((uint8_t *)data, num, size);
-};
-Result W25QXX::media_write(void *data, uint32_t num, uint32_t size)
-{
-    Result rst;
-
-    rst = _write_enable_cmd();
-    if (rst != Result_OK)
+    if (_waitHandler != nullptr)
     {
-        return rst;
+        return Result_Busy;
     }
+    _waitHandler = &waitHandler;
+    _scope = waitHandler.scope_begin();
 
-    rst = _write_cmd((uint8_t *)data, num, size);
-    if (rst != Result_OK)
-    {
-        return rst;
-    }
-
-    return _busy_wait();
-};
-Result W25QXX::media_erase(uint32_t num, uint32_t size)
-{
     Result rst;
-    uint32_t blkBeginAddr = num & ~(W25QXX_BLOCK_SIZE - 1);
-    uint32_t blkEndAddr = (num + size - 1) & ~(W25QXX_BLOCK_SIZE - 1);
-    uint32_t curAddr = blkBeginAddr;
     do
     {
-        rst = block_erase(curAddr);
+        rst = _read_cmd((uint8_t *)data, num, size);
+    } while (0);
+    waitHandler.scope_end();
+    waitHandler.reset();
+    waitHandler.done_set(this);
+    _waitHandler = nullptr;
+    return rst;
+};
+Result W25QXX::media_write(void *data, uint32_t num, uint32_t size, WaitHandler &waitHandler)
+{
+    if (_waitHandler != nullptr)
+    {
+        return Result_Busy;
+    }
+    _waitHandler = &waitHandler;
+    _scope = waitHandler.scope_begin();
+    Result rst;
+    do
+    {
+        rst = _write_enable_cmd();
         if (rst != Result_OK)
         {
-            return rst;
+            break;
         }
-        curAddr += W25QXX_BLOCK_SIZE;
 
-    } while (curAddr <= blkEndAddr);
-    return Result_OK;
+        rst = _write_cmd((uint8_t *)data, num, size);
+        if (rst != Result_OK)
+        {
+            break;
+        }
+        rst = _busy_wait();
+    } while (0);
+    waitHandler.scope_end();
+    waitHandler.reset();
+    waitHandler.done_set(this);
+    _waitHandler = nullptr;
+    return rst;
+};
+
+Result W25QXX::media_erase(uint32_t num, uint32_t size, WaitHandler &waitHandler)
+{
+    if (_waitHandler != nullptr)
+    {
+        return Result_Busy;
+    }
+    _waitHandler = &waitHandler;
+    _scope = waitHandler.scope_begin();
+
+    Result rst;
+    do
+    {
+        uint32_t blkBeginAddr = num & ~(W25QXX_BLOCK_SIZE - 1);
+        uint32_t blkEndAddr = (num + size - 1) & ~(W25QXX_BLOCK_SIZE - 1);
+        uint32_t curAddr = blkBeginAddr;
+        do
+        {
+            rst = block_erase(curAddr);
+            if (rst != Result_OK)
+            {
+                break;
+            }
+            curAddr += W25QXX_BLOCK_SIZE;
+
+        } while (curAddr <= blkEndAddr);
+    } while (0);
+
+    waitHandler.scope_end();
+    waitHandler.reset();
+    waitHandler.done_set(this);
+    _waitHandler = nullptr;
+    return rst;
 };
 
 void W25QXX::_cmdline_config(CommandFrame &frame, W25QXX_CMD_LINE_MODE lineMode)
@@ -360,16 +414,15 @@ Result W25QXX::_status_get(uint8_t reg_num, uint8_t &status)
         _cmdline_config(cmd, W25QXX_CMD_LINE_MODE_101);
     }
 
-    cmd.commandId = (reg_num == 1)
-                        ? W25QXX_SPI_READ_STATUS_REG1_CMD
-                        : ((reg_num == 2) ? W25QXX_SPI_READ_STATUS_REG2_CMD
-                                          : W25QXX_SPI_READ_STATUS_REG3_CMD);
+    cmd.commandId = (reg_num == 1) ? W25QXX_SPI_READ_STATUS_REG1_CMD
+                                   : ((reg_num == 2) ? W25QXX_SPI_READ_STATUS_REG2_CMD
+                                                     : W25QXX_SPI_READ_STATUS_REG3_CMD);
     cmd.dataSize = 1;
     cmd.dataBits = DATAWIDTH_8;
     cmd.isWrite = 0;
     cmd.data = &status;
 
-    rst = _cmdSpi.send(cmd);
+    rst = _spi_cmd_send(cmd);
     return rst;
 };
 Result W25QXX::_status_set(uint8_t reg_num, uint8_t status)
@@ -387,16 +440,15 @@ Result W25QXX::_status_set(uint8_t reg_num, uint8_t status)
         _cmdline_config(cmd, W25QXX_CMD_LINE_MODE_101);
     }
 
-    cmd.commandId = (reg_num == 1)
-                        ? W25QXX_SPI_WRITE_STATUS_REG1_CMD
-                        : ((reg_num == 2) ? W25QXX_SPI_WRITE_STATUS_REG2_CMD
-                                          : W25QXX_SPI_WRITE_STATUS_REG3_CMD);
+    cmd.commandId = (reg_num == 1) ? W25QXX_SPI_WRITE_STATUS_REG1_CMD
+                                   : ((reg_num == 2) ? W25QXX_SPI_WRITE_STATUS_REG2_CMD
+                                                     : W25QXX_SPI_WRITE_STATUS_REG3_CMD);
     cmd.dataSize = 1;
     cmd.dataBits = DATAWIDTH_8;
     cmd.isWrite = 1;
     cmd.data = &status;
 
-    rst = _cmdSpi.send(cmd);
+    rst = _spi_cmd_send(cmd);
     return rst;
 };
 
@@ -418,7 +470,7 @@ Result W25QXX::id_read(uint32_t &mdId, uint32_t &jedecId)
     cmd.data = &mdId;
     cmd.dataBits = DATAWIDTH_8;
     cmd.dataSize = 3;
-    rst = _cmdSpi.send(cmd);
+    rst = _spi_cmd_send(cmd);
     if (rst != Result_OK)
     {
         return rst;
@@ -436,7 +488,7 @@ Result W25QXX::id_read(uint32_t &mdId, uint32_t &jedecId)
     cmd.data = &jedecId;
     cmd.dataBits = DATAWIDTH_8;
     cmd.dataSize = 3;
-    rst = _cmdSpi.send(cmd);
+    rst = _spi_cmd_send(cmd);
     return rst;
 };
 Result W25QXX::_busy_wait()
@@ -494,7 +546,7 @@ Result W25QXX::_read_parameter_set()
         cmd.dataBits = DATAWIDTH_8;
         cmd.isWrite = 1;
         cmd.data = &params;
-        rst = _cmdSpi.send(cmd);
+        rst = _spi_cmd_send(cmd);
         return rst;
     }
     else
@@ -517,7 +569,7 @@ Result W25QXX::_write_enable_cmd()
     }
     cmd.commandId = W25QXX_SPI_WRITE_ENABLE_CMD;
 
-    rst = _cmdSpi.send(cmd);
+    rst = _spi_cmd_send(cmd);
     return rst;
 };
 
@@ -542,7 +594,7 @@ Result W25QXX::_write_cmd(uint8_t *pData, uint32_t writeAddr, uint32_t size)
     cmd.dataSize = size;
     cmd.dataBits = DATAWIDTH_8;
 
-    rst = _cmdSpi.send(cmd);
+    rst = _spi_cmd_send(cmd);
     return rst;
 };
 Result W25QXX::_read_cmd(uint8_t *pData, uint32_t readAddr, uint32_t size)
@@ -569,7 +621,7 @@ Result W25QXX::_read_cmd(uint8_t *pData, uint32_t readAddr, uint32_t size)
     cmd.dataBits = DATAWIDTH_8;
     cmd.isWrite = 0;
 
-    rst = _cmdSpi.send(cmd);
+    rst = _spi_cmd_send(cmd);
     return rst;
 };
 Result W25QXX::_qpi_enter_cmd()
@@ -578,7 +630,7 @@ Result W25QXX::_qpi_enter_cmd()
     CommandFrame cmd;
     _cmdline_config(cmd, W25QXX_CMD_LINE_MODE_100);
     cmd.commandId = W25QXX_SPI_ENTER_QPI_MODE_CMD;
-    rst = _cmdSpi.send(cmd);
+    rst = _spi_cmd_send(cmd);
     return rst;
 };
 Result W25QXX::_qpi_exit_cmd()
@@ -587,7 +639,7 @@ Result W25QXX::_qpi_exit_cmd()
     CommandFrame cmd;
     _cmdline_config(cmd, W25QXX_CMD_LINE_MODE_400);
     cmd.commandId = W25QXX_QPI_EXIT_QPI_MODE_CMD;
-    rst = _cmdSpi.send(cmd);
+    rst = _spi_cmd_send(cmd);
     return rst;
 };
 Result W25QXX::_reset_cmd()
@@ -604,13 +656,13 @@ Result W25QXX::_reset_cmd()
     }
 
     cmd.commandId = W25QXX_QPI_ENABLE_RESET_CMD;
-    rst = _cmdSpi.send(cmd);
+    rst = _spi_cmd_send(cmd);
     if (rst != Result_OK)
     {
         return rst;
     }
     cmd.commandId = W25QXX_QPI_RESET_DEVICE_CMD;
-    rst = _cmdSpi.send(cmd);
+    rst = _spi_cmd_send(cmd);
     return rst;
 };
 
@@ -626,15 +678,14 @@ Result W25QXX::_erase_cmd(W25QXX_EraseMode mode, uint32_t address)
     {
         _cmdline_config(cmd, W25QXX_CMD_LINE_MODE_440);
     }
-    cmd.commandId =
-        (mode == W25QXX_EraseMode_4K)
-            ? W25QXX_SPI_SECTOR_ERASE_4K_CMD
-            : ((mode == W25QXX_EraseMode_32K) ? W25QXX_SPI_BLOCK_ERASE_32K_CMD
-                                              : W25QXX_SPI_BLOCK_ERASE_64K_CMD);
+    cmd.commandId = (mode == W25QXX_EraseMode_4K)
+                        ? W25QXX_SPI_SECTOR_ERASE_4K_CMD
+                        : ((mode == W25QXX_EraseMode_32K) ? W25QXX_SPI_BLOCK_ERASE_32K_CMD
+                                                          : W25QXX_SPI_BLOCK_ERASE_64K_CMD);
     cmd.address = address;
     cmd.addressBits = DATAWIDTH_24;
 
-    rst = _cmdSpi.send(cmd);
+    rst = _spi_cmd_send(cmd);
     return rst;
 };
 Result W25QXX::_chip_erase_cmd()
@@ -651,34 +702,38 @@ Result W25QXX::_chip_erase_cmd()
     }
     cmd.commandId = W25QXX_SPI_CHIP_ERASE_CMD;
 
-    rst = _cmdSpi.send(cmd);
+    rst = _spi_cmd_send(cmd);
     return rst;
 };
 
-BlockableW25QXX::BlockableW25QXX(W25QXX &w25qxx, Buffer buffer)
-    : Block(buffer,
-            BlockConfig{
-                .readBlockSize = 0,
-                .writeBlockSize = W25QXX_PAGE_SIZE,
-                .eraseBlockSize = W25QXX_BLOCK_SIZE,
-                .readMode = BlockMode_Random,
-                .writeMode = BlockMode_Wrap,
-                .eraseMode = BlockMode_RandomBlock,
-                .needEraseBeforeWrite = true,
-            }),
-      _w25qxx(w25qxx){BASE_INIT_ERROR_CHECK() MEMBER_INIT_ERROR_CHECK(_w25qxx)};
+BlockableW25QXX::BlockableW25QXX(W25QXX &w25qxx, Buffer buffer) : Block(buffer), _w25qxx(w25qxx)
+{
+    BASE_INIT_ERROR_CHECK()
+    MEMBER_INIT_ERROR_CHECK(_w25qxx)
+    initErrorCode = config_set(BlockConfig{
+        .readBlockSize = 0,
+        .writeBlockSize = W25QXX_PAGE_SIZE,
+        .eraseBlockSize = W25QXX_BLOCK_SIZE,
+        .readMode = BlockMode_Random,
+        .writeMode = BlockMode_Wrap,
+        .eraseMode = BlockMode_RandomBlock,
+        .needEraseBeforeWrite = true,
+    });
+};
 
-Result BlockableW25QXX::media_read(void *data, uint32_t num, uint32_t size)
+Result BlockableW25QXX::media_read(void *data, uint32_t num, uint32_t size,
+                                   WaitHandler &waitHandler)
 {
-    return _w25qxx.media_read(data, num, size);
+    return _w25qxx.media_read(data, num, size, waitHandler);
 };
-Result BlockableW25QXX::media_write(void *data, uint32_t num, uint32_t size)
+Result BlockableW25QXX::media_write(void *data, uint32_t num, uint32_t size,
+                                    WaitHandler &waitHandler)
 {
-    return _w25qxx.media_write(data, num, size);
+    return _w25qxx.media_write(data, num, size, waitHandler);
 };
-Result BlockableW25QXX::media_erase(uint32_t num, uint32_t size)
+Result BlockableW25QXX::media_erase(uint32_t num, uint32_t size, WaitHandler &waitHandler)
 {
-    return _w25qxx.media_erase(num, size);
+    return _w25qxx.media_erase(num, size, waitHandler);
 }
 
 } // namespace ww::device

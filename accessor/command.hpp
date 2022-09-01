@@ -57,28 +57,24 @@ struct CommandFrame
 class Command : public Initializable
 {
   public:
-    Command(EventGroup &eventGroup, uint32_t doneFlag, uint32_t errorFlag,
-            uint32_t readyFlag, uint32_t timeout);
+    Command(uint32_t timeout);
 
-    Result send(CommandFrame &frame);
+    Result send(CommandFrame &frame, WaitHandler &waitHandler);
 
   protected:
-    virtual Result media_operate(CommandFramePhase phase, void *data,
-                                 uint32_t size, DataWidth dataWidth,
-                                 bool isWrite, WaitHandler &waitHandler) = 0;
+    virtual Result media_operate(CommandFramePhase phase, void *data, uint32_t size,
+                                 DataWidth dataWidth, bool isWrite, WaitHandler &waitHandler) = 0;
     virtual Result media_session_start(WaitHandler &waitHandler) = 0;
     virtual Result media_session_finish(WaitHandler &waitHandler) = 0;
 
   private:
-    EventGroup &_eventGroup;
-    EventGroupWaitHandler _waitHandler;
+    WaitHandler *_waitHandler;
     uint32_t _timeout;
     uint32_t _readyFlag;
-
-    Result _session_begin();
-    Result _session_end();
-    Result _do_send(CommandFramePhase phase, void *data, uint32_t size,
-                    DataWidth dataWidth, bool isWrite);
+    Result _session_begin(WaitHandler &waitHandler, uint32_t scope);
+    Result _session_end(WaitHandler &waitHandler, uint32_t scope);
+    Result _do_send(CommandFramePhase phase, void *data, uint32_t size, DataWidth dataWidth,
+                    bool isWrite, WaitHandler &waitHandler, uint32_t scope);
 };
 
 } // namespace ww::accessor

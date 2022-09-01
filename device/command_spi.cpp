@@ -8,10 +8,7 @@ namespace ww::device
 using namespace ww::accessor;
 using namespace ww::peripheral;
 
-CommandSpi::CommandSpi(SpiWithPins &spi, EventGroup &eventGroup,
-                       uint32_t doneFlag, uint32_t errorFlag,
-                       uint32_t readyFlag, uint32_t timeout)
-    : Command(eventGroup, doneFlag, errorFlag, readyFlag, timeout), _spi(spi)
+CommandSpi::CommandSpi(SpiWithPins &spi, uint32_t timeout) : Command(timeout), _spi(spi)
 {
     BASE_INIT_ERROR_CHECK()
     MEMBER_INIT_ERROR_CHECK(spi)
@@ -19,9 +16,8 @@ CommandSpi::CommandSpi(SpiWithPins &spi, EventGroup &eventGroup,
     _spi.pinconfig_get().autoCs = false;
 };
 
-Result CommandSpi::media_operate(CommandFramePhase phase, void *data,
-                                 uint32_t dataSize, DataWidth dataWidth,
-                                 bool isWrite, WaitHandler &waitHandler)
+Result CommandSpi::media_operate(CommandFramePhase phase, void *data, uint32_t dataSize,
+                                 DataWidth dataWidth, bool isWrite, WaitHandler &waitHandler)
 {
     Result rst;
     switch (phase)

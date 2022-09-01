@@ -24,7 +24,7 @@ struct ST77xxConfig
 class ST77xx : Initializable
 {
   public:
-    ST77xx(CommandSpi &cmdSpi);
+    ST77xx(CommandSpi &cmdSpi, WaitHandler &waitHandler);
     ST77xxConfig &config_get();
 
   protected:
@@ -35,11 +35,13 @@ class ST77xx : Initializable
 
     static void _setup_command(CommandFrame &cmd);
     Result _command(uint8_t cmdId);
-    Result _command_data(uint8_t cmdId, void *data, uint16_t size,
-                         DataWidth dataWidth, bool isWrite);
+    Result _command_data(uint8_t cmdId, void *data, uint16_t size, DataWidth dataWidth,
+                         bool isWrite);
 
   private:
     CommandSpi &_cmdSpi;
+    WaitHandler &_waitHandler;
+    uint32_t _scope;
 };
 
 } // namespace ww::device

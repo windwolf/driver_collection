@@ -12,7 +12,7 @@ using namespace ww::peripheral;
 class UartStream : public Initializable
 {
   public:
-    UartStream(UART &uart, RingBuffer &rx_buffer);
+    UartStream(UART &uart, RingBuffer &rx_buffer, EventGroup &events, uint32_t doneFlag, uint32_t errFlag);
 
     Result server_start(WaitHandler &waitHandler);
 
@@ -25,7 +25,7 @@ class UartStream : public Initializable
   private:
     UART &_uart;
     RingBuffer &_rxBuffer;
-    CallbackWaitHandler _rxServerWaitHandler;
+    WaitHandler _rxServerWaitHandler;
     WaitHandler *_rxWaitHandler;
     static void _rx_done_callback(void *sender, void *event, void *receiver);
     static void _rx_error_callback(void *sender, void *event, void *receiver);

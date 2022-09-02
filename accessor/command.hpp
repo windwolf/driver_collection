@@ -58,14 +58,16 @@ class Command : public Initializable
 {
   public:
     Command(uint32_t timeout);
-
     Result send(CommandFrame &frame, WaitHandler &waitHandler);
 
   protected:
-    virtual Result media_operate(CommandFramePhase phase, void *data, uint32_t size,
-                                 DataWidth dataWidth, bool isWrite, WaitHandler &waitHandler) = 0;
+    virtual Result media_command_send(CommandFrame &frame, WaitHandler &waitHandler);
+
+    virtual Result media_step_send(CommandFramePhase phase, void *data, uint32_t size,
+                                   DataWidth dataWidth, bool isWrite, WaitHandler &waitHandler) = 0;
     virtual Result media_session_start(WaitHandler &waitHandler) = 0;
     virtual Result media_session_finish(WaitHandler &waitHandler) = 0;
+    virtual Result media_send(CommandFrame &frame, WaitHandler &waitHandler);
 
   private:
     WaitHandler *_waitHandler;
@@ -73,8 +75,9 @@ class Command : public Initializable
     uint32_t _readyFlag;
     Result _session_begin(WaitHandler &waitHandler, uint32_t scope);
     Result _session_end(WaitHandler &waitHandler, uint32_t scope);
-    Result _do_send(CommandFramePhase phase, void *data, uint32_t size, DataWidth dataWidth,
-                    bool isWrite, WaitHandler &waitHandler, uint32_t scope);
+
+    Result _do_step_send(CommandFramePhase phase, void *data, uint32_t size, DataWidth dataWidth,
+                         bool isWrite, WaitHandler &waitHandler, uint32_t scope);
 };
 
 } // namespace ww::accessor

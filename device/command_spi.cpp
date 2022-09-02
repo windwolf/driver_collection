@@ -16,7 +16,7 @@ CommandSpi::CommandSpi(SpiWithPins &spi, uint32_t timeout) : Command(timeout), _
     _spi.pinconfig_get().autoCs = false;
 };
 
-Result CommandSpi::media_operate(CommandFramePhase phase, void *data, uint32_t dataSize,
+Result CommandSpi::media_step_send(CommandFramePhase phase, void *data, uint32_t dataSize,
                                  DataWidth dataWidth, bool isWrite, WaitHandler &waitHandler)
 {
     Result rst;

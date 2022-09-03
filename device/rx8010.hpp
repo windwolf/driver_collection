@@ -11,13 +11,14 @@ using namespace ww::peripheral;
 using namespace ww::os;
 using namespace ww::temporal;
 
-class RX8010 : public Initializable
+class RX8010 : Initializable
 {
 
   public:
     RX8010(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag, uint32_t errorFlag);
-    ~RX8010();
-    Result init();
+    virtual Result _init();
+    virtual void _deinit();
+    Result por_init();
     Result datetime_get(DateTime &datetime);
     Result datetime_set(const DateTime &datetime);
 

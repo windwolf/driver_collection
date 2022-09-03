@@ -8,16 +8,20 @@ namespace ww::device
 using namespace ww::accessor;
 using namespace ww::peripheral;
 
-CommandSpi::CommandSpi(SpiWithPins &spi, uint32_t timeout) : Command(timeout), _spi(spi)
+CommandSpi::CommandSpi(SpiWithPins &spi, uint32_t timeout) : Command(timeout), _spi(spi){};
+
+Result CommandSpi::_init()
 {
-    BASE_INIT_ERROR_CHECK()
-    MEMBER_INIT_ERROR_CHECK(spi)
+    INIT_BEGIN()
+    MEMBER_INIT_ERROR_CHECK(_spi)
 
     _spi.pinconfig_get().autoCs = false;
+    INIT_END();
 };
+void CommandSpi::_deinit(){MEMBER_DEINIT(_spi)};
 
 Result CommandSpi::media_step_send(CommandFramePhase phase, void *data, uint32_t dataSize,
-                                 DataWidth dataWidth, bool isWrite, WaitHandler &waitHandler)
+                                   DataWidth dataWidth, bool isWrite, WaitHandler &waitHandler)
 {
     Result rst;
     switch (phase)

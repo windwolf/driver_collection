@@ -31,7 +31,7 @@ struct BlockConfig
     bool needEraseBeforeWrite;
 };
 
-class Block : public Initializable
+class Block
 {
   public:
     Block(Buffer &buffer);

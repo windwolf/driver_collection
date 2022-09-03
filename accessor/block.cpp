@@ -14,8 +14,7 @@ Block::Block(Buffer &buffer) : _buffer(buffer){};
 Result Block::config_set(const BlockConfig &config)
 {
     _config = config;
-    initErrorCode = _process_config();
-    return initErrorCode;
+    return _process_config();
 };
 Result Block::_process_config()
 {

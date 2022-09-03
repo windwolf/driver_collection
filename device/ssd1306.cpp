@@ -13,14 +13,23 @@ using namespace ww::peripheral;
 using namespace ww::os;
 
 SSD1306::SSD1306(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag, uint32_t errorFlag)
-    : _i2c(i2c), _waitHandler(eventGroup, doneFlag, errorFlag)
+    : _i2c(i2c), _waitHandler(eventGroup, doneFlag, errorFlag){
+
+                 };
+
+Result SSD1306::_init()
 {
+    INIT_BEGIN()
     MEMBER_INIT_ERROR_CHECK(_i2c)
-    MEMBER_INIT_ERROR_CHECK(_waitHandler)
-    bufferSize = _config.width * _config.height / 8;
     _i2c.config_get().slaveAddress = 0x78;
     _i2c.config_get().dataWidth = DATAWIDTH_8;
     _scope = _waitHandler.scope_begin();
+    INIT_END()
+};
+void SSD1306::_deinit()
+{
+    MEMBER_DEINIT(_i2c)
+    _waitHandler.scope_end();
 };
 
 SSD1306Config &SSD1306::config_get()
@@ -152,6 +161,7 @@ void SSD1306::clear()
 //初始化SSD1306
 void SSD1306::lcd_init()
 {
+    bufferSize = _config.width * _config.height / 8;
     Thread::sleep(100);
 
     display(false);

@@ -54,7 +54,7 @@ struct CommandFrame
     };
 };
 
-class Command : public Initializable
+class Command
 {
   public:
     Command(uint32_t timeout);

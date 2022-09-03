@@ -17,12 +17,11 @@ using namespace ww::graph;
 
 struct ST77xxDemo
 {
-    ST77xxDemo()
-        : dcPin(*GPIOE, GPIO_PIN_13), spi4pDev(hspi4, nullptr, nullptr, &dcPin), eg(""),
-          st7735_cmd(spi4pDev, 500), wh(eg, 0x01, 0x02), st7735(st7735_cmd, wh){};
-    SPI_HandleTypeDef hspi4;
-    Pin dcPin;
-    SpiWithPins spi4pDev;
+    ST77xxDemo(Pin dcPin, SpiWithPins spi4pDev)
+        : dcPin(dcPin), spi4pDev(spi4pDev), eg(""), st7735_cmd(spi4pDev, 500), wh(eg, 0x01, 0x02),
+          st7735(st7735_cmd, wh){};
+    Pin &dcPin;
+    SpiWithPins &spi4pDev;
     EventGroup eg;
     CommandSpi st7735_cmd;
     WaitHandler wh;
@@ -66,14 +65,14 @@ static void test05(ST77xxDemo &demo)
 
 static void run()
 {
-    ST77xxDemo demo;
+    ST77xxDemo *demo;
     float num = 0.1;
 
-    test05_init(demo);
+    test05_init(*demo);
     /* This thread simply sits in while-forever-sleep loop.  */
     while (1)
     {
-        test05(demo);
+        test05(*demo);
         num += 0.15;
 
         /* Sleep for 1000 ticks.  */

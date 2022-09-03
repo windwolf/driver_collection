@@ -125,9 +125,20 @@ namespace ww::device
 {
 using namespace ww::os;
 
-W25QXX::W25QXX(SpiWithPins &spi, uint32_t timeout) : _cmdSpi(spi, timeout), _timeout(timeout)
+W25QXX::W25QXX(SpiWithPins &spi, uint32_t timeout)
+    : _cmdSpi(spi, timeout), _timeout(timeout){
+
+                             };
+
+Result W25QXX::_init()
 {
+    INIT_BEGIN()
     MEMBER_INIT_ERROR_CHECK(_cmdSpi);
+    INIT_END()
+};
+void W25QXX::_deinit()
+{
+    MEMBER_DEINIT(_cmdSpi);
 };
 
 Result W25QXX::_spi_cmd_send(CommandFrame &frame)
@@ -703,11 +714,15 @@ Result W25QXX::_chip_erase_cmd()
     return rst;
 };
 
-BlockableW25QXX::BlockableW25QXX(W25QXX &w25qxx, Buffer buffer) : Block(buffer), _w25qxx(w25qxx)
+BlockableW25QXX::BlockableW25QXX(W25QXX &w25qxx, Buffer buffer)
+    : Block(buffer), _w25qxx(w25qxx){
+
+                     };
+Result BlockableW25QXX::_init()
 {
-    BASE_INIT_ERROR_CHECK()
+    INIT_BEGIN()
     MEMBER_INIT_ERROR_CHECK(_w25qxx)
-    initErrorCode = config_set(BlockConfig{
+    rst = config_set(BlockConfig{
         .readBlockSize = 0,
         .writeBlockSize = W25QXX_PAGE_SIZE,
         .eraseBlockSize = W25QXX_BLOCK_SIZE,
@@ -716,8 +731,9 @@ BlockableW25QXX::BlockableW25QXX(W25QXX &w25qxx, Buffer buffer) : Block(buffer),
         .eraseMode = BlockMode_RandomBlock,
         .needEraseBeforeWrite = true,
     });
+    INIT_END()
 };
-
+void BlockableW25QXX::_deinit(){MEMBER_DEINIT(_w25qxx)};
 Result BlockableW25QXX::media_read(void *data, uint32_t num, uint32_t size,
                                    WaitHandler &waitHandler)
 {

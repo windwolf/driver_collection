@@ -7,14 +7,16 @@ namespace ww::device
 using namespace ww::accessor;
 using namespace ww::peripheral;
 
-class CommandSpi : public Command
+class CommandSpi : public Initializable, public Command
 {
   public:
     CommandSpi(SpiWithPins &spi, uint32_t timeout);
+    virtual Result _init();
+    virtual void _deinit();
 
   protected:
     virtual Result media_step_send(CommandFramePhase phase, void *data, uint32_t dataSize,
-                                 DataWidth dataWidth, bool isWrite, WaitHandler &waitHandler);
+                                   DataWidth dataWidth, bool isWrite, WaitHandler &waitHandler);
     virtual Result media_session_start(WaitHandler &waitHandler);
     virtual Result media_session_finish(WaitHandler &waitHandler);
 

@@ -104,7 +104,8 @@ class SSD1306 : public Initializable
     SSD1306(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag, uint32_t errorFlag);
 
     SSD1306Config &config_get();
-
+    virtual Result _init();
+    virtual void _deinit();
     void lcd_init();
     void pos_set(uint8_t page, uint8_t column);
     void contrast_set(uint8_t contrast);
@@ -127,4 +128,4 @@ class SSD1306 : public Initializable
 
 } // namespace ww::device
 
-#endif // ___SSD1306_HPP__
+#endif //___SSD1306_HPP__

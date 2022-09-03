@@ -82,7 +82,8 @@ class W25QXX : public Initializable
 {
   public:
     W25QXX(SpiWithPins &spi, uint32_t timeout);
-
+    virtual Result _init();
+    virtual void _deinit();
     Result reset();
 
     Result mode_switch(W25QXX_CommandMode cmdMode);
@@ -122,10 +123,12 @@ class W25QXX : public Initializable
     uint32_t _scope;
 };
 
-class BlockableW25QXX : public Block
+class BlockableW25QXX : public Initializable, public Block
 {
   public:
     BlockableW25QXX(W25QXX &w25qxx, Buffer buffer);
+    virtual Result _init();
+    virtual void _deinit();
 
   protected:
     W25QXX &_w25qxx;

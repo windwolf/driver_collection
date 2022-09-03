@@ -6,12 +6,19 @@ using namespace ww::accessor;
 using namespace ww::peripheral;
 
 ST77xx::ST77xx(CommandSpi &cmdSpi, WaitHandler &waitHandler)
-    : _cmdSpi(cmdSpi), _waitHandler(waitHandler)
+    : _cmdSpi(cmdSpi), _waitHandler(waitHandler){};
+Result ST77xx::_init()
 {
+    INIT_BEGIN()
     MEMBER_INIT_ERROR_CHECK(_cmdSpi)
     _scope = _waitHandler.scope_begin();
+    INIT_END()
 };
-
+void ST77xx::_deinit()
+{
+    MEMBER_DEINIT(_cmdSpi)
+    _waitHandler.scope_end();
+};
 ST77xxConfig &ST77xx::config_get()
 {
     return _config;

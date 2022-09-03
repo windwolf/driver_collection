@@ -7,11 +7,12 @@ namespace ww::device
 using namespace ww::accessor;
 using namespace ww::peripheral;
 
-class CommandQSPI : public Command
+class CommandQSPI : public Initializable, public Command
 {
   public:
     CommandQSPI(QSPI &qspi, uint32_t timeout);
-
+    virtual Result _init();
+    virtual void _deinit();
   protected:
     virtual Result media_operate(CommandFramePhase phase, void *data, uint32_t dataSize,
                                  DataWidth dataWidth, bool isWrite, WaitHandler &waitHandler);

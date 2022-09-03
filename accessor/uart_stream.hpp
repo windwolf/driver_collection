@@ -12,8 +12,10 @@ using namespace ww::peripheral;
 class UartStream : public Initializable
 {
   public:
-    UartStream(UART &uart, RingBuffer &rx_buffer, EventGroup &events, uint32_t doneFlag, uint32_t errFlag);
-
+    UartStream(UART &uart, RingBuffer &rx_buffer, EventGroup &events, uint32_t doneFlag,
+               uint32_t errFlag);
+    virtual Result _init();
+    virtual void _deinit();
     Result server_start(WaitHandler &waitHandler);
 
     Result server_stop();

@@ -6,12 +6,17 @@ using namespace ww::peripheral;
 
 UartStream::UartStream(UART &uart, RingBuffer &rx_buffer, EventGroup &events, uint32_t doneFlag,
                        uint32_t errFlag)
-    : _uart(uart), _rxBuffer(rx_buffer), _rxServerWaitHandler(events, doneFlag, errFlag)
+    : _uart(uart), _rxBuffer(rx_buffer), _rxServerWaitHandler(events, doneFlag, errFlag){};
+
+Result UartStream::_init()
 {
+    INIT_BEGIN()
+    MEMBER_INIT_ERROR_CHECK(_uart)
     _rxServerWaitHandler.done_callback_set(this, &UartStream::_rx_done_callback);
     _rxServerWaitHandler.error_callback_set(this, &UartStream::_rx_error_callback);
-    initErrorCode = _uart.initErrorCode;
+    INIT_END()
 };
+void UartStream::_deinit(){MEMBER_DEINIT(_uart)};
 
 void UartStream::_rx_done_callback(void *sender, void *event, void *receiver)
 {

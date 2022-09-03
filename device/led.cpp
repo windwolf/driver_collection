@@ -3,11 +3,16 @@
 namespace ww::device
 {
 
-LED::LED(Pwm &pwm, PwmChannel rChannel, PwmChannel gChannel,
-         PwmChannel bChannel)
-    : _pwm(pwm), _rChannel(rChannel), _gChannel(gChannel), _bChannel(bChannel)
+LED::LED(Pwm &pwm, PwmChannel rChannel, PwmChannel gChannel, PwmChannel bChannel)
+    : _pwm(pwm), _rChannel(rChannel), _gChannel(gChannel), _bChannel(bChannel){};
+
+Result LED::_init()
 {
-    initErrorCode = _pwm.initErrorCode;
+    return _pwm.init();
+};
+void LED::_deinit()
+{
+    _pwm.deinit();
 };
 
 Result LED::start()

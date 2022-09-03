@@ -25,6 +25,8 @@ class ST77xx : Initializable
 {
   public:
     ST77xx(CommandSpi &cmdSpi, WaitHandler &waitHandler);
+    virtual Result _init();
+    virtual void _deinit();
     ST77xxConfig &config_get();
 
   protected:

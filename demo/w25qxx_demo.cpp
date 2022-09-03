@@ -20,13 +20,9 @@ using namespace ww::os;
 
 struct W25QxxDemo
 {
-    W25QxxDemo()
-        : csPin(*GPIOD, GPIO_PIN_6), spi1Dev(hspi1, &csPin, nullptr, nullptr),
-          w25qxx_1(spi1Dev, 500){};
-    SPI_HandleTypeDef hspi1;
+    W25QxxDemo(SpiWithPins &spi1Dev) : spi1Dev(spi1Dev), w25qxx_1(spi1Dev, 500){};
 
-    Pin csPin;
-    SpiWithPins spi1Dev;
+    SpiWithPins &spi1Dev;
     uint8_t w25qxx_1_buf[W25QXX_BUFFER_SIZE];
 
     W25QXX w25qxx_1;
@@ -63,11 +59,11 @@ static void run(W25QxxDemo &demo)
 
 void w25qxx_demo()
 {
-    W25QxxDemo demo;
-    demo.spi1Dev.pinconfig_get().csPinHighIsDisable = true;
+    W25QxxDemo *demo;
+    demo->spi1Dev.pinconfig_get().csPinHighIsDisable = true;
     while (1)
     {
-        run(demo);
+        run(*demo);
     }
 };
 } // namespace ww::device::demo

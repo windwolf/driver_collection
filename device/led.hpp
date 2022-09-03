@@ -14,8 +14,9 @@ using namespace ww::peripheral;
 class LED : public Initializable
 {
   public:
-    LED(Pwm &pwm, PwmChannel rChannel, PwmChannel gChannel,
-        PwmChannel bChannel);
+    LED(Pwm &pwm, PwmChannel rChannel, PwmChannel gChannel, PwmChannel bChannel);
+    virtual Result _init();
+    virtual void _deinit();
     Result start();
     Result stop();
     Result color_set(Color color);

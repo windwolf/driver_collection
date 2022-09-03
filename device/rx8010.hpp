@@ -11,7 +11,7 @@ using namespace ww::peripheral;
 using namespace ww::os;
 using namespace ww::temporal;
 
-class RX8010 : Initializable
+class RX8010 : public Initializable
 {
 
   public:

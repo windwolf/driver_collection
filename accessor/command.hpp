@@ -61,23 +61,16 @@ class Command
     Result send(CommandFrame &frame, WaitHandler &waitHandler);
 
   protected:
-    virtual Result media_command_send(CommandFrame &frame, WaitHandler &waitHandler);
+    virtual Result media_session_start() = 0;
+    virtual Result media_session_finish() = 0;
+    virtual Result media_command_send(CommandFrame &frame) = 0;
 
-    virtual Result media_step_send(CommandFramePhase phase, void *data, uint32_t size,
-                                   DataWidth dataWidth, bool isWrite, WaitHandler &waitHandler) = 0;
-    virtual Result media_session_start(WaitHandler &waitHandler) = 0;
-    virtual Result media_session_finish(WaitHandler &waitHandler) = 0;
-    virtual Result media_send(CommandFrame &frame, WaitHandler &waitHandler);
+  protected:
+    uint32_t _timeout;
+    WaitHandler *_waitHandler;
 
   private:
-    WaitHandler *_waitHandler;
-    uint32_t _timeout;
     uint32_t _readyFlag;
-    Result _session_begin(WaitHandler &waitHandler, uint32_t scope);
-    Result _session_end(WaitHandler &waitHandler, uint32_t scope);
-
-    Result _do_step_send(CommandFramePhase phase, void *data, uint32_t size, DataWidth dataWidth,
-                         bool isWrite, WaitHandler &waitHandler, uint32_t scope);
 };
 
 } // namespace ww::accessor

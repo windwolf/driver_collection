@@ -15,13 +15,15 @@ class CommandSpi : public Initializable, public Command
     virtual void _deinit();
 
   protected:
-    virtual Result media_step_send(CommandFramePhase phase, void *data, uint32_t dataSize,
-                                   DataWidth dataWidth, bool isWrite, WaitHandler &waitHandler);
-    virtual Result media_session_start(WaitHandler &waitHandler);
-    virtual Result media_session_finish(WaitHandler &waitHandler);
+    virtual Result media_command_send(CommandFrame &frame);
+    virtual Result media_session_start();
+    virtual Result media_session_finish();
 
   private:
     SpiWithPins &_spi;
+    Result _do_step_send(CommandFramePhase phase, void *data, uint32_t size,
+                                     DataWidth dataWidth, bool isWrite,
+                                     uint32_t scope);
 };
 } // namespace ww::device
 

@@ -82,8 +82,8 @@ class W25QXX : public Initializable
 {
   public:
     W25QXX(SpiWithPins &spi, uint32_t timeout);
-    virtual Result _init();
-    virtual void _deinit();
+    Result _init() override;
+    void _deinit() override;
     Result reset();
 
     Result mode_switch(W25QXX_CommandMode cmdMode);
@@ -92,9 +92,9 @@ class W25QXX : public Initializable
     Result chip_erase();
     Result id_read(uint32_t &mdId, uint32_t &jedecId);
 
-    Result media_read(void *data, uint32_t num, uint32_t dataSize, WaitHandler &waitHandler);
-    Result media_write(void *data, uint32_t num, uint32_t dataSize, WaitHandler &waitHandler);
-    Result media_erase(uint32_t num, uint32_t dataSize, WaitHandler &waitHandler);
+    Result media_read(void *data, uint32_t num, uint32_t size, WaitHandler &waitHandler);
+    Result media_write(void *data, uint32_t num, uint32_t size, WaitHandler &waitHandler);
+    Result media_erase(uint32_t num, uint32_t size, WaitHandler &waitHandler);
 
   private:
     Result _status_get(uint8_t reg_num, uint8_t &status);
@@ -127,16 +127,16 @@ class BlockableW25QXX : public Initializable, public Block
 {
   public:
     BlockableW25QXX(W25QXX &w25qxx, Buffer buffer);
-    virtual Result _init();
-    virtual void _deinit();
+    Result _init() override;
+    void _deinit() override;
 
   protected:
     W25QXX &_w25qxx;
-    virtual Result media_read(void *data, uint32_t num, uint32_t dataSize,
-                              WaitHandler &waitHandler);
-    virtual Result media_write(void *data, uint32_t num, uint32_t dataSize,
-                               WaitHandler &waitHandler);
-    virtual Result media_erase(uint32_t num, uint32_t dataSize, WaitHandler &waitHandler);
+    Result media_read(void *data, uint32_t num, uint32_t size,
+                      WaitHandler &waitHandler) override;
+    Result media_write(void *data, uint32_t num, uint32_t size,
+                       WaitHandler &waitHandler) override;
+    Result media_erase(uint32_t num, uint32_t size, WaitHandler &waitHandler) override;
 };
 
 } // namespace ww::device

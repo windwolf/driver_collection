@@ -11,14 +11,13 @@ class CommandQSPI : public Initializable, public Command
 {
   public:
     CommandQSPI(QSPI &qspi, uint32_t timeout);
-    virtual Result _init();
-    virtual void _deinit();
+    Result _init() override;
+    void _deinit() override;
+
   protected:
-    virtual Result media_operate(CommandFramePhase phase, void *data, uint32_t dataSize,
-                                 DataWidth dataWidth, bool isWrite, WaitHandler &waitHandler);
-    virtual Result media_session_start(WaitHandler &waitHandler);
-    virtual Result media_session_finish(WaitHandler &waitHandler);
-    virtual Result media_send(CommandFrame &frame, WaitHandler &waitHandler);
+    Result media_session_start(WaitHandler &waitHandler) override;
+    Result media_session_finish(WaitHandler &waitHandler) override;
+    Result media_send(CommandFrame &frame, WaitHandler &waitHandler) override;
 
   private:
     QSPI &_qspi;

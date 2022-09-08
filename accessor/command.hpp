@@ -8,21 +8,21 @@
 namespace ww::accessor
 {
 using namespace ww::os;
-enum CommandFrameMode
+enum class CommandFrameMode
 {
-    CommandFrameMode_Skip = 0,
-    CommandFrameMode_1line = 1,
-    CommandFrameMode_2line = 2,
-    CommandFrameMode_4line = 3,
+    Skip = 0,
+    Line1 = 1,
+    Line2 = 2,
+    Line4 = 3,
 };
 
-enum CommandFramePhase
+enum class CommandFramePhase
 {
-    CommandFramePhase_Command,
-    CommandFramePhase_Address,
-    CommandFramePhase_AltData,
-    CommandFramePhase_DummyCycle,
-    CommandFramePhase_Data,
+    Command,
+    Address,
+    AltData,
+    DummyCycle,
+    Data,
 };
 struct CommandFrame
 {

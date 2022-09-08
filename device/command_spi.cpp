@@ -26,31 +26,31 @@ Result CommandSpi::media_command_send(CommandFrame &frame)
     uint32_t scope = _waitHandler->scope_begin();
     do
     {
-        if (frame.commandMode != CommandFrameMode_Skip)
+        if (frame.commandMode != CommandFrameMode::Skip)
         {
-            rst = _do_step_send(CommandFramePhase_Command, &frame.commandId, 1, DATAWIDTH_8, true,
-                                scope);
-            if (rst != Result_OK)
+            rst = _do_step_send(CommandFramePhase::Command, &frame.commandId, 1, DataWidth::Bit8,
+                                true, scope);
+            if (rst != Result::OK)
             {
                 break;
             }
         }
 
-        if (frame.addressMode != CommandFrameMode_Skip)
+        if (frame.addressMode != CommandFrameMode::Skip)
         {
-            rst = _do_step_send(CommandFramePhase_Address, &frame.address, 1, frame.addressBits,
+            rst = _do_step_send(CommandFramePhase::Address, &frame.address, 1, frame.addressBits,
                                 true, scope);
-            if (rst != Result_OK)
+            if (rst != Result::OK)
             {
                 break;
             }
         }
 
-        if (frame.altDataMode != CommandFrameMode_Skip)
+        if (frame.altDataMode != CommandFrameMode::Skip)
         {
-            rst = _do_step_send(CommandFramePhase_AltData, &frame.altData, 1, frame.altDataBits,
+            rst = _do_step_send(CommandFramePhase::AltData, &frame.altData, 1, frame.altDataBits,
                                 true, scope);
-            if (rst != Result_OK)
+            if (rst != Result::OK)
             {
                 break;
             }
@@ -58,19 +58,19 @@ Result CommandSpi::media_command_send(CommandFrame &frame)
 
         if (frame.dummyCycles != 0)
         {
-            rst = _do_step_send(CommandFramePhase_DummyCycle, nullptr, frame.dummyCycles,
-                                DATAWIDTH_8, true, scope);
-            if (rst != Result_OK)
+            rst = _do_step_send(CommandFramePhase::DummyCycle, nullptr, frame.dummyCycles,
+                                DataWidth::Bit8, true, scope);
+            if (rst != Result::OK)
             {
                 break;
             }
         }
 
-        if (frame.dataSize > 0 && frame.dataMode != CommandFrameMode_Skip)
+        if (frame.dataSize > 0 && frame.dataMode != CommandFrameMode::Skip)
         {
-            rst = _do_step_send(CommandFramePhase_AltData, frame.data, frame.dataSize,
+            rst = _do_step_send(CommandFramePhase::AltData, frame.data, frame.dataSize,
                                 frame.dataBits, frame.isWrite, scope);
-            if (rst != Result_OK)
+            if (rst != Result::OK)
             {
                 break;
             }
@@ -87,17 +87,17 @@ Result CommandSpi::_do_step_send(CommandFramePhase phase, void *data, uint32_t s
     Result rst;
     switch (phase)
     {
-    case CommandFramePhase_Command:
-    case CommandFramePhase_Address:
-    case CommandFramePhase_AltData:
+    case CommandFramePhase::Command:
+    case CommandFramePhase::Address:
+    case CommandFramePhase::AltData:
         _spi.config_get().dataWidth = dataWidth;
         rst = _spi.write(false, data, size, *_waitHandler);
         break;
-    case CommandFramePhase_DummyCycle:
-        _waitHandler->set_value((void *)Result_NotSupport);
+    case CommandFramePhase::DummyCycle:
+        _waitHandler->set_value((void *)Result::NotSupport);
         _waitHandler->error_set(this);
         break;
-    case CommandFramePhase_Data:
+    case CommandFramePhase::Data:
         _spi.config_get().dataWidth = dataWidth;
         if (isWrite)
         {
@@ -109,32 +109,32 @@ Result CommandSpi::_do_step_send(CommandFramePhase phase, void *data, uint32_t s
         }
         break;
     default:
-        rst = Result_NotSupport;
+        rst = Result::NotSupport;
         break;
     }
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
     rst = _waitHandler->wait(scope, _timeout);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
     return rst;
 };
 
-Result CommandSpi::media_session_start( )
+Result CommandSpi::media_session_start()
 {
     _spi.session_begin();
     _waitHandler->done_set(this);
-    return Result_OK;
+    return Result::OK;
 };
-Result CommandSpi::media_session_finish( )
+Result CommandSpi::media_session_finish()
 {
     _spi.session_end();
     _waitHandler->done_set(this);
-    return Result_OK;
+    return Result::OK;
 };
 
 } // namespace ww::device

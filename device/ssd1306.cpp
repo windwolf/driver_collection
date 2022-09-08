@@ -22,7 +22,7 @@ Result SSD1306::_init()
     INIT_BEGIN()
     MEMBER_INIT_ERROR_CHECK(_i2c)
     _i2c.config_get().slaveAddress = 0x78;
-    _i2c.config_get().dataWidth = DATAWIDTH_8;
+    _i2c.config_get().dataWidth = DataWidth::Bit8;
     _scope = _waitHandler.scope_begin();
     INIT_END()
 };

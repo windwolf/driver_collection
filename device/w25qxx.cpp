@@ -145,7 +145,7 @@ Result W25QXX::_spi_cmd_send(CommandFrame &frame)
 {
     uint32_t scope = _waitHandler->scope_begin();
     auto rst = _cmdSpi.send(frame, *_waitHandler);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
@@ -158,29 +158,29 @@ Result W25QXX::reset()
     Result rst;
 
     rst = _reset_cmd();
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
     rst = _qpi_exit_cmd();
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
     W25QXX_Status2Register reg2;
     rst = _status_get(2, reg2.value);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
     reg2.QE = 0;
     rst = _status_set(2, reg2.value);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
     rst = _busy_wait();
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
@@ -198,7 +198,7 @@ Result W25QXX::mode_switch(W25QXX_CommandMode cmdMode)
         if (_cmdMode == W25QXX_CommandMode_QPI)
         {
             rst = _qpi_exit_cmd();
-            if (rst != Result_OK)
+            if (rst != Result::OK)
             {
                 return rst;
             }
@@ -215,43 +215,43 @@ Result W25QXX::mode_switch(W25QXX_CommandMode cmdMode)
                 _dummyCycles = 2;
             }
             rst = _status_get(2, reg2.value);
-            if (rst != Result_OK)
+            if (rst != Result::OK)
             {
                 return rst;
             }
             reg2.QE = 1;
             rst = _status_set(2, reg2.value);
-            if (rst != Result_OK)
+            if (rst != Result::OK)
             {
                 return rst;
             }
             rst = _qpi_enter_cmd();
-            if (rst != Result_OK)
+            if (rst != Result::OK)
             {
                 return rst;
             }
             _cmdMode = cmdMode;
             rst = _read_parameter_set();
-            if (rst != Result_OK)
+            if (rst != Result::OK)
             {
                 return rst;
             }
         }
     }
-    return Result_OK;
+    return Result::OK;
 };
 
 Result W25QXX::block_erase(uint32_t address)
 {
     Result rst;
     rst = _write_enable_cmd();
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
 
     rst = _erase_cmd(W25QXX_EraseMode_4K, address);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
@@ -261,12 +261,12 @@ Result W25QXX::chip_erase()
 {
     Result rst;
     rst = _write_enable_cmd();
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
     rst = _chip_erase_cmd();
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
@@ -277,7 +277,7 @@ Result W25QXX::media_read(void *data, uint32_t num, uint32_t size, WaitHandler &
 {
     if (_waitHandler != nullptr)
     {
-        return Result_Busy;
+        return Result::Busy;
     }
     _waitHandler = &waitHandler;
     _scope = waitHandler.scope_begin();
@@ -296,7 +296,7 @@ Result W25QXX::media_write(void *data, uint32_t num, uint32_t size, WaitHandler 
 {
     if (_waitHandler != nullptr)
     {
-        return Result_Busy;
+        return Result::Busy;
     }
     _waitHandler = &waitHandler;
     _scope = waitHandler.scope_begin();
@@ -304,13 +304,13 @@ Result W25QXX::media_write(void *data, uint32_t num, uint32_t size, WaitHandler 
     do
     {
         rst = _write_enable_cmd();
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             break;
         }
 
         rst = _write_cmd((uint8_t *)data, num, size);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             break;
         }
@@ -326,7 +326,7 @@ Result W25QXX::media_erase(uint32_t num, uint32_t size, WaitHandler &waitHandler
 {
     if (_waitHandler != nullptr)
     {
-        return Result_Busy;
+        return Result::Busy;
     }
     _waitHandler = &waitHandler;
     _scope = waitHandler.scope_begin();
@@ -340,7 +340,7 @@ Result W25QXX::media_erase(uint32_t num, uint32_t size, WaitHandler &waitHandler
         do
         {
             rst = block_erase(curAddr);
-            if (rst != Result_OK)
+            if (rst != Result::OK)
             {
                 break;
             }
@@ -357,49 +357,49 @@ Result W25QXX::media_erase(uint32_t num, uint32_t size, WaitHandler &waitHandler
 
 void W25QXX::_cmdline_config(CommandFrame &frame, W25QXX_CMD_LINE_MODE lineMode)
 {
-    frame.altDataMode = CommandFrameMode_Skip;
+    frame.altDataMode = CommandFrameMode::Skip;
     switch (lineMode)
     {
     case W25QXX_CMD_LINE_MODE_111:
-        frame.commandMode = CommandFrameMode_1line;
-        frame.addressMode = CommandFrameMode_1line;
+        frame.commandMode = CommandFrameMode::Line1;
+        frame.addressMode = CommandFrameMode::Line1;
 
-        frame.dataMode = CommandFrameMode_1line;
+        frame.dataMode = CommandFrameMode::Line1;
         break;
     case W25QXX_CMD_LINE_MODE_110:
-        frame.commandMode = CommandFrameMode_1line;
-        frame.addressMode = CommandFrameMode_1line;
-        frame.dataMode = CommandFrameMode_Skip;
+        frame.commandMode = CommandFrameMode::Line1;
+        frame.addressMode = CommandFrameMode::Line1;
+        frame.dataMode = CommandFrameMode::Skip;
         break;
     case W25QXX_CMD_LINE_MODE_101:
-        frame.commandMode = CommandFrameMode_1line;
-        frame.addressMode = CommandFrameMode_Skip;
-        frame.dataMode = CommandFrameMode_1line;
+        frame.commandMode = CommandFrameMode::Line1;
+        frame.addressMode = CommandFrameMode::Skip;
+        frame.dataMode = CommandFrameMode::Line1;
         break;
     case W25QXX_CMD_LINE_MODE_100:
-        frame.commandMode = CommandFrameMode_1line;
-        frame.addressMode = CommandFrameMode_Skip;
-        frame.dataMode = CommandFrameMode_Skip;
+        frame.commandMode = CommandFrameMode::Line1;
+        frame.addressMode = CommandFrameMode::Skip;
+        frame.dataMode = CommandFrameMode::Skip;
         break;
     case W25QXX_CMD_LINE_MODE_444:
-        frame.commandMode = CommandFrameMode_4line;
-        frame.addressMode = CommandFrameMode_4line;
-        frame.dataMode = CommandFrameMode_4line;
+        frame.commandMode = CommandFrameMode::Line4;
+        frame.addressMode = CommandFrameMode::Line4;
+        frame.dataMode = CommandFrameMode::Line4;
         break;
     case W25QXX_CMD_LINE_MODE_440:
-        frame.commandMode = CommandFrameMode_4line;
-        frame.addressMode = CommandFrameMode_4line;
-        frame.dataMode = CommandFrameMode_Skip;
+        frame.commandMode = CommandFrameMode::Line4;
+        frame.addressMode = CommandFrameMode::Line4;
+        frame.dataMode = CommandFrameMode::Skip;
         break;
     case W25QXX_CMD_LINE_MODE_404:
-        frame.commandMode = CommandFrameMode_4line;
-        frame.addressMode = CommandFrameMode_Skip;
-        frame.dataMode = CommandFrameMode_4line;
+        frame.commandMode = CommandFrameMode::Line4;
+        frame.addressMode = CommandFrameMode::Skip;
+        frame.dataMode = CommandFrameMode::Line4;
         break;
     case W25QXX_CMD_LINE_MODE_400:
-        frame.commandMode = CommandFrameMode_4line;
-        frame.addressMode = CommandFrameMode_Skip;
-        frame.dataMode = CommandFrameMode_Skip;
+        frame.commandMode = CommandFrameMode::Line4;
+        frame.addressMode = CommandFrameMode::Skip;
+        frame.dataMode = CommandFrameMode::Skip;
         break;
     default:
         break;
@@ -426,7 +426,7 @@ Result W25QXX::_status_get(uint8_t reg_num, uint8_t &status)
                                    : ((reg_num == 2) ? W25QXX_SPI_READ_STATUS_REG2_CMD
                                                      : W25QXX_SPI_READ_STATUS_REG3_CMD);
     cmd.dataSize = 1;
-    cmd.dataBits = DATAWIDTH_8;
+    cmd.dataBits = DataWidth::Bit8;
     cmd.isWrite = 0;
     cmd.data = &status;
 
@@ -452,7 +452,7 @@ Result W25QXX::_status_set(uint8_t reg_num, uint8_t status)
                                    : ((reg_num == 2) ? W25QXX_SPI_WRITE_STATUS_REG2_CMD
                                                      : W25QXX_SPI_WRITE_STATUS_REG3_CMD);
     cmd.dataSize = 1;
-    cmd.dataBits = DATAWIDTH_8;
+    cmd.dataBits = DataWidth::Bit8;
     cmd.isWrite = 1;
     cmd.data = &status;
 
@@ -474,12 +474,12 @@ Result W25QXX::id_read(uint32_t &mdId, uint32_t &jedecId)
     }
     cmd.commandId = W25QXX_SPI_READ_ID_CMD;
     cmd.address = 0x0000;
-    cmd.addressBits = DATAWIDTH_16;
+    cmd.addressBits = DataWidth::Bit16;
     cmd.data = &mdId;
-    cmd.dataBits = DATAWIDTH_8;
+    cmd.dataBits = DataWidth::Bit8;
     cmd.dataSize = 3;
     rst = _spi_cmd_send(cmd);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
@@ -494,7 +494,7 @@ Result W25QXX::id_read(uint32_t &mdId, uint32_t &jedecId)
     }
     cmd.commandId = W25QXX_SPI_READ_JEDEC_ID_CMD;
     cmd.data = &jedecId;
-    cmd.dataBits = DATAWIDTH_8;
+    cmd.dataBits = DataWidth::Bit8;
     cmd.dataSize = 3;
     rst = _spi_cmd_send(cmd);
     return rst;
@@ -507,13 +507,13 @@ Result W25QXX::_busy_wait()
     {
         rst = _status_get(1, status1.value);
 
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             return rst;
         }
         if (status1.BUSY)
         {
-            return Result_OK;
+            return Result::OK;
         }
         else
         {
@@ -551,7 +551,7 @@ Result W25QXX::_read_parameter_set()
         _cmdline_config(cmd, W25QXX_CMD_LINE_MODE_404);
         cmd.commandId = W25QXX_QPI_SET_READ_PARAMETERS_CMD;
         cmd.dataSize = 1;
-        cmd.dataBits = DATAWIDTH_8;
+        cmd.dataBits = DataWidth::Bit8;
         cmd.isWrite = 1;
         cmd.data = &params;
         rst = _spi_cmd_send(cmd);
@@ -560,7 +560,7 @@ Result W25QXX::_read_parameter_set()
     else
     {
         // SPI
-        return Result_NotSupport;
+        return Result::NotSupport;
     }
 };
 Result W25QXX::_write_enable_cmd()
@@ -596,11 +596,11 @@ Result W25QXX::_write_cmd(uint8_t *pData, uint32_t writeAddr, uint32_t size)
 
     cmd.commandId = W25QXX_SPI_PAGE_PROG_CMD;
     cmd.address = writeAddr;
-    cmd.addressBits = DATAWIDTH_24;
+    cmd.addressBits = DataWidth::Bit24;
     cmd.isWrite = 1;
     cmd.data = pData;
     cmd.dataSize = size;
-    cmd.dataBits = DATAWIDTH_8;
+    cmd.dataBits = DataWidth::Bit8;
 
     rst = _spi_cmd_send(cmd);
     return rst;
@@ -622,11 +622,11 @@ Result W25QXX::_read_cmd(uint8_t *pData, uint32_t readAddr, uint32_t size)
         cmd.dummyCycles = _dummyCycles;
     }
     cmd.address = readAddr;
-    cmd.addressBits = DATAWIDTH_24;
+    cmd.addressBits = DataWidth::Bit24;
 
     cmd.data = pData;
     cmd.dataSize = size;
-    cmd.dataBits = DATAWIDTH_8;
+    cmd.dataBits = DataWidth::Bit8;
     cmd.isWrite = 0;
 
     rst = _spi_cmd_send(cmd);
@@ -665,7 +665,7 @@ Result W25QXX::_reset_cmd()
 
     cmd.commandId = W25QXX_QPI_ENABLE_RESET_CMD;
     rst = _spi_cmd_send(cmd);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
@@ -691,7 +691,7 @@ Result W25QXX::_erase_cmd(W25QXX_EraseMode mode, uint32_t address)
                         : ((mode == W25QXX_EraseMode_32K) ? W25QXX_SPI_BLOCK_ERASE_32K_CMD
                                                           : W25QXX_SPI_BLOCK_ERASE_64K_CMD);
     cmd.address = address;
-    cmd.addressBits = DATAWIDTH_24;
+    cmd.addressBits = DataWidth::Bit24;
 
     rst = _spi_cmd_send(cmd);
     return rst;
@@ -726,9 +726,9 @@ Result BlockableW25QXX::_init()
         .readBlockSize = 0,
         .writeBlockSize = W25QXX_PAGE_SIZE,
         .eraseBlockSize = W25QXX_BLOCK_SIZE,
-        .readMode = BlockMode_Random,
-        .writeMode = BlockMode_Wrap,
-        .eraseMode = BlockMode_RandomBlock,
+        .readMode = BlockMode::Random,
+        .writeMode = BlockMode::Wrap,
+        .eraseMode = BlockMode::RandomBlock,
         .needEraseBeforeWrite = true,
     });
     INIT_END()

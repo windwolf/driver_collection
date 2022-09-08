@@ -11,19 +11,18 @@ class CommandSpi : public Initializable, public Command
 {
   public:
     CommandSpi(SpiWithPins &spi, uint32_t timeout);
-    virtual Result _init();
-    virtual void _deinit();
+    Result _init() override;
+    void _deinit() override;
 
   protected:
-    virtual Result media_command_send(CommandFrame &frame);
-    virtual Result media_session_start();
-    virtual Result media_session_finish();
+    Result media_command_send(CommandFrame &frame) override;
+    Result media_session_start() override;
+    Result media_session_finish() override;
 
   private:
     SpiWithPins &_spi;
-    Result _do_step_send(CommandFramePhase phase, void *data, uint32_t size,
-                                     DataWidth dataWidth, bool isWrite,
-                                     uint32_t scope);
+    Result _do_step_send(CommandFramePhase phase, void *data, uint32_t size, DataWidth dataWidth,
+                         bool isWrite, uint32_t scope);
 };
 } // namespace ww::device
 

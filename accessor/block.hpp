@@ -10,13 +10,13 @@ namespace ww::accessor
 {
 using namespace ww::os;
 
-enum BlockMode : uint8_t
+enum class BlockMode : uint8_t
 {
-    BlockMode_Random = 0x00,
-    BlockMode_Wrap = 0x01,
-    BlockMode_Blockwise = 0x02,
-    BlockMode_RandomBlock = 0x03,
-    BlockMode_Block = 0x04,
+    Random = 0x00,
+    Wrap = 0x01,
+    Blockwise = 0x02,
+    RandomBlock = 0x03,
+    Block = 0x04,
 };
 
 struct BlockConfig

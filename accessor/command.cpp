@@ -10,7 +10,7 @@ Result Command::send(CommandFrame &frame, WaitHandler &waitHandler)
     Result rst;
     if (_waitHandler != nullptr)
     {
-        return Result_Busy;
+        return Result::Busy;
     }
     _waitHandler = &waitHandler;
 
@@ -19,17 +19,17 @@ Result Command::send(CommandFrame &frame, WaitHandler &waitHandler)
     do
     {
         rst = media_session_start();
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             break;
         }
         rst = waitHandler.wait(scope, _timeout);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             break;
         }
         rst = media_command_send(frame);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             break;
         }
@@ -45,6 +45,5 @@ Result Command::send(CommandFrame &frame, WaitHandler &waitHandler)
     _waitHandler = nullptr;
     return rst;
 }
-
 
 } // namespace ww::accessor

@@ -36,6 +36,6 @@ Result LED::color_set(Color color)
     _pwm.duty_set(_gChannel, color.g);
     _pwm.duty_set(_bChannel, color.b);
 
-    return Result_OK;
+    return Result::OK;
 };
 } // namespace ww::device

@@ -26,10 +26,10 @@ ST77xxConfig &ST77xx::config_get()
 
 void ST77xx::_setup_command(CommandFrame &cmd)
 {
-    cmd.commandMode = CommandFrameMode_1line;
-    cmd.addressMode = CommandFrameMode_Skip;
-    cmd.altDataMode = CommandFrameMode_Skip;
-    cmd.dataMode = CommandFrameMode_1line;
+    cmd.commandMode = CommandFrameMode::Line1;
+    cmd.addressMode = CommandFrameMode::Skip;
+    cmd.altDataMode = CommandFrameMode::Skip;
+    cmd.dataMode = CommandFrameMode::Line1;
     cmd.dummyCycles = 0;
 };
 
@@ -45,12 +45,12 @@ Result ST77xx::_command(uint8_t cmdId)
         cmd.dataSize = 0;
 
         rst = _cmdSpi.send(cmd, _waitHandler);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             break;
         }
         rst = _waitHandler.wait(_scope, TIMEOUT_FOREVER);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             break;
         }
@@ -75,12 +75,12 @@ Result ST77xx::_command_data(uint8_t cmdId, void *data, uint16_t size, DataWidth
         cmd.dataBits = dataWidth;
 
         rst = _cmdSpi.send(cmd, _waitHandler);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             break;
         }
         rst = _waitHandler.wait(_scope, TIMEOUT_FOREVER);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             break;
         }

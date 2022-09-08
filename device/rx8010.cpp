@@ -71,7 +71,7 @@ namespace ww::device
 Result RX8010::_i2c_read(uint32_t address, void *data, uint32_t dataSize)
 {
     auto rst = _i2c.read(address, data, dataSize, _waitHandler);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
@@ -80,7 +80,7 @@ Result RX8010::_i2c_read(uint32_t address, void *data, uint32_t dataSize)
 Result RX8010::_i2c_write(uint32_t address, void *data, uint32_t dataSize)
 {
     auto rst = _i2c.write(address, data, dataSize, _waitHandler);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
@@ -96,7 +96,7 @@ Result RX8010::_init()
     MEMBER_INIT_ERROR_CHECK(_i2c)
     auto &i2cCfg = _i2c.config_get();
     i2cCfg.slaveAddress = RX8010_ADDRESS;
-    i2cCfg.dataWidth = DATAWIDTH_8;
+    i2cCfg.dataWidth = DataWidth::Bit8;
     _scope = _waitHandler.scope_begin();
     INIT_END()
 };
@@ -113,13 +113,13 @@ Result RX8010::por_init()
     Thread::sleep(50);
 
     auto rst = _i2c_read(REG_USER_RAM_BEGIN, (void *)&data, 1);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
 
     rst = _i2c_read(REG_FLAG, (void *)&data, 1);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
@@ -130,7 +130,7 @@ Result RX8010::por_init()
             LOG_E("rx8010 is not running");
             data &= ~VALUE_FLAG_VLF;
             rst = _i2c_write(REG_FLAG, (void *)&data, 1);
-            if (rst != Result_OK)
+            if (rst != Result::OK)
             {
                 return rst;
             }
@@ -141,40 +141,40 @@ Result RX8010::por_init()
             // software reset?
             data &= 0x7C;
         rst = _i2c_write(REG_FLAG, &data, 1);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             return rst;
         }
 
         data = 0xD8;
         rst = _i2c_write(REG_RES1, &data, 1);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             return rst;
         }
 
         data = 0x00;
         rst = _i2c_write(REG_RES2, &data, 1);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             return rst;
         }
 
         data = 0x08;
         rst = _i2c_write(REG_RES3, &data, 1);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             return rst;
         }
 
         rst = _i2c_read(REG_IRQ_CTRL, &data, 1);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             return rst;
         }
         data &= 0xF8;
         rst = _i2c_write(REG_IRQ_CTRL, &data, 1);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             return rst;
         }
@@ -184,53 +184,53 @@ Result RX8010::por_init()
     {
         data &= 0x7C;
         rst = _i2c_write(REG_FLAG, &data, 1);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             return rst;
         }
 
         data = 0xD8;
         rst = _i2c_write(REG_RES1, &data, 1);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             return rst;
         }
 
         data = 0x00;
         rst = _i2c_write(REG_RES2, &data, 1);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             return rst;
         }
 
         data = 0x08;
         rst = _i2c_write(REG_RES3, &data, 1);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             return rst;
         }
 
         rst = _i2c_read(REG_IRQ_CTRL, &data, 1);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             return rst;
         }
         data &= 0xF8;
         rst = _i2c_write(REG_IRQ_CTRL, &data, 1);
-        if (rst != Result_OK)
+        if (rst != Result::OK)
         {
             return rst;
         }
     }
 
-    return Result_OK;
+    return Result::OK;
 };
 
 Result RX8010::datetime_get(DateTime &datetime)
 {
     uint8_t data[7];
     auto rst = _i2c_read(REG_SEC, data, 7);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
@@ -240,7 +240,7 @@ Result RX8010::datetime_get(DateTime &datetime)
     datetime.day = Codex::bcd_to_byte(data[4]);
     datetime.month = Codex::bcd_to_byte(data[5]);
     datetime.year = Codex::bcd_to_byte(data[6]);
-    return Result_OK;
+    return Result::OK;
 };
 
 Result RX8010::datetime_set(const DateTime &datetime)
@@ -248,13 +248,13 @@ Result RX8010::datetime_set(const DateTime &datetime)
     uint8_t ctrl;
     uint8_t data[3];
     auto rst = _i2c_read(REG_CTRL, &ctrl, 1);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
     ctrl |= VALUE_CTRL_STOP;
     rst = _i2c_write(REG_CTRL, &ctrl, 1);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
@@ -262,7 +262,7 @@ Result RX8010::datetime_set(const DateTime &datetime)
     data[1] = Codex::byte_to_bcd(datetime.minute);
     data[2] = Codex::byte_to_bcd(datetime.hour);
     rst = _i2c_write(REG_SEC, data, 3);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }
@@ -270,7 +270,7 @@ Result RX8010::datetime_set(const DateTime &datetime)
     data[1] = Codex::byte_to_bcd(datetime.month);
     data[2] = Codex::byte_to_bcd(datetime.year);
     rst = _i2c_write(REG_DAY, data, 3);
-    if (rst != Result_OK)
+    if (rst != Result::OK)
     {
         return rst;
     }

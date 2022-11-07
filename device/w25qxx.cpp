@@ -714,7 +714,7 @@ Result W25QXX::_chip_erase_cmd()
     return rst;
 };
 
-BlockableW25QXX::BlockableW25QXX(W25QXX &w25qxx, Buffer buffer)
+BlockableW25QXX::BlockableW25QXX(W25QXX &w25qxx, Buffer8 buffer)
     : Block(buffer), _w25qxx(w25qxx){
 
                      };

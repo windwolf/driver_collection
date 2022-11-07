@@ -126,7 +126,7 @@ class W25QXX : public Initializable
 class BlockableW25QXX : public Initializable, public Block
 {
   public:
-    BlockableW25QXX(W25QXX &w25qxx, Buffer buffer);
+    BlockableW25QXX(W25QXX &w25qxx, Buffer8 buffer);
     Result _init() override;
     void _deinit() override;
 

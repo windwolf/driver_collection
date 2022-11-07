@@ -35,7 +35,7 @@
 
 //     typedef struct IoChainFrame
 //     {
-//         Buffer buffer;
+//         Buffer8 buffer;
 //         union
 //         {
 //             uint8_t flags;

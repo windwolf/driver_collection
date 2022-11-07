@@ -2,14 +2,18 @@
 
 #include "string.h"
 #include "stdlib.h"
+#include "math.h"
 
 #define LOG_MODULE "block"
 #include "log.h"
 
+#define min(a, b) (((a) <= (b)) ? (a) : (b))
+#define max(a, b) (((a) >= (b)) ? (a) : (b))
+
 namespace ww::accessor
 {
 
-Block::Block(Buffer &buffer) : _buffer(buffer){};
+Block::Block(Buffer8 &buffer) : _buffer(buffer){};
 
 Result Block::config_set(const BlockConfig &config)
 {

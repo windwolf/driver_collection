@@ -34,7 +34,7 @@ struct BlockConfig
 class Block
 {
   public:
-    Block(Buffer &buffer);
+    Block(Buffer8 &buffer);
     Result config_set(const BlockConfig &config);
 
     Result read(void *data, uint32_t address, uint32_t size, WaitHandler &waitHandler);
@@ -62,7 +62,7 @@ class Block
         uint32_t _eraseBlockSizeMask;
     } _procedConfig;
     BlockConfig _config;
-    Buffer _buffer;
+    Buffer8 _buffer;
     WaitHandler *_waitHandler;
     Result _write_directly(void *data, uint32_t address, uint32_t size, WaitHandler &waitHandler,
                            uint32_t scope);

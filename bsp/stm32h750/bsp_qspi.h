@@ -23,7 +23,7 @@ extern "C"
         void *parent;
         CommandQspiEventHandleFuncType onStatusPollingResult;
 
-        Buffer _rxBuffer;
+        Buffer8 _rxBuffer;
         struct
         {
             uint8_t isDmaTx : 1;

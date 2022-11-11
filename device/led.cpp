@@ -22,12 +22,12 @@ Result LED::start()
         .channelsEnable = (_rChannel | _gChannel | _bChannel),
         .fullScaleDuty = 256,
     };
-    return _pwm.start();
+    return _pwm.all_enable();
 }; // namespace ww::device
 
 Result LED::stop()
 {
-    return _pwm.stop();
+    return _pwm.all_disable();
 };
 
 Result LED::color_set(Color color)

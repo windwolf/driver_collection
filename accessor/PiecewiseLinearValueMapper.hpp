@@ -8,7 +8,7 @@
 #include "base.hpp"
 #include "ValueMapper.hpp"
 
-namespace ww::accessor
+namespace wibot::accessor
 {
 
 #define VALUE_MAPPER_AXIS_COUNT 3
@@ -50,6 +50,6 @@ namespace ww::accessor
 		float _range_scale[VALUE_MAPPER_AXIS_COUNT - 1];
 
 	};
-} // ww::accessor
+} // wibot::accessor
 
 #endif //WWMOTOR_LIBS_WWDEVICE_ACCESSOR_LINEARVALUEMAPPER_HPP_

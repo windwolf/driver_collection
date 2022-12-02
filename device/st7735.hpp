@@ -6,11 +6,11 @@
 #include "st77xx.hpp"
 #include "graph.hpp"
 
-namespace ww::device
+namespace wibot::device
 {
-using namespace ww::accessor;
-using namespace ww::peripheral;
-using namespace ww::graph;
+using namespace wibot::accessor;
+using namespace wibot::peripheral;
+using namespace wibot::graph;
 enum ST7735_CMD
 {
     ST7735_CMD_NOP = 0x00U,                        /* No Operation: NOP                           */
@@ -127,6 +127,6 @@ class ST7735 : public ST77xx
 
     Result id_read(uint32_t *id);
 };
-} // namespace ww::device
+} // namespace wibot::device
 
 #endif // __WWDEVICE_ST7735_HPP__

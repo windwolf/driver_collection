@@ -7,7 +7,7 @@
 #include "peripheral/i2c.hpp"
 
 #include "base.hpp"
-namespace wi::device
+namespace wibot::device
 {
 #define AS5600_I2C_ADDRESS 0x36
 #define AS5600_I2C_ZPOS 0x01
@@ -20,8 +20,8 @@ namespace wi::device
 #define AS5600_I2C_AGC 0x1A
 #define AS5600_I2C_MAGNITUDE 0x1B
 #define AS5600_I2C_BURN 0xFF
-	using namespace ww::os;
-	using namespace ww::peripheral;
+	using namespace wibot::os;
+	using namespace wibot::peripheral;
 	struct AS5600I2CConfig
 	{
 
@@ -46,7 +46,7 @@ namespace wi::device
 	 private:
 		AS5600I2CConfig _config;
 		I2cMaster& _i2c;
-		ww::WaitHandler _wh;
+		wibot::WaitHandler _wh;
 	};
 }
 #endif //WWMOTOR_LIBS_WWDEVICE_DEVICE_AS5600I2C_HPP_

@@ -2,11 +2,11 @@
 #define LOG_MODULE "cmdspi"
 #include "log.h"
 
-namespace ww::device
+namespace wibot::device
 {
 
-using namespace ww::accessor;
-using namespace ww::peripheral;
+using namespace wibot::accessor;
+using namespace wibot::peripheral;
 
 CommandSpi::CommandSpi(SpiWithPins &spi, uint32_t timeout) : Command(timeout), _spi(spi){};
 
@@ -137,4 +137,4 @@ Result CommandSpi::media_session_finish()
     return Result::OK;
 };
 
-} // namespace ww::device
+} // namespace wibot::device

@@ -10,7 +10,7 @@
 #define min(a, b) (((a) <= (b)) ? (a) : (b))
 #define max(a, b) (((a) >= (b)) ? (a) : (b))
 
-namespace ww::accessor
+namespace wibot::accessor
 {
 
 Block::Block(Buffer8 &buffer) : _buffer(buffer){};
@@ -488,4 +488,4 @@ Result Block::_write_directly(void *data, uint32_t address, uint32_t size, WaitH
     return Result::NotSupport;
 };
 
-} // namespace ww::accessor
+} // namespace wibot::accessor

@@ -4,7 +4,7 @@
 
 #include "ValueMapper.hpp"
 
-namespace ww::accessor
+namespace wibot::accessor
 {
 
-} // wwMotor2
+} // wibot::motor

@@ -8,13 +8,13 @@
 #define LOG_MODULE "w25qxx_demo"
 #include "log.h"
 
-namespace ww::device::demo
+namespace wibot::device::demo
 {
 
-using namespace ww::peripheral;
-using namespace ww::device;
-using namespace ww::accessor;
-using namespace ww::os;
+using namespace wibot::peripheral;
+using namespace wibot::device;
+using namespace wibot::accessor;
+using namespace wibot::os;
 
 #define W25QXX_BUFFER_SIZE W25QXX_BLOCK_SIZE
 
@@ -66,4 +66,4 @@ void w25qxx_demo()
         run(*demo);
     }
 };
-} // namespace ww::device::demo
+} // namespace wibot::device::demo

@@ -5,11 +5,11 @@
 #include "soc.hpp"
 #include "temporal/temporal.hpp"
 
-namespace ww::device
+namespace wibot::device
 {
-using namespace ww::peripheral;
-using namespace ww::os;
-using namespace ww::temporal;
+using namespace wibot::peripheral;
+using namespace wibot::os;
+using namespace wibot::temporal;
 
 class RX8010 : public Initializable
 {
@@ -30,6 +30,6 @@ class RX8010 : public Initializable
     Result _i2c_write(uint32_t address, void *data, uint32_t dataSize);
 };
 
-} // namespace ww::device
+} // namespace wibot::device
 
 #endif // __WWDEVICE_RX8010_HPP__

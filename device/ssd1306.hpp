@@ -3,10 +3,10 @@
 
 #include "os.hpp"
 #include "soc.hpp"
-namespace ww::device
+namespace wibot::device
 {
 
-using namespace ww::peripheral;
+using namespace wibot::peripheral;
 
 #define SSD1306_CMD_CONSTRAST_CONTROL 0x81 // CMD0
 #define SSD1306_CMD_ENTIRE_DISPLAY_ON 0xA4
@@ -126,6 +126,6 @@ class SSD1306 : public Initializable
     void on_op_err();
 };
 
-} // namespace ww::device
+} // namespace wibot::device
 
 #endif //___SSD1306_HPP__

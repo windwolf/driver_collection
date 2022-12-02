@@ -4,13 +4,13 @@
 #include "device/st7735.hpp"
 #include "graph.hpp"
 
-namespace ww::device::demo
+namespace wibot::device::demo
 {
-using namespace ww::accessor;
-using namespace ww::device;
-using namespace ww::os;
-using namespace ww::peripheral;
-using namespace ww::graph;
+using namespace wibot::accessor;
+using namespace wibot::device;
+using namespace wibot::os;
+using namespace wibot::peripheral;
+using namespace wibot::graph;
 
 #define ST7735_BUFFER_SIZE 160 * 80 * 2
 #define LCD_DATA_SIZE 100
@@ -95,4 +95,4 @@ void st77xx_demo()
     /* Create the main thread.  */
     run();
 };
-} // namespace ww::device::demo
+} // namespace wibot::device::demo

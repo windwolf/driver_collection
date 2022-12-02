@@ -4,7 +4,7 @@
 
 #include "LinearValueMapper.hpp"
 
-namespace ww::accessor
+namespace wibot::accessor
 {
 
 	float LinearValueMapper::value_get(uint32_t raw_value)
@@ -12,4 +12,4 @@ namespace ww::accessor
 		return (float)(raw_value - _config.zero_offset) * _config.value_per_unit;
 	}
 
-} // ww::accessor
+} // wibot::accessor

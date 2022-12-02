@@ -5,7 +5,7 @@
 #ifndef WWMOTOR_LIBS_WWDEVICE_ACCESSOR_VALUEMAPPER_HPP_
 #define WWMOTOR_LIBS_WWDEVICE_ACCESSOR_VALUEMAPPER_HPP_
 #include "base.hpp"
-namespace ww::accessor
+namespace wibot::accessor
 {
 
 	class ValueMapper
@@ -14,6 +14,6 @@ namespace ww::accessor
 		virtual float value_get(uint32_t in_value) = 0;
 	};
 
-} // wwMotor2
+} // wibot::motor
 
 #endif //WWMOTOR_LIBS_WWDEVICE_ACCESSOR_VALUEMAPPER_HPP_

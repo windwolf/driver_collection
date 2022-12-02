@@ -2,10 +2,10 @@
 #define __WWDEVICE_COMMAND_SPI_HPP__
 #include "command.hpp"
 #include "qspi.hpp"
-namespace ww::device
+namespace wibot::device
 {
-using namespace ww::accessor;
-using namespace ww::peripheral;
+using namespace wibot::accessor;
+using namespace wibot::peripheral;
 
 class CommandQSPI : public Initializable, public Command
 {
@@ -22,6 +22,6 @@ class CommandQSPI : public Initializable, public Command
   private:
     QSPI &_qspi;
 };
-} // namespace ww::device
+} // namespace wibot::device
 
 #endif // __WWDEVICE_COMMAND_SPI_HPP__

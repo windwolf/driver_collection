@@ -4,7 +4,7 @@
 #define LOG_MODULE "rx8010"
 #include "log.h"
 
-namespace ww::device
+namespace wibot::device
 {
 
 #define RX8010_ADDRESS 0x64U
@@ -655,4 +655,4 @@ static int rx8010_probe(struct i2c_client *client,
 }
 #endif
 
-} // namespace ww::device
+} // namespace wibot::device

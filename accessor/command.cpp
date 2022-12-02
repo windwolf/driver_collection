@@ -1,6 +1,6 @@
 #include "command.hpp"
 
-namespace ww::accessor
+namespace wibot::accessor
 {
 
 Command::Command(uint32_t timeout) : _timeout(timeout){};
@@ -46,4 +46,4 @@ Result Command::send(CommandFrame &frame, WaitHandler &waitHandler)
     return rst;
 }
 
-} // namespace ww::accessor
+} // namespace wibot::accessor

@@ -3,7 +3,7 @@
 //
 
 #include "AS5600I2C.hpp"
-void wi::device::AS5600I2C::zero_set()
+void wibot::device::AS5600I2C::zero_set()
 {
 	auto lv = _wh.scope_begin();
 	uint8_t data[2] = { 0x00, 0x00 };
@@ -23,7 +23,7 @@ void wi::device::AS5600I2C::zero_set()
 	_wh.scope_end();
 }
 
-Result wi::device::AS5600I2C::_init()
+Result wibot::device::AS5600I2C::_init()
 {
 	auto& cfg = _i2c.config_get();
 	cfg.slaveAddress = AS5600_I2C_ADDRESS;
@@ -33,7 +33,7 @@ Result wi::device::AS5600I2C::_init()
 	return _i2c.init();
 }
 
-void wi::device::AS5600I2C::angle_get(uint32_t& angle)
+void wibot::device::AS5600I2C::angle_get(uint32_t& angle)
 {
 	auto lv = _wh.scope_begin();
 	uint8_t data[2] = { 0x00, 0x00 };
@@ -42,11 +42,11 @@ void wi::device::AS5600I2C::angle_get(uint32_t& angle)
 	angle = (data[0] << 8) | data[1];
 	_wh.scope_end();
 }
-void wi::device::AS5600I2C::config_apply(wi::device::AS5600I2CConfig& config)
+void wibot::device::AS5600I2C::config_apply(wibot::device::AS5600I2CConfig& config)
 {
 	Configurable::config_apply(config);
 }
-void wi::device::AS5600I2C::_deinit()
+void wibot::device::AS5600I2C::_deinit()
 {
 	_i2c.deinit();
 

@@ -5,10 +5,10 @@
 #include "os.hpp"
 #include "soc.hpp"
 
-namespace ww::device
+namespace wibot::device
 {
-using namespace ww::graph;
-using namespace ww::peripheral;
+using namespace wibot::graph;
+using namespace wibot::peripheral;
 #define TIMER_CHANNEL uint8_t
 
 class LED : public Initializable
@@ -27,6 +27,6 @@ class LED : public Initializable
     PwmChannel _gChannel;
     PwmChannel _bChannel;
 };
-} // namespace ww::device
+} // namespace wibot::device
 
 #endif // __WWDEVICE_LED_HPP__

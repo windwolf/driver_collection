@@ -2,7 +2,7 @@
 #define ___WWDEVICE_GPS_HPP__
 
 #include "stdint.h"
-namespace ww::device {
+namespace wibot::device {
 
 struct GeoLocation2D {
     float longitude; // degrees
@@ -42,5 +42,5 @@ struct DateTime {
     uint8_t second;
     float millisescond;
 };
-} // namespace ww::device
+} // namespace wibot::device
 #endif // ___WWDEVICE_GPS_HPP__

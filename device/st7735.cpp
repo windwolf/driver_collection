@@ -1,10 +1,10 @@
 #include "st7735.hpp"
 
-namespace ww::device
+namespace wibot::device
 {
 #define ST7735_INTERNAL_BUFFER_SIZE (16)
-using namespace ww::accessor;
-using namespace ww::peripheral;
+using namespace wibot::accessor;
+using namespace wibot::peripheral;
 
 Result ST7735::init()
 {
@@ -320,4 +320,4 @@ Result ST7735::id_read(uint32_t *id)
 
     return Result::OK;
 };
-} // namespace ww::device
+} // namespace wibot::device

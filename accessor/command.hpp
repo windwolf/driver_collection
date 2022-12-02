@@ -5,9 +5,9 @@
 
 #include "os.hpp"
 #include "wait_handler.hpp"
-namespace ww::accessor
+namespace wibot::accessor
 {
-using namespace ww::os;
+using namespace wibot::os;
 enum class CommandFrameMode
 {
     Skip = 0,
@@ -73,6 +73,6 @@ class Command
     uint32_t _readyFlag;
 };
 
-} // namespace ww::accessor
+} // namespace wibot::accessor
 
 #endif // __WWDEVICE_ACCESSOR_COMMAND_HPP__

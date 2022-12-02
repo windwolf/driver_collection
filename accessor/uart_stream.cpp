@@ -1,8 +1,8 @@
 #include "uart_stream.hpp"
-namespace ww::accessor
+namespace wibot::accessor
 {
 
-using namespace ww::peripheral;
+using namespace wibot::peripheral;
 
 UartStream::UartStream(UART &uart, RingBuffer &rx_buffer, EventGroup &events, uint32_t doneFlag,
                        uint32_t errFlag)
@@ -56,4 +56,4 @@ RingBuffer &UartStream::rxBuffer_get()
 {
     return _rxBuffer;
 };
-} // namespace ww::accessor
+} // namespace wibot::accessor

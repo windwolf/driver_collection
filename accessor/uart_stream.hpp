@@ -4,10 +4,10 @@
 #include "ringbuffer.hpp"
 #include "soc.hpp"
 
-namespace ww::accessor
+namespace wibot::accessor
 {
 
-using namespace ww::peripheral;
+using namespace wibot::peripheral;
 
 class UartStream : public Initializable
 {
@@ -31,7 +31,7 @@ class UartStream : public Initializable
     WaitHandler *_rxWaitHandler;
     static void _rx_done_callback(void *sender, void *event, void *receiver);
     static void _rx_error_callback(void *sender, void *event, void *receiver);
-}; // namespace ww::peripheralclassUartStream
-} // namespace ww::accessor
+}; // namespace wibot::peripheralclassUartStream
+} // namespace wibot::accessor
 
 #endif // __WWDEVICE_ACCESSOR_UART_STREAM_HPP__

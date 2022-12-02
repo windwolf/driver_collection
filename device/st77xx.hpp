@@ -6,10 +6,10 @@
 #include "os.hpp"
 #include "soc.hpp"
 
-namespace ww::device
+namespace wibot::device
 {
-using namespace ww::accessor;
-using namespace ww::peripheral;
+using namespace wibot::accessor;
+using namespace wibot::peripheral;
 
 struct ST77xxConfig
 {
@@ -46,6 +46,6 @@ class ST77xx : Initializable
     uint32_t _scope;
 };
 
-} // namespace ww::device
+} // namespace wibot::device
 
 #endif // __WWDEVICE_ST77XX_HPP__

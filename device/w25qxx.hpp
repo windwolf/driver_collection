@@ -9,10 +9,10 @@
 #include "command_spi.hpp"
 #include "peripheral.hpp"
 
-namespace ww::device
+namespace wibot::device
 {
-using namespace ww::peripheral;
-using namespace ww::accessor;
+using namespace wibot::peripheral;
+using namespace wibot::accessor;
 #define W25QXX_PAGE_SIZE 256
 #define W25QXX_BLOCK_SIZE 4096
 enum W25QXX_CommandMode
@@ -139,4 +139,4 @@ class BlockableW25QXX : public Initializable, public Block
     Result media_erase(uint32_t num, uint32_t size, WaitHandler &waitHandler) override;
 };
 
-} // namespace ww::device
+} // namespace wibot::device

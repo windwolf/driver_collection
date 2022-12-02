@@ -2,10 +2,10 @@
 #define __WWDEVICE_COMMAND_SPI_HPP__
 #include "command.hpp"
 #include "spi.hpp"
-namespace ww::device
+namespace wibot::device
 {
-using namespace ww::accessor;
-using namespace ww::peripheral;
+using namespace wibot::accessor;
+using namespace wibot::peripheral;
 
 class CommandSpi : public Initializable, public Command
 {
@@ -24,6 +24,6 @@ class CommandSpi : public Initializable, public Command
     Result _do_step_send(CommandFramePhase phase, void *data, uint32_t size, DataWidth dataWidth,
                          bool isWrite, uint32_t scope);
 };
-} // namespace ww::device
+} // namespace wibot::device
 
 #endif // __WWDEVICE_COMMAND_SPI_HPP__

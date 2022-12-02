@@ -2,11 +2,11 @@
 // #define LOG_MODULE "cmdqspi"
 // #include "log.h"
 
-// namespace ww::device
+// namespace wibot::device
 // {
 
-// using namespace ww::accessor;
-// using namespace ww::peripheral;
+// using namespace wibot::accessor;
+// using namespace wibot::peripheral;
 
 // CommandQSPI::CommandQSPI(QSPI &qspi, uint32_t timeout) : Command(timeout), _qspi(qspi){};
 
@@ -39,4 +39,4 @@
 
 // Result CommandQSPI::media_send(CommandFrame &frame, WaitHandler &waitHandler);
 
-// } // namespace ww::device
+// } // namespace wibot::device

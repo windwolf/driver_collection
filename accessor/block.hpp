@@ -6,9 +6,9 @@
 
 #include "wait_handler.hpp"
 
-namespace ww::accessor
+namespace wibot::accessor
 {
-using namespace ww::os;
+using namespace wibot::os;
 
 enum class BlockMode : uint8_t
 {
@@ -68,6 +68,6 @@ class Block
                            uint32_t scope);
     Result _process_config();
 };
-} // namespace ww::accessor
+} // namespace wibot::accessor
 
 #endif // __WWDEVICE_ACCESSOR_BLOCK_HPP__

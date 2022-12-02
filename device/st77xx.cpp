@@ -1,9 +1,9 @@
 #include "st77xx.hpp"
 
-namespace ww::device
+namespace wibot::device
 {
-using namespace ww::accessor;
-using namespace ww::peripheral;
+using namespace wibot::accessor;
+using namespace wibot::peripheral;
 
 ST77xx::ST77xx(CommandSpi &cmdSpi, WaitHandler &waitHandler)
     : _cmdSpi(cmdSpi), _waitHandler(waitHandler){};
@@ -89,4 +89,4 @@ Result ST77xx::_command_data(uint8_t cmdId, void *data, uint16_t size, DataWidth
     return rst;
 };
 
-} // namespace ww::device
+} // namespace wibot::device

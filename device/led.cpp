@@ -1,6 +1,6 @@
 #include "led.hpp"
 
-namespace ww::device
+namespace wibot::device
 {
 
 LED::LED(Pwm &pwm, PwmChannel rChannel, PwmChannel gChannel, PwmChannel bChannel)
@@ -23,7 +23,7 @@ Result LED::start()
         .fullScaleDuty = 256,
     };
     return _pwm.all_enable();
-}; // namespace ww::device
+}; // namespace wibot::device
 
 Result LED::stop()
 {
@@ -38,4 +38,4 @@ Result LED::color_set(Color color)
 
     return Result::OK;
 };
-} // namespace ww::device
+} // namespace wibot::device

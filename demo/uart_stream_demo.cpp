@@ -8,14 +8,14 @@
 
 // #include "os.hpp"
 
-// namespace ww::device::demo
+// namespace wibot::device::demo
 // {
 
-// using namespace ww::peripheral;
-// using namespace ww::accessor;
-// using namespace ww::device;
-// using namespace ww::os;
-// using namespace ww::comm;
+// using namespace wibot::peripheral;
+// using namespace wibot::accessor;
+// using namespace wibot::device;
+// using namespace wibot::os;
+// using namespace wibot::comm;
 
 // extern UART_HandleTypeDef huart4;
 // static RAM2_BUFFER UART uart(huart4);
@@ -107,4 +107,4 @@
 //     //     }
 //     // }
 // }
-// } // namespace ww::device::demo
+// } // namespace wibot::device::demo

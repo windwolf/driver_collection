@@ -7,10 +7,10 @@
 #define SSD1306_COMMAND_STREAM 0x00
 #define SSD1306_COMMAND_SINGLE 0x80
 
-namespace ww::device
+namespace wibot::device
 {
-using namespace ww::peripheral;
-using namespace ww::os;
+using namespace wibot::peripheral;
+using namespace wibot::os;
 
 SSD1306::SSD1306(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag, uint32_t errorFlag)
     : _i2c(i2c), _waitHandler(eventGroup, doneFlag, errorFlag){
@@ -243,4 +243,4 @@ void SSD1306::draw()
     data_send(dataBuffer, bufferSize);
 }
 
-} // namespace ww::device
+} // namespace wibot::device

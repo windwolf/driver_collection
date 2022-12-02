@@ -121,9 +121,9 @@
 // W25QXX_EVENTS_DEVICE_BUSY_RESET(instance)
 // EVENTS_RESET_FLAGS(instance->events, W25QXX_EVENT_DEVICE_BUSY)
 
-namespace ww::device
+namespace wibot::device
 {
-using namespace ww::os;
+using namespace wibot::os;
 
 W25QXX::W25QXX(SpiWithPins &spi, uint32_t timeout)
     : _cmdSpi(spi, timeout), _timeout(timeout){
@@ -749,4 +749,4 @@ Result BlockableW25QXX::media_erase(uint32_t num, uint32_t size, WaitHandler &wa
     return _w25qxx.media_erase(num, size, waitHandler);
 }
 
-} // namespace ww::device
+} // namespace wibot::device

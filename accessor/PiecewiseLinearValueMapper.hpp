@@ -13,12 +13,12 @@ namespace ww::accessor
 
 #define VALUE_MAPPER_AXIS_COUNT 3
 
-	struct LinearValueMapperConfig
+	struct PiecewiseLinearValueMapperConfig
 	{
 		float value_per_unit;
 	};
 
-	class LinearValueMapper : public ValueMapper, public Configurable<LinearValueMapperConfig>
+	class PiecewiseLinearValueMapper : public ValueMapper, public Configurable<PiecewiseLinearValueMapperConfig>
 	{
 
 	 public:
@@ -45,9 +45,9 @@ namespace ww::accessor
 		uint32_t _cal_sum;
 		uint8_t _cal_count;
 
-		uint16_t _in_range[VALUE_MAPPER_AXIS_COUNT-1];
-		float _out_range[VALUE_MAPPER_AXIS_COUNT-1];
-		float _range_scale[VALUE_MAPPER_AXIS_COUNT-1];
+		uint16_t _in_range[VALUE_MAPPER_AXIS_COUNT - 1];
+		float _out_range[VALUE_MAPPER_AXIS_COUNT - 1];
+		float _range_scale[VALUE_MAPPER_AXIS_COUNT - 1];
 
 	};
 } // ww::accessor

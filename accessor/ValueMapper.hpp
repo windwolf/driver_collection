@@ -1,0 +1,16 @@
+//
+// Created by zhouj on 2022/11/21.
+//
+
+#ifndef WWMOTOR_LIBS_WWDEVICE_ACCESSOR_VALUEMAPPER_HPP_
+#define WWMOTOR_LIBS_WWDEVICE_ACCESSOR_VALUEMAPPER_HPP_
+
+namespace wwMotor2 {
+
+class ValueMapper {
+
+};
+
+} // wwMotor2
+
+#endif //WWMOTOR_LIBS_WWDEVICE_ACCESSOR_VALUEMAPPER_HPP_

@@ -31,8 +31,8 @@ struct ST77xxDemo
 
 static void test05_init(ST77xxDemo &demo)
 {
-    demo.dcPin.config_get().inverse = false;
-    auto &cfg = demo.st7735.config_get();
+    demo.dcPin.config.inverse = false;
+    auto &cfg = demo.st7735.config;
     cfg.xOffset = 1;
     cfg.yOffset = 26;
     cfg.width = 160;
@@ -55,7 +55,7 @@ static void test05(ST77xxDemo &demo)
     // Color565 color1 = {.value = 0x001F};
     Color565 color2 = {.value = 0xF800};
     Color565 color3 = {.value = 0x04F1};
-    demo.st7735.rect_fill(0, 0, demo.st7735.config_get().width, demo.st7735.config_get().height,
+    demo.st7735.rect_fill(0, 0, demo.st7735.config.width, demo.st7735.config.height,
                           color0.value); // inv:1=red; inv:0=yellow
     // st7735.hline_draw(10, 10, 20,
     //                   &color1.value); // inv:1=red+green; inv:0=sky+pink

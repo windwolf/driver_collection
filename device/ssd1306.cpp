@@ -21,8 +21,8 @@ Result SSD1306::_init()
 {
     INIT_BEGIN()
     MEMBER_INIT_ERROR_CHECK(_i2c)
-    _i2c.config_get().slaveAddress = 0x78;
-    _i2c.config_get().dataWidth = DataWidth::Bit8;
+    _i2c.config.slaveAddress = 0x78;
+    _i2c.config.dataWidth = DataWidth::Bit8;
     _scope = _waitHandler.scope_begin();
     INIT_END()
 };
@@ -30,11 +30,6 @@ void SSD1306::_deinit()
 {
     MEMBER_DEINIT(_i2c)
     _waitHandler.scope_end();
-};
-
-SSD1306Config &SSD1306::config_get()
-{
-    return _config;
 };
 
 void SSD1306::on_op_cplt(){
@@ -75,7 +70,7 @@ void SSD1306::data_send(uint8_t *data, uint16_t dataSize)
 void SSD1306::mem_mode_set()
 {
     _cmdBuffer[0] = SSD1306_CMD_SET_MEMORY_ADDRESSING_MODE;
-    _cmdBuffer[1] = (uint8_t)_config.memoryMode;
+    _cmdBuffer[1] = (uint8_t)config.memoryMode;
     cmd_send(2);
 };
 
@@ -83,7 +78,7 @@ void SSD1306::display(bool on)
 {
     if (on)
     {
-        if (_config.enableChargePump)
+        if (config.enableChargePump)
         {
             _cmdBuffer[0] = SSD1306_CMD_SET_CHARGE_PUMP;
             _cmdBuffer[1] = 0x14;
@@ -117,7 +112,7 @@ void SSD1306::contrast_set(uint8_t contrast)
 
 void SSD1306::pos_set(uint8_t page, uint8_t column)
 {
-    if (_config.memoryMode == SSD1306_MEMORY_ADDRESSING_MODE_PAGE)
+    if (config.memoryMode == SSD1306_MEMORY_ADDRESSING_MODE_PAGE)
     {
         _cmdBuffer[0] = SSD1306_CMD_SET_PAGE_START_ADDRESS | page;
         cmd_send(1);
@@ -130,11 +125,11 @@ void SSD1306::pos_set(uint8_t page, uint8_t column)
     {
         _cmdBuffer[0] = SSD1306_CMD_SET_PAGE_ADDRESS;
         _cmdBuffer[1] = page;
-        _cmdBuffer[2] = (_config.height - 1) / 8;
+        _cmdBuffer[2] = (config.height - 1) / 8;
         cmd_send(3);
         _cmdBuffer[0] = SSD1306_CMD_SET_COLUMN_ADDRESS;
         _cmdBuffer[1] = column;
-        _cmdBuffer[2] = _config.width - 1;
+        _cmdBuffer[2] = config.width - 1;
         cmd_send(3);
     }
 };
@@ -146,32 +141,32 @@ void SSD1306::clear()
         dataBuffer[i] = 0x00;
     }
 
-    SSD1306_MEMORY_ADDRESSING_MODE oldMode = _config.memoryMode;
-    _config.memoryMode = SSD1306_MEMORY_ADDRESSING_MODE_HORIZONTAL;
+    SSD1306_MEMORY_ADDRESSING_MODE oldMode = config.memoryMode;
+    config.memoryMode = SSD1306_MEMORY_ADDRESSING_MODE_HORIZONTAL;
     mem_mode_set();
 
     pos_set(0, 0);
 
     data_send(dataBuffer, bufferSize);
 
-    _config.memoryMode = oldMode;
+    config.memoryMode = oldMode;
     mem_mode_set();
 };
 
 //初始化SSD1306
 void SSD1306::lcd_init()
 {
-    bufferSize = _config.width * _config.height / 8;
+    bufferSize = config.width * config.height / 8;
     Thread::sleep(100);
 
     display(false);
 
     mem_mode_set();
 
-    _cmdBuffer[0] = SSD1306_CMD_SET_DISPLAY_START_LINE | _config.displayStartLine;
+    _cmdBuffer[0] = SSD1306_CMD_SET_DISPLAY_START_LINE | config.displayStartLine;
     cmd_send(1);
 
-    if (_config.comInverted)
+    if (config.comInverted)
     {
         _cmdBuffer[0] = SSD1306_CMD_SET_COM_OUTPUT_SCAN_DIRECTION_REMAP;
     }
@@ -181,7 +176,7 @@ void SSD1306::lcd_init()
     }
     cmd_send(1);
 
-    if (_config.segmentInverted)
+    if (config.segmentInverted)
     {
         _cmdBuffer[0] = SSD1306_CMD_SET_SEGMENT_REMAP_INVERSE;
     }
@@ -191,7 +186,7 @@ void SSD1306::lcd_init()
     }
     cmd_send(1);
 
-    if (_config.displayInverted)
+    if (config.displayInverted)
     {
         _cmdBuffer[0] = SSD1306_CMD_DISPLAY_INVERTED;
     }
@@ -202,27 +197,27 @@ void SSD1306::lcd_init()
     cmd_send(1);
 
     _cmdBuffer[0] = SSD1306_CMD_SET_MULTIPLEX_RATIO;
-    _cmdBuffer[1] = _config.multiplexRatio;
+    _cmdBuffer[1] = config.multiplexRatio;
     cmd_send(2);
 
     _cmdBuffer[0] = SSD1306_CMD_SET_DISPLAY_OFFSET;
-    _cmdBuffer[1] = _config.displayOffset;
+    _cmdBuffer[1] = config.displayOffset;
     cmd_send(2);
 
     _cmdBuffer[0] = SSD1306_CMD_SET_DISPLAY_CLOCK_DIVIDE_RATIO;
-    _cmdBuffer[1] = (uint8_t)((_config.fosc << 4) | _config.clkDivide);
+    _cmdBuffer[1] = (uint8_t)((config.fosc << 4) | config.clkDivide);
     cmd_send(2);
 
     _cmdBuffer[0] = SSD1306_CMD_SET_PRECHARGE_PERIOD;
-    _cmdBuffer[1] = _config.phase1period | (_config.phase2period << 4);
+    _cmdBuffer[1] = config.phase1period | (config.phase2period << 4);
     cmd_send(2);
 
     _cmdBuffer[0] = SSD1306_CMD_SET_COM_PINS_CONFIGURATION;
-    _cmdBuffer[1] = 0x02 | (_config.comLeftRightRemap << 5) | (_config.comAlternative << 4);
+    _cmdBuffer[1] = 0x02 | (config.comLeftRightRemap << 5) | (config.comAlternative << 4);
     cmd_send(2);
 
     _cmdBuffer[0] = SSD1306_CMD_SET_VCOMH_DESELECT_LEVEL;
-    _cmdBuffer[1] = _config.vcomhDeselectLevel;
+    _cmdBuffer[1] = config.vcomhDeselectLevel;
     cmd_send(2);
 
     _cmdBuffer[0] = SSD1306_CMD_ENTIRE_DISPLAY_ON;

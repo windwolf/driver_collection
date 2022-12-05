@@ -90,7 +90,7 @@ Result CommandSpi::_do_step_send(CommandFramePhase phase, void *data, uint32_t s
     case CommandFramePhase::Command:
     case CommandFramePhase::Address:
     case CommandFramePhase::AltData:
-        _spi.config_get().dataWidth = dataWidth;
+        _spi.config.dataWidth = dataWidth;
         rst = _spi.write(false, data, size, *_waitHandler);
         break;
     case CommandFramePhase::DummyCycle:
@@ -98,7 +98,7 @@ Result CommandSpi::_do_step_send(CommandFramePhase phase, void *data, uint32_t s
         _waitHandler->error_set(this);
         break;
     case CommandFramePhase::Data:
-        _spi.config_get().dataWidth = dataWidth;
+        _spi.config.dataWidth = dataWidth;
         if (isWrite)
         {
             rst = _spi.write(true, data, size, *_waitHandler);

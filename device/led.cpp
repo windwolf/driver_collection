@@ -18,7 +18,7 @@ void LED::_deinit()
 Result LED::start()
 {
     init();
-    _pwm.config_get() = PwmConfig{
+    _pwm.config = PwmConfig{
         .channelsEnable = (_rChannel | _gChannel | _bChannel),
         .fullScaleDuty = 256,
     };

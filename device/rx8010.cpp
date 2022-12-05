@@ -94,7 +94,7 @@ Result RX8010::_init()
 {
     INIT_BEGIN()
     MEMBER_INIT_ERROR_CHECK(_i2c)
-    auto &i2cCfg = _i2c.config_get();
+    auto &i2cCfg = _i2c.config;
     i2cCfg.slaveAddress = RX8010_ADDRESS;
     i2cCfg.dataWidth = DataWidth::Bit8;
     _scope = _waitHandler.scope_begin();

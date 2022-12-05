@@ -95,7 +95,7 @@ struct SSD1306Config
     uint8_t clkDivide : 4; // 0-15
 };
 
-class SSD1306 : public Initializable
+class SSD1306 : public Initializable, public Configurable<SSD1306Config>
 {
   public:
     uint8_t dataBuffer[SSD1306_DATA_BUFFER_SIZE];
@@ -103,7 +103,6 @@ class SSD1306 : public Initializable
 
     SSD1306(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag, uint32_t errorFlag);
 
-    SSD1306Config &config_get();
     Result _init() override;
     void _deinit() override;
     void lcd_init();
@@ -115,7 +114,6 @@ class SSD1306 : public Initializable
 
   private:
     uint8_t _cmdBuffer[SSD1306_CMD_BUFFER_SIZE];
-    SSD1306Config _config;
     I2cMaster &_i2c;
     WaitHandler _waitHandler;
     uint32_t _scope;

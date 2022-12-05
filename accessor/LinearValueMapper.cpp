@@ -9,7 +9,7 @@ namespace wibot::accessor
 
 	float LinearValueMapper::value_get(uint32_t raw_value)
 	{
-		return (float)(raw_value - _config.zero_offset) * _config.value_per_unit;
+		return (float)(raw_value - config.zero_offset) * config.value_per_unit;
 	}
 
 } // wibot::accessor

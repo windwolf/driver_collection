@@ -26,7 +26,7 @@ namespace wibot::device
 	{
 
 	};
-	class AS5600I2C : Initializable, Configurable<AS5600I2CConfig>
+	class AS5600I2C : public Initializable, public Configurable<AS5600I2CConfig>
 	{
 	 public:
 		AS5600I2C(I2cMaster& i2c, EventGroup& eventGroup, uint32_t doneFlag, uint32_t errorFlag)
@@ -47,6 +47,7 @@ namespace wibot::device
 		AS5600I2CConfig _config;
 		I2cMaster& _i2c;
 		wibot::WaitHandler _wh;
+		uint32_t _scope;
 	};
 }
 #endif //WWMOTOR_LIBS_WWDEVICE_DEVICE_AS5600I2C_HPP_

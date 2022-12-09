@@ -3,6 +3,7 @@
 //
 
 #include "AS5600I2C.hpp"
+#include "misc.hpp"
 void wibot::device::AS5600I2C::zero_set()
 {
 	const uint16_t calibrationRound = 500;
@@ -15,6 +16,7 @@ void wibot::device::AS5600I2C::zero_set()
 		_wh.wait(_scope, TIMEOUT_FOREVER);
 		uint16_t pos = (data[0] << 8) | data[1];
 		pos_sum += pos;
+		Misc::ms_delay(1);
 	}
 	pos_sum /= calibrationRound;
 	data[0] = pos_sum & 0xFF;

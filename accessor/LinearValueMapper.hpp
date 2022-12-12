@@ -24,8 +24,6 @@ namespace wibot::accessor
 
 	 public:
 
-		void config_apply(LinearValueMapperConfig& config);
-
 		float value_get(uint32_t in_value);
 
 	 private:

@@ -11,9 +11,5 @@ namespace wibot::accessor
 	{
 		return (float)(int32_t)(raw_value - config.zero_offset) * config.value_per_unit;
 	}
-	void LinearValueMapper::config_apply(LinearValueMapperConfig& config)
-	{
-		this->config = config;
-	}
 
 } // wibot::accessor

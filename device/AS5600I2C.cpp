@@ -33,11 +33,7 @@ Result wibot::device::AS5600I2C::_init()
 {
 	INIT_BEGIN()
 	MEMBER_INIT_ERROR_CHECK(_i2c)
-	auto& cfg = _i2c.config;
-	cfg.slaveAddress = AS5600_I2C_ADDRESS << 1;
-	cfg.dataWidth = DataWidth::Bit8;
-	//cfg.useRxDma = false;
-	//cfg.useTxDma = false;
+	apply_config();
 	_scope = _wh.scope_begin();
 	INIT_END()
 }
@@ -50,10 +46,11 @@ void wibot::device::AS5600I2C::angle_get(uint32_t& angle)
 	angle = (data[0] << 8) | data[1];
 }
 
-void wibot::device::AS5600I2C::config_apply(wibot::device::AS5600I2CConfig& config)
+void wibot::device::AS5600I2C::apply_config()
 {
-	this->config = config;
 	_i2c.config.slaveAddress = AS5600_I2C_ADDRESS << 1;
+	_i2c.config.dataWidth = DataWidth::Bit8;
+	_i2c.apply_config();
 }
 void wibot::device::AS5600I2C::_deinit()
 {

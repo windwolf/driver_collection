@@ -35,7 +35,7 @@ namespace wibot::device
 		{
 		};
 
-		void config_apply(AS5600I2CConfig& config);
+		void apply_config() override;
 
 		void zero_set();
 

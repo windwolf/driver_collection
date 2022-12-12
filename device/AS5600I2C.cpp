@@ -36,8 +36,8 @@ Result wibot::device::AS5600I2C::_init()
 	auto& cfg = _i2c.config;
 	cfg.slaveAddress = AS5600_I2C_ADDRESS << 1;
 	cfg.dataWidth = DataWidth::Bit8;
-	cfg.useRxDma = false;
-	cfg.useTxDma = false;
+	//cfg.useRxDma = false;
+	//cfg.useTxDma = false;
 	_scope = _wh.scope_begin();
 	INIT_END()
 }

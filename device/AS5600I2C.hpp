@@ -7,6 +7,7 @@
 #include "peripheral/i2c.hpp"
 
 #include "base.hpp"
+#include "DataSource.hpp"
 namespace wibot::device
 {
 #define AS5600_I2C_ADDRESS 0x36
@@ -26,7 +27,7 @@ namespace wibot::device
 	{
 
 	};
-	class AS5600I2C : public Initializable, public Configurable<AS5600I2CConfig>
+	class AS5600I2C : public Initializable, public Configurable<AS5600I2CConfig>, public DataSource
 	{
 	 public:
 		AS5600I2C(I2cMaster& i2c, EventGroup& eventGroup, uint32_t doneFlag, uint32_t errorFlag)
@@ -38,7 +39,14 @@ namespace wibot::device
 
 		void zero_set();
 
+		uint16_t get_config();
+		uint8_t get_status();
+		uint16_t get_zpos();
+		uint16_t get_mpos();
+
 		void angle_get(uint32_t& angle);
+
+		uint32_t get_data() override;
 
 	 protected:
 		Result _init() override;

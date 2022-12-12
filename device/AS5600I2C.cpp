@@ -19,8 +19,8 @@ void wibot::device::AS5600I2C::zero_set()
 		Misc::ms_delay(1);
 	}
 	pos_sum /= calibrationRound;
-	data[0] = pos_sum & 0xFF;
-	data[1] = (pos_sum >> 8) & 0xFF;
+	data[0] = (pos_sum >> 8) & 0xFF;
+	data[1] = pos_sum & 0xFF;
 	_i2c.write(AS5600_I2C_ZPOS, data, 2, _wh);
 	_wh.wait(_scope, TIMEOUT_FOREVER);
 	_i2c.write(AS5600_I2C_MPOS, data, 2, _wh);
@@ -60,4 +60,38 @@ void wibot::device::AS5600I2C::_deinit()
 	MEMBER_DEINIT(_i2c)
 	_wh.scope_end();
 
+}
+uint32_t wibot::device::AS5600I2C::get_data()
+{
+	uint32_t angle = 0;
+	angle_get(angle);
+	return angle;
+}
+uint16_t wibot::device::AS5600I2C::get_config()
+{
+	uint8_t data[2] = { 0x00, 0x00 };
+	_i2c.read(AS5600_I2C_CONF, data, 2, _wh);
+	_wh.wait(_scope, TIMEOUT_FOREVER);
+	return (data[0] << 8) | data[1];
+}
+uint8_t wibot::device::AS5600I2C::get_status()
+{
+	uint8_t data[1] = { 0x00 };
+	_i2c.read(AS5600_I2C_STATUS, data, 1, _wh);
+	_wh.wait(_scope, TIMEOUT_FOREVER);
+	return data[0];
+}
+uint16_t wibot::device::AS5600I2C::get_zpos()
+{
+	uint8_t data[2] = { 0x00, 0x00 };
+	_i2c.read(AS5600_I2C_ZPOS, data, 2, _wh);
+	_wh.wait(_scope, TIMEOUT_FOREVER);
+	return (data[0] << 8) | data[1];
+}
+uint16_t wibot::device::AS5600I2C::get_mpos()
+{
+	uint8_t data[2] = { 0x00, 0x00 };
+	_i2c.read(AS5600_I2C_MPOS, data, 2, _wh);
+	_wh.wait(_scope, TIMEOUT_FOREVER);
+	return (data[0] << 8) | data[1];
 }

@@ -3,7 +3,7 @@
 //
 
 #include "MT6816_SPI.hpp"
-
+#ifdef HAL_SPI_MODULE_ENABLED
 namespace wibot
 {
 	namespace device
@@ -18,3 +18,5 @@ namespace wibot
 		}
 	} // wibot
 } // device
+
+#endif

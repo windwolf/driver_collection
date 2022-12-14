@@ -99,7 +99,7 @@ OP_RESULT sd_device_query_status(SdDevice *device)
     return ((HAL_SD_GetCardState(handle) == HAL_SD_CARD_TRANSFER) ? OP_RESULT_OK : OP_RESULT_BUSY);
 }
 
-OP_RESULT sd_device_block_create(SdDevice *device, Block *block, Buffer buffer)
+OP_RESULT sd_device_block_create(SdDevice *device, Block *block, Buffer8 buffer)
 {
     return block_create(block, device,
                         device->blockSize, device->blockSize, device->blockSize,
@@ -129,7 +129,7 @@ OP_RESULT sd_device_card_init(SdDevice *device)
     device->cardSpeed = cardInfo.CardSpeed;
     device->cardType = cardInfo.CardType;
     device->cardVersion = cardInfo.CardVersion;
-    device->class = cardInfo.Class;
+    device->cardClass = cardInfo.Class;
     device->logBlockSize = cardInfo.LogBlockSize;
     device->logBlockNbr = cardInfo.LogBlockNbr;
     device->relCardAdd = cardInfo.RelCardAdd;

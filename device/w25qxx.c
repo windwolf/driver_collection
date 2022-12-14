@@ -348,7 +348,7 @@ static OP_RESULT _w25qxx_read_parameter_set(W25QXX *instance)
     {
         // QPI
         uint8_t params;
-        switch (cmd->dummyCycles)
+        switch (instance->dummyCycles)
         {
         case 2:
             params = 0x00;

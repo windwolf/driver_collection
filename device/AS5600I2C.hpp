@@ -35,7 +35,7 @@ namespace wibot::device
 		{
 		};
 
-		void apply_config() override;
+		Result apply_config() override;
 
 		void zero_set();
 

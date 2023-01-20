@@ -61,13 +61,12 @@ class Command
     Result send(CommandFrame &frame, WaitHandler &waitHandler);
 
   protected:
-    virtual Result media_session_start() = 0;
-    virtual Result media_session_finish() = 0;
-    virtual Result media_command_send(CommandFrame &frame) = 0;
+    virtual Result media_session_start(WaitHandler& waitHandler) = 0;
+    virtual Result media_session_finish(WaitHandler& waitHandler) = 0;
+    virtual Result media_command_send(CommandFrame &frame, WaitHandler& waitHandler) = 0;
 
   protected:
     uint32_t _timeout;
-    WaitHandler *_waitHandler;
 
   private:
     uint32_t _readyFlag;

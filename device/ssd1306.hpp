@@ -101,7 +101,7 @@ class SSD1306 : public Initializable, public Configurable<SSD1306Config>
     uint8_t dataBuffer[SSD1306_DATA_BUFFER_SIZE];
     uint16_t bufferSize;
 
-    SSD1306(I2cMaster &i2c, EventGroup &eventGroup, uint32_t doneFlag, uint32_t errorFlag);
+    SSD1306(I2cMaster &i2c, EventGroup &eventGroup);
 
     Result _init() override;
     void _deinit() override;
@@ -116,7 +116,6 @@ class SSD1306 : public Initializable, public Configurable<SSD1306Config>
     uint8_t _cmdBuffer[SSD1306_CMD_BUFFER_SIZE];
     I2cMaster &_i2c;
     WaitHandler _waitHandler;
-    uint32_t _scope;
     void data_send(uint8_t *data, uint16_t dataSize);
     void cmd_send(uint8_t cmdSize);
     void mem_mode_set();

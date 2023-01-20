@@ -75,7 +75,7 @@ namespace wibot::device
 		{
 			return rst;
 		}
-		return _waitHandler.wait(_scope, TIMEOUT_FOREVER);
+		return _waitHandler.wait(TIMEOUT_FOREVER);
 	};
 	Result RX8010::_i2c_write(uint32_t address, void* data, uint32_t dataSize)
 	{
@@ -84,11 +84,11 @@ namespace wibot::device
 		{
 			return rst;
 		}
-		return _waitHandler.wait(_scope, TIMEOUT_FOREVER);
+		return _waitHandler.wait(TIMEOUT_FOREVER);
 	};
 
-	RX8010::RX8010(I2cMaster& i2c, EventGroup& eventGroup, uint32_t doneFlag, uint32_t errorFlag)
-		: _i2c(i2c), _waitHandler(eventGroup, doneFlag, errorFlag)
+	RX8010::RX8010(I2cMaster& i2c, EventGroup& eventGroup)
+		: _i2c(i2c), _waitHandler(eventGroup)
 	{
 	};
 
@@ -99,13 +99,11 @@ namespace wibot::device
 		_i2c.config.slaveAddress = RX8010_ADDRESS;
 		_i2c.config.dataWidth = DataWidth::Bit8;
 		_i2c.apply_config();
-		_scope = _waitHandler.scope_begin();
 		INIT_END()
 	};
 	void RX8010::_deinit()
 	{
 		MEMBER_DEINIT(_i2c)
-		_waitHandler.scope_end();
 	};
 
 	Result RX8010::por_init()

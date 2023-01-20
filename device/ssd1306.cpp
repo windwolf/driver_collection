@@ -12,8 +12,8 @@ namespace wibot::device
 	using namespace wibot::peripheral;
 	using namespace wibot::os;
 
-	SSD1306::SSD1306(I2cMaster& i2c, EventGroup& eventGroup, uint32_t doneFlag, uint32_t errorFlag)
-		: _i2c(i2c), _waitHandler(eventGroup, doneFlag, errorFlag)
+	SSD1306::SSD1306(I2cMaster& i2c, EventGroup& eventGroup)
+		: _i2c(i2c), _waitHandler(eventGroup)
 	{
 
 	};
@@ -25,13 +25,11 @@ namespace wibot::device
 		_i2c.config.slaveAddress = 0x78;
 		_i2c.config.dataWidth = DataWidth::Bit8;
 		_i2c.apply_config();
-		_scope = _waitHandler.scope_begin();
 		INIT_END()
 	};
 	void SSD1306::_deinit()
 	{
 		MEMBER_DEINIT(_i2c)
-		_waitHandler.scope_end();
 	};
 
 	void SSD1306::on_op_cplt()
@@ -49,12 +47,12 @@ namespace wibot::device
 		if (cmdSize == 1)
 		{
 			_i2c.write(SSD1306_COMMAND_SINGLE, _cmdBuffer, cmdSize, _waitHandler);
-			_waitHandler.wait(_scope, TIMEOUT_FOREVER);
+			_waitHandler.wait(TIMEOUT_FOREVER);
 		}
 		else
 		{
 			_i2c.write(SSD1306_COMMAND_STREAM, _cmdBuffer, cmdSize, _waitHandler);
-			_waitHandler.wait(_scope, TIMEOUT_FOREVER);
+			_waitHandler.wait(TIMEOUT_FOREVER);
 		}
 	};
 	void SSD1306::data_send(uint8_t* data, uint16_t dataSize)
@@ -62,12 +60,12 @@ namespace wibot::device
 		if (dataSize == 1)
 		{
 			_i2c.write(SSD1306_DATA_SINGLE, data, dataSize, _waitHandler);
-			_waitHandler.wait(_scope, TIMEOUT_FOREVER);
+			_waitHandler.wait(TIMEOUT_FOREVER);
 		}
 		else
 		{
 			_i2c.write(SSD1306_DATA_STREAM, data, dataSize, _waitHandler);
-			_waitHandler.wait(_scope, TIMEOUT_FOREVER);
+			_waitHandler.wait(TIMEOUT_FOREVER);
 		}
 	};
 

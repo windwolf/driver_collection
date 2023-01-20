@@ -126,9 +126,11 @@ namespace wibot::device
 using namespace wibot::os;
 
 W25QXX::W25QXX(SpiWithPins &spi, uint32_t timeout)
-    : _cmdSpi(spi, timeout), _timeout(timeout){
+    : _cmdSpi(spi, timeout), _timeout(timeout),
+    eventGroup_(""),
+    waitHandler_(eventGroup_) {
 
-                             };
+    };
 
 Result W25QXX::_init()
 {
@@ -143,14 +145,12 @@ void W25QXX::_deinit()
 
 Result W25QXX::_spi_cmd_send(CommandFrame &frame)
 {
-    uint32_t scope = _waitHandler->scope_begin();
-    auto rst = _cmdSpi.send(frame, *_waitHandler);
+    auto rst = _cmdSpi.send(frame, waitHandler_);
     if (rst != Result::OK)
     {
         return rst;
     }
-    rst = _waitHandler->wait(scope, _timeout);
-    return rst;
+    return waitHandler_.wait(_timeout);
 };
 
 Result W25QXX::reset()
@@ -273,33 +273,12 @@ Result W25QXX::chip_erase()
     return _busy_wait();
 };
 
-Result W25QXX::media_read(void *data, uint32_t num, uint32_t size, WaitHandler &waitHandler)
+Result W25QXX::media_read(void *data, uint32_t num, uint32_t size)
 {
-    if (_waitHandler != nullptr)
-    {
-        return Result::Busy;
-    }
-    _waitHandler = &waitHandler;
-    _scope = waitHandler.scope_begin();
-
-    Result rst;
-    do
-    {
-        rst = _read_cmd((uint8_t *)data, num, size);
-    } while (0);
-    waitHandler.scope_end();
-    waitHandler.done_set(this);
-    _waitHandler = nullptr;
-    return rst;
+    return _read_cmd((uint8_t *)data, num, size);
 };
-Result W25QXX::media_write(void *data, uint32_t num, uint32_t size, WaitHandler &waitHandler)
+Result W25QXX::media_write(void *data, uint32_t num, uint32_t size)
 {
-    if (_waitHandler != nullptr)
-    {
-        return Result::Busy;
-    }
-    _waitHandler = &waitHandler;
-    _scope = waitHandler.scope_begin();
     Result rst;
     do
     {
@@ -316,21 +295,11 @@ Result W25QXX::media_write(void *data, uint32_t num, uint32_t size, WaitHandler 
         }
         rst = _busy_wait();
     } while (0);
-    waitHandler.scope_end();
-    waitHandler.done_set(this);
-    _waitHandler = nullptr;
     return rst;
 };
 
-Result W25QXX::media_erase(uint32_t num, uint32_t size, WaitHandler &waitHandler)
+Result W25QXX::media_erase(uint32_t num, uint32_t size)
 {
-    if (_waitHandler != nullptr)
-    {
-        return Result::Busy;
-    }
-    _waitHandler = &waitHandler;
-    _scope = waitHandler.scope_begin();
-
     Result rst;
     do
     {
@@ -348,10 +317,6 @@ Result W25QXX::media_erase(uint32_t num, uint32_t size, WaitHandler &waitHandler
 
         } while (curAddr <= blkEndAddr);
     } while (0);
-
-    waitHandler.scope_end();
-    waitHandler.done_set(this);
-    _waitHandler = nullptr;
     return rst;
 };
 
@@ -734,19 +699,20 @@ Result BlockableW25QXX::_init()
     INIT_END()
 };
 void BlockableW25QXX::_deinit(){MEMBER_DEINIT(_w25qxx)};
-Result BlockableW25QXX::media_read(void *data, uint32_t num, uint32_t size,
-                                   WaitHandler &waitHandler)
+
+Result BlockableW25QXX::media_read(void *data, uint32_t num, uint32_t size)
 {
-    return _w25qxx.media_read(data, num, size, waitHandler);
+    return _w25qxx.media_read(data, num, size);
 };
-Result BlockableW25QXX::media_write(void *data, uint32_t num, uint32_t size,
-                                    WaitHandler &waitHandler)
+
+Result BlockableW25QXX::media_write(void *data, uint32_t num, uint32_t size)
 {
-    return _w25qxx.media_write(data, num, size, waitHandler);
+    return _w25qxx.media_write(data, num, size);
 };
-Result BlockableW25QXX::media_erase(uint32_t num, uint32_t size, WaitHandler &waitHandler)
+
+Result BlockableW25QXX::media_erase(uint32_t num, uint32_t size)
 {
-    return _w25qxx.media_erase(num, size, waitHandler);
+    return _w25qxx.media_erase(num, size);
 }
 
 } // namespace wibot::device

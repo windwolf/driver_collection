@@ -57,27 +57,15 @@ Result Block::_process_config()
     return Result::OK;
 };
 
-Result Block::read(void *data, uint32_t address, uint32_t size, WaitHandler &waitHandler)
+Result Block::read(void *data, uint32_t address, uint32_t size)
 {
     Result rst;
-    if (_waitHandler != nullptr)
-    {
-        return Result::Busy;
-    }
-    _waitHandler = &waitHandler;
-
-    uint32_t scope = waitHandler.scope_begin();
 
     do
     {
         if (_config.readMode == BlockMode::Random)
         {
-            rst = media_read(data, address, size, waitHandler);
-            if (rst != Result::OK)
-            {
-                break;
-            }
-            rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+            rst = media_read(data, address, size);
             if (rst != Result::OK)
             {
                 break;
@@ -93,12 +81,7 @@ Result Block::read(void *data, uint32_t address, uint32_t size, WaitHandler &wai
                 return Result::InvalidParameter;
             }
             rst = media_read(data, address >> _procedConfig._readBlockSizeBits,
-                             size >> _procedConfig._readBlockSizeBits, waitHandler);
-            if (rst != Result::OK)
-            {
-                break;
-            }
-            return waitHandler.wait(scope, TIMEOUT_FOREVER);
+                             size >> _procedConfig._readBlockSizeBits);
             if (rst != Result::OK)
             {
                 break;
@@ -106,12 +89,7 @@ Result Block::read(void *data, uint32_t address, uint32_t size, WaitHandler &wai
         }
         else if (_config.readMode == BlockMode::Block)
         {
-            rst = media_read(data, address, size, waitHandler);
-            if (rst != Result::OK)
-            {
-                break;
-            }
-            return waitHandler.wait(scope, TIMEOUT_FOREVER);
+            rst = media_read(data, address, size);
             if (rst != Result::OK)
             {
                 break;
@@ -134,13 +112,8 @@ Result Block::read(void *data, uint32_t address, uint32_t size, WaitHandler &wai
 
                 remainSize -= sizeInBlock;
 
-                rst = media_read(curDataPtr, address, sizeInBlock, waitHandler);
+                rst = media_read(curDataPtr, address, sizeInBlock);
 
-                if (rst != Result::OK)
-                {
-                    break;
-                }
-                return waitHandler.wait(scope, TIMEOUT_FOREVER);
                 if (rst != Result::OK)
                 {
                     break;
@@ -159,29 +132,11 @@ Result Block::read(void *data, uint32_t address, uint32_t size, WaitHandler &wai
             break;
         }
     } while (0);
-
-    waitHandler.scope_end();
-    if (rst != Result::OK)
-    {
-        waitHandler.error_set(this);
-    }
-    else
-    {
-        waitHandler.done_set(this);
-    }
-    _waitHandler = nullptr;
     return rst;
 };
-Result Block::write(void *data, uint32_t address, uint32_t size, WaitHandler &waitHandler)
+Result Block::write(void *data, uint32_t address, uint32_t size)
 {
     Result rst;
-    if (_waitHandler != nullptr)
-    {
-        return Result::Busy;
-    }
-    _waitHandler = &waitHandler;
-
-    uint32_t scope = waitHandler.scope_begin();
 
     do
     {
@@ -216,34 +171,18 @@ Result Block::write(void *data, uint32_t address, uint32_t size, WaitHandler &wa
                 {
                     // address not aligned to erBlock or tail fragment.
                     // read->memcpy->erase->write.
-                    rst = read(buffer, erBlkAddr, erBlkSize, waitHandler); // read entire block
-                    if (rst != Result::OK)
-                    {
-                        break;
-                    }
-                    rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+                    rst = read(buffer, erBlkAddr, erBlkSize); // read entire block
                     if (rst != Result::OK)
                     {
                         break;
                     }
                     memcpy((void *)(buffer + wPosInBlk), (const void *)wData, wSizeInBlk);
-                    rst = erase(erBlkAddr, erBlkSize, waitHandler);
+                    rst = erase(erBlkAddr, erBlkSize);
                     if (rst != Result::OK)
                     {
                         break;
                     }
-                    rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
-                    if (rst != Result::OK)
-                    {
-                        break;
-                    }
-                    rst = _write_directly(buffer, erBlkAddr, erBlkSize, waitHandler,
-                                          scope); // write entire block
-                    if (rst != Result::OK)
-                    {
-                        break;
-                    }
-                    rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+                    rst = _write_directly(buffer, erBlkAddr, erBlkSize); // write entire block
                     if (rst != Result::OK)
                     {
                         break;
@@ -254,23 +193,13 @@ Result Block::write(void *data, uint32_t address, uint32_t size, WaitHandler &wa
                     // address aligned to erBlock. middle entire blocks. directly
                     // erase->write.
                     uint32_t blkCount = wRemainSize / erBlkSize;
-                    rst = erase(erBlkAddr, erBlkSize * blkCount, waitHandler);
-                    if (rst != Result::OK)
-                    {
-                        break;
-                    }
-                    rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+                    rst = erase(erBlkAddr, erBlkSize * blkCount);
                     if (rst != Result::OK)
                     {
                         break;
                     }
                     rst =
-                        _write_directly(wData, erBlkAddr, erBlkSize * blkCount, waitHandler, scope);
-                    if (rst != Result::OK)
-                    {
-                        break;
-                    }
-                    rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+                        _write_directly(wData, erBlkAddr, erBlkSize * blkCount);
                     if (rst != Result::OK)
                     {
                         break;
@@ -285,12 +214,7 @@ Result Block::write(void *data, uint32_t address, uint32_t size, WaitHandler &wa
         }
         else
         {
-            rst = _write_directly(data, address, size, waitHandler, scope);
-            if (rst != Result::OK)
-            {
-                break;
-            }
-            rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+            rst = _write_directly(data, address, size);
             if (rst != Result::OK)
             {
                 break;
@@ -298,40 +222,18 @@ Result Block::write(void *data, uint32_t address, uint32_t size, WaitHandler &wa
         }
     } while (0);
 
-    waitHandler.scope_end();
-    if (rst != Result::OK)
-    {
-        waitHandler.error_set(this);
-    }
-    else
-    {
-        waitHandler.done_set(this);
-    }
-    _waitHandler = nullptr;
     return rst;
 };
-Result Block::erase(uint32_t address, uint32_t size, WaitHandler &waitHandler)
+Result Block::erase(uint32_t address, uint32_t size)
 {
     Result rst;
-    if (_waitHandler != nullptr)
-    {
-        return Result::Busy;
-    }
-    _waitHandler = &waitHandler;
-
-    uint32_t scope = waitHandler.scope_begin();
 
     do
     {
         // TODO: simplfy these mode.
         if (_config.eraseMode == BlockMode::RandomBlock)
         {
-            rst = media_erase(address, size, waitHandler);
-            if (rst != Result::OK)
-            {
-                break;
-            }
-            rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+            rst = media_erase(address, size);
             if (rst != Result::OK)
             {
                 break;
@@ -339,12 +241,7 @@ Result Block::erase(uint32_t address, uint32_t size, WaitHandler &waitHandler)
         }
         else if (_config.eraseMode == BlockMode::Random)
         {
-            rst = media_erase(address, size, waitHandler);
-            if (rst != Result::OK)
-            {
-                break;
-            }
-            rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+            rst = media_erase(address, size);
             if (rst != Result::OK)
             {
                 break;
@@ -352,12 +249,7 @@ Result Block::erase(uint32_t address, uint32_t size, WaitHandler &waitHandler)
         }
         else if (_config.eraseMode == BlockMode::Block)
         {
-            rst = media_erase(address, size, waitHandler);
-            if (rst != Result::OK)
-            {
-                break;
-            }
-            rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+            rst = media_erase(address, size);
             if (rst != Result::OK)
             {
                 break;
@@ -374,12 +266,7 @@ Result Block::erase(uint32_t address, uint32_t size, WaitHandler &waitHandler)
                 break;
             }
             rst = media_erase(address >> (_procedConfig._eraseBlockSizeBits),
-                              size >> (_procedConfig._eraseBlockSizeBits), waitHandler);
-            if (rst != Result::OK)
-            {
-                break;
-            }
-            rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+                              size >> (_procedConfig._eraseBlockSizeBits));
             if (rst != Result::OK)
             {
                 break;
@@ -395,31 +282,15 @@ Result Block::erase(uint32_t address, uint32_t size, WaitHandler &waitHandler)
         }
     } while (0);
 
-    waitHandler.scope_end();
-    if (rst != Result::OK)
-    {
-        waitHandler.error_set(this);
-    }
-    else
-    {
-        waitHandler.done_set(this);
-    }
-    _waitHandler = nullptr;
     return rst;
 };
 
-Result Block::_write_directly(void *data, uint32_t address, uint32_t size, WaitHandler &waitHandler,
-                              uint32_t scope)
+Result Block::_write_directly(void *data, uint32_t address, uint32_t size)
 {
     Result rst;
     if (_config.writeMode == BlockMode::Random)
     {
-        rst = media_write(data, address, size, waitHandler);
-        if (rst != Result::OK)
-        {
-            return rst;
-        }
-        rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+        rst = media_write(data, address, size);
         if (rst != Result::OK)
         {
             return rst;
@@ -428,12 +299,7 @@ Result Block::_write_directly(void *data, uint32_t address, uint32_t size, WaitH
     else if (_config.writeMode == BlockMode::Blockwise)
     {
         rst = media_write(data, address >> (_procedConfig._writeBlockSizeBits),
-                          size >> (_procedConfig._writeBlockSizeBits), waitHandler);
-        if (rst != Result::OK)
-        {
-            return rst;
-        }
-        rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+                          size >> (_procedConfig._writeBlockSizeBits));
         if (rst != Result::OK)
         {
             return rst;
@@ -441,12 +307,7 @@ Result Block::_write_directly(void *data, uint32_t address, uint32_t size, WaitH
     }
     else if (_config.writeMode == BlockMode::Block)
     {
-        rst = media_write(data, address, size, waitHandler);
-        if (rst != Result::OK)
-        {
-            return rst;
-        }
-        rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+        rst = media_write(data, address, size);
         if (rst != Result::OK)
         {
             return rst;
@@ -466,12 +327,7 @@ Result Block::_write_directly(void *data, uint32_t address, uint32_t size, WaitH
             {
                 sizeInBlock = remainSize;
             }
-            rst = media_write(curDataPtr, address, sizeInBlock, waitHandler);
-            if (rst != Result::OK)
-            {
-                return rst;
-            }
-            rst = waitHandler.wait(scope, TIMEOUT_FOREVER);
+            rst = media_write(curDataPtr, address, sizeInBlock);
             if (rst != Result::OK)
             {
                 return rst;

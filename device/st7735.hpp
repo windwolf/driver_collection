@@ -106,7 +106,7 @@ enum ST7735_DISPLAY_REFRESH_ORDER
 class ST7735 : public ST77xx
 {
   public:
-    ST7735(CommandSpi &cmdSpi, WaitHandler &waitHandler) : ST77xx(cmdSpi, waitHandler){};
+    ST7735(CommandSpi &cmdSpi, EventGroup &eventGroup) : ST77xx(cmdSpi, eventGroup){};
     Result init();
 
     Result reset();

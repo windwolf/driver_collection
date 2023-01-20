@@ -15,14 +15,14 @@ class CommandSpi : public Initializable, public Command
     void _deinit() override;
 
   protected:
-    Result media_command_send(CommandFrame &frame) override;
-    Result media_session_start() override;
-    Result media_session_finish() override;
+    Result media_command_send(CommandFrame &frame, WaitHandler &waitHandler) override;
+    Result media_session_start(WaitHandler& waitHandler) override;
+    Result media_session_finish(WaitHandler& waitHandler) override;
 
   private:
     SpiWithPins &_spi;
     Result _do_step_send(CommandFramePhase phase, void *data, uint32_t size, DataWidth dataWidth,
-                         bool isWrite, uint32_t scope);
+                         bool isWrite, WaitHandler &waitHandler);
 };
 } // namespace wibot::device
 

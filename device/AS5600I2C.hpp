@@ -32,8 +32,8 @@ namespace wibot::device
                       public DataSource
     {
      public:
-        AS5600I2C(I2cMaster& i2c, EventGroup& eventGroup, uint32_t doneFlag, uint32_t errorFlag)
-            : _i2c(i2c), _wh(eventGroup, doneFlag, errorFlag)
+        AS5600I2C(I2cMaster& i2c, EventGroup& eventGroup)
+            : _i2c(i2c), _wh(eventGroup)
         {
         };
 
@@ -57,7 +57,6 @@ namespace wibot::device
         AS5600I2CConfig _config;
         I2cMaster& _i2c;
         wibot::WaitHandler _wh;
-        uint32_t _scope;
     };
 }
 #endif //WWMOTOR_LIBS_WWDEVICE_DEVICE_AS5600I2C_HPP_

@@ -8,27 +8,27 @@ Command::Command(uint32_t timeout) : _timeout(timeout){};
 Result Command::send(CommandFrame &frame, WaitHandler &waitHandler)
 {
     Result rst;
-    if (_waitHandler != nullptr)
-    {
-        return Result::Busy;
-    }
-    _waitHandler = &waitHandler;
 
-    uint32_t scope = waitHandler.scope_begin();
-
+    auto wh = waitHandler.folk();
     do
     {
-        rst = media_session_start();
+
+        rst = media_session_start(wh);
         if (rst != Result::OK)
         {
             break;
         }
-        rst = waitHandler.wait(scope, _timeout);
+        rst = wh.wait(_timeout);
         if (rst != Result::OK)
         {
             break;
         }
-        rst = media_command_send(frame);
+        rst = media_command_send(frame, wh);
+        if (rst != Result::OK)
+        {
+            break;
+        }
+        rst = wh.wait(_timeout);
         if (rst != Result::OK)
         {
             break;
@@ -37,12 +37,10 @@ Result Command::send(CommandFrame &frame, WaitHandler &waitHandler)
     } while (0);
 
     // TODO: error handler.
-    media_session_finish();
-    waitHandler.wait(scope, _timeout);
+    media_session_finish(wh);
+    wh.wait(_timeout);
 
-    waitHandler.scope_end();
     waitHandler.done_set(this);
-    _waitHandler = nullptr;
     return rst;
 }
 

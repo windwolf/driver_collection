@@ -5,19 +5,17 @@ namespace wibot::device
 using namespace wibot::accessor;
 using namespace wibot::peripheral;
 
-ST77xx::ST77xx(CommandSpi &cmdSpi, WaitHandler &waitHandler)
-    : _cmdSpi(cmdSpi), _waitHandler(waitHandler){};
+ST77xx::ST77xx(CommandSpi &cmdSpi, EventGroup& eventGroup)
+    : _cmdSpi(cmdSpi), _waitHandler(eventGroup){};
 Result ST77xx::_init()
 {
     INIT_BEGIN()
     MEMBER_INIT_ERROR_CHECK(_cmdSpi)
-    _scope = _waitHandler.scope_begin();
     INIT_END()
 };
 void ST77xx::_deinit()
 {
     MEMBER_DEINIT(_cmdSpi)
-    _waitHandler.scope_end();
 };
 ST77xxConfig &ST77xx::config_get()
 {
@@ -49,7 +47,7 @@ Result ST77xx::_command(uint8_t cmdId)
         {
             break;
         }
-        rst = _waitHandler.wait(_scope, TIMEOUT_FOREVER);
+        rst = _waitHandler.wait(TIMEOUT_FOREVER);
         if (rst != Result::OK)
         {
             break;
@@ -79,7 +77,7 @@ Result ST77xx::_command_data(uint8_t cmdId, void *data, uint16_t size, DataWidth
         {
             break;
         }
-        rst = _waitHandler.wait(_scope, TIMEOUT_FOREVER);
+        rst = _waitHandler.wait(TIMEOUT_FOREVER);
         if (rst != Result::OK)
         {
             break;

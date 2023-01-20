@@ -24,7 +24,7 @@ struct ST77xxConfig
 class ST77xx : Initializable
 {
   public:
-    ST77xx(CommandSpi &cmdSpi, WaitHandler &waitHandler);
+    ST77xx(CommandSpi &cmdSpi, EventGroup& eventGroup);
     Result _init() override;
     void _deinit() override;
     ST77xxConfig &config_get();
@@ -42,8 +42,7 @@ class ST77xx : Initializable
 
   private:
     CommandSpi &_cmdSpi;
-    WaitHandler &_waitHandler;
-    uint32_t _scope;
+    WaitHandler _waitHandler;
 };
 
 } // namespace wibot::device

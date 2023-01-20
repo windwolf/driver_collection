@@ -92,9 +92,9 @@ class W25QXX : public Initializable
     Result chip_erase();
     Result id_read(uint32_t &mdId, uint32_t &jedecId);
 
-    Result media_read(void *data, uint32_t num, uint32_t size, WaitHandler &waitHandler);
-    Result media_write(void *data, uint32_t num, uint32_t size, WaitHandler &waitHandler);
-    Result media_erase(uint32_t num, uint32_t size, WaitHandler &waitHandler);
+    Result media_read(void *data, uint32_t num, uint32_t size);
+    Result media_write(void *data, uint32_t num, uint32_t size);
+    Result media_erase(uint32_t num, uint32_t size);
 
   private:
     Result _status_get(uint8_t reg_num, uint8_t &status);
@@ -119,8 +119,8 @@ class W25QXX : public Initializable
     uint32_t _timeout;
     W25QXX_CommandMode _cmdMode;
     uint8_t _dummyCycles;
-    WaitHandler *_waitHandler;
-    uint32_t _scope;
+    EventGroup eventGroup_;
+    WaitHandler waitHandler_;
 };
 
 class BlockableW25QXX : public Initializable, public Block
@@ -132,11 +132,9 @@ class BlockableW25QXX : public Initializable, public Block
 
   protected:
     W25QXX &_w25qxx;
-    Result media_read(void *data, uint32_t num, uint32_t size,
-                      WaitHandler &waitHandler) override;
-    Result media_write(void *data, uint32_t num, uint32_t size,
-                       WaitHandler &waitHandler) override;
-    Result media_erase(uint32_t num, uint32_t size, WaitHandler &waitHandler) override;
+    Result media_read(void *data, uint32_t num, uint32_t size) override;
+    Result media_write(void *data, uint32_t num, uint32_t size) override;
+    Result media_erase(uint32_t num, uint32_t size) override;
 };
 
 } // namespace wibot::device

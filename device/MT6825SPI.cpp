@@ -23,19 +23,17 @@ namespace wibot
         Result MT6825SPI::_init()
         {
             INIT_BEGIN()
-            scope_ = wh_.scope_begin();
             MEMBER_INIT_ERROR_CHECK(spi_);
             INIT_END()
         }
         void MT6825SPI::_deinit()
         {
-            wh_.scope_end();
         }
         uint32_t MT6825SPI::get_angle()
         {
             cmd_[0] = MT6825_SPI_ANGLE1_REG | MT6825_SPI_READ_CMD;
             spi_.write_read(cmd_, cmd_, 4, wh_);
-            wh_.wait(scope_, TIMEOUT_FOREVER);
+            wh_.wait(scope_);
             return (cmd_[1] << 10) | ((cmd_[2] & 0xfc) << 2) | (cmd_[3] >> 4);
         }
         uint32_t MT6825SPI::get_data()

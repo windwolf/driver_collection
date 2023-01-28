@@ -42,7 +42,6 @@ namespace wibot::device
         Spi& spi_;
         uint8_t cmd_[4];
         wibot::WaitHandler wh_;
-        uint32_t scope_;
     };
 
 } // wibot.::device

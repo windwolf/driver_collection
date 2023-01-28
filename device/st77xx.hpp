@@ -21,16 +21,14 @@ struct ST77xxConfig
     uint16_t yOffset;
 };
 
-class ST77xx : Initializable
+class ST77xx : public Initializable, public Configurable<ST77xxConfig>
 {
   public:
     ST77xx(CommandSpi &cmdSpi, EventGroup& eventGroup);
     Result _init() override;
     void _deinit() override;
-    ST77xxConfig &config_get();
 
   protected:
-    ST77xxConfig _config;
     uint8_t _cmdData[16];
     uint8_t _pvGamma[16];
     uint8_t _nvGamma[16];

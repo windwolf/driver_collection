@@ -33,7 +33,6 @@ static void run(W25QxxDemo &demo)
 {
     uint32_t w25qxx_1_id;
     EventGroup eg("");
-    WaitHandler wh(eg, 0x01, 0x02);
     demo.w25qxx_1.reset();
     uint32_t mdId, jedecId;
     demo.w25qxx_1.id_read(mdId, jedecId);
@@ -41,14 +40,10 @@ static void run(W25QxxDemo &demo)
 
     w25qxx_1_id = 0x11223344;
     LOG_D("W25QXX-1: w=%lx", w25qxx_1_id);
-    wh.reset();
-    uint32_t scope = wh.scope_begin();
-    demo.w25qxx_1.media_write((uint8_t *)&w25qxx_1_id, 0x0000, 4, wh);
-    wh.wait(scope, TIMEOUT_FOREVER);
 
-    wh.reset();
-    demo.w25qxx_1.media_read(demo.data1_buf, 0x0000, 256, wh);
-    wh.wait(scope, TIMEOUT_FOREVER);
+    demo.w25qxx_1.media_write((uint8_t *)&w25qxx_1_id, 0x0000, 4);
+
+    demo.w25qxx_1.media_read(demo.data1_buf, 0x0000, 256);
 
     LOG_D("W25QXX-1: r=%lx", *((uint32_t *)demo.data1_buf));
     while (1)

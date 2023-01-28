@@ -5,7 +5,7 @@ namespace wibot::device
 using namespace wibot::accessor;
 using namespace wibot::peripheral;
 
-ST77xx::ST77xx(CommandSpi &cmdSpi, EventGroup& eventGroup)
+ST77xx::ST77xx(CommandSpi &cmdSpi, EventGroup &eventGroup)
     : _cmdSpi(cmdSpi), _waitHandler(eventGroup){};
 Result ST77xx::_init()
 {
@@ -16,10 +16,6 @@ Result ST77xx::_init()
 void ST77xx::_deinit()
 {
     MEMBER_DEINIT(_cmdSpi)
-};
-ST77xxConfig &ST77xx::config_get()
-{
-    return _config;
 };
 
 void ST77xx::_setup_command(CommandFrame &cmd)

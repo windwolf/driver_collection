@@ -18,13 +18,12 @@ using namespace wibot::graph;
 struct ST77xxDemo
 {
     ST77xxDemo(Pin dcPin, SpiWithPins spi4pDev)
-        : dcPin(dcPin), spi4pDev(spi4pDev), eg(""), st7735_cmd(spi4pDev, 500), wh(eg, 0x01, 0x02),
-          st7735(st7735_cmd, wh){};
+        : dcPin(dcPin), spi4pDev(spi4pDev), eg(""), st7735_cmd(spi4pDev, 500),
+          st7735(st7735_cmd, eg){};
     Pin &dcPin;
     SpiWithPins &spi4pDev;
     EventGroup eg;
     CommandSpi st7735_cmd;
-    WaitHandler wh;
     ST7735 st7735;
     uint16_t lcddata[LCD_DATA_SIZE];
 };

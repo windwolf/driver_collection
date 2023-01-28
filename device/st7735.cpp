@@ -85,7 +85,7 @@ Result ST7735::reset()
 
     _command(ST7735_CMD_DISPLAY_INVERSION_ON);
 
-    _command_data(ST7735_CMD_INTERFACE_PIXEL_FORMAT, &_config.colorMode, 1, DataWidth::Bit8, true);
+    _command_data(ST7735_CMD_INTERFACE_PIXEL_FORMAT, &config.colorMode, 1, DataWidth::Bit8, true);
 
     _command_data(ST7735_CMD_POSITIVE_VOLTAGE_GAMMA_CONTROL, _pvGamma, 16, DataWidth::Bit8, true);
 
@@ -95,7 +95,7 @@ Result ST7735::reset()
 
     _command(ST7735_CMD_DISPLAY_ON);
 
-    _command_data(ST7735_CMD_MEMORY_DATA_ACCESS_CONTROL, &_config.orientation, 1, DataWidth::Bit8,
+    _command_data(ST7735_CMD_MEMORY_DATA_ACCESS_CONTROL, &config.orientation, 1, DataWidth::Bit8,
                   true);
 
     return Result::OK;
@@ -115,10 +115,10 @@ Result ST7735::sleep(bool on)
 
 Result ST7735::display_window_set(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 {
-    x1 += _config.xOffset;
-    x2 += _config.xOffset;
-    y1 += _config.yOffset;
-    y2 += _config.yOffset;
+    x1 += config.xOffset;
+    x2 += config.xOffset;
+    y1 += config.yOffset;
+    y2 += config.yOffset;
 
     uint16_t x[2] = {x1, x2};
     _command_data(ST7735_CMD_COLUMN_ADDRESS_SET, x, 2, DataWidth::Bit16, true);
@@ -129,9 +129,9 @@ Result ST7735::display_window_set(uint16_t x1, uint16_t y1, uint16_t x2, uint16_
 };
 Result ST7735::cursor_set(uint16_t x, uint16_t y)
 {
-    x += _config.xOffset;
+    x += config.xOffset;
     _command_data(ST7735_CMD_COLUMN_ADDRESS_SET, &x, 1, DataWidth::Bit16, true);
-    y += _config.yOffset;
+    y += config.yOffset;
     _command_data(ST7735_CMD_ROW_ADDRESS_SET, &y, 1, DataWidth::Bit16, true);
 
     return Result::OK;
@@ -147,7 +147,7 @@ Result ST7735::pixel_draw(uint16_t x, uint16_t y, uint16_t color)
 {
     Result ret = Result::OK;
 
-    if ((x >= _config.width) || (y >= _config.height))
+    if ((x >= config.width) || (y >= config.height))
     {
         return Result::InvalidParameter;
     }
@@ -166,7 +166,7 @@ Result ST7735::hline_draw(uint16_t x1, uint16_t y, uint16_t x2, uint16_t *data)
 {
     Result ret = Result::OK;
 
-    if ((x1 > _config.width) || (x2 > _config.width))
+    if ((x1 > config.width) || (x2 > config.width))
     {
         return Result::InvalidParameter;
     }
@@ -186,7 +186,7 @@ Result ST7735::vline_draw(uint16_t x, uint16_t y1, uint16_t y2, uint16_t *data)
 {
     Result ret = Result::OK;
 
-    if ((y1 > _config.height) || (y2 > _config.height))
+    if ((y1 > config.height) || (y2 > config.height))
     {
         return Result::InvalidParameter;
     }
@@ -207,11 +207,11 @@ Result ST7735::rect_draw(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uin
 {
     Result ret = Result::OK;
 
-    if (x1 > _config.width || x2 > _config.width)
+    if (x1 > config.width || x2 > config.width)
     {
         return Result::InvalidParameter;
     }
-    if (y1 > _config.height || y2 > _config.height)
+    if (y1 > config.height || y2 > config.height)
     {
         return Result::InvalidParameter;
     }
@@ -232,11 +232,11 @@ Result ST7735::rect_fill(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uin
 {
     Result ret = Result::OK;
 
-    if (x1 > _config.width || x2 > _config.width)
+    if (x1 > config.width || x2 > config.width)
     {
         return Result::InvalidParameter;
     }
-    if (y1 > _config.height || y2 > _config.height)
+    if (y1 > config.height || y2 > config.height)
     {
         return Result::InvalidParameter;
     }

@@ -26,8 +26,8 @@ namespace wibot::device
                       public DataSource
     {
      public:
-        MT6816SPI(Spi& spi, EventGroup& eg, uint32_t done_event, uint32_t error_event)
-            : spi_(spi), wh_(eg, done_event, error_event)
+        MT6816SPI(Spi& spi, EventGroup& eg)
+            : spi_(spi), wh_(eg)
         {
         };
 

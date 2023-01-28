@@ -26,8 +26,8 @@ namespace wibot
                           public DataSource
         {
          public:
-            MT6825SPI(Spi& spi, EventGroup& eg, uint32_t done_event, uint32_t error_event)
-                : spi_(spi), wh_(eg, done_event, error_event)
+            MT6825SPI(Spi& spi, EventGroup& eg)
+                : spi_(spi), wh_(eg)
             {
             };
 
@@ -42,7 +42,6 @@ namespace wibot
             Spi& spi_;
             uint8_t cmd_[4];
             wibot::WaitHandler wh_;
-            uint32_t scope_;
         };
 
     } // wibot

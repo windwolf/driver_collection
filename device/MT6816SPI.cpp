@@ -1,9 +1,10 @@
 //
-// Created by zhouj on 2022/12/12.
+// Created by zhoujian on 2022/12/12.
 //
 
-#include "MT6816SPI.hpp"
+
 #ifdef HAL_SPI_MODULE_ENABLED
+#include "MT6816SPI.hpp"
 
 #define MT6816_SPI_READ_CMD 0x80
 #define MT6816_SPI_WRITE_CMD 0x00

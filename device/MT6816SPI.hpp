@@ -46,6 +46,6 @@ namespace wibot::device
 
 } // wibot.::device
 
-#endif
+#endif //HAL_SPI_MODULE_ENABLED
 
 #endif //WWMOTOR_LIBS_WWDEVICE_DEVICE_MT6816SPI_HPP_

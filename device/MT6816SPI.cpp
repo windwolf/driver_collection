@@ -3,8 +3,9 @@
 //
 
 
-#ifdef HAL_SPI_MODULE_ENABLED
+
 #include "MT6816SPI.hpp"
+#ifdef HAL_SPI_MODULE_ENABLED
 
 #define MT6816_SPI_READ_CMD 0x80
 #define MT6816_SPI_WRITE_CMD 0x00

@@ -8,6 +8,7 @@
 #include "base.hpp"
 #include "spi.hpp"
 #include "DataSource.hpp"
+#include "CheckParityValidator.hpp"
 
 #ifdef HAL_SPI_MODULE_ENABLED
 
@@ -27,7 +28,7 @@ namespace wibot::device
     {
      public:
         MT6816SPI(Spi& spi, EventGroup& eg)
-            : spi_(spi), wh_(eg)
+            : spi_(spi), wh_(eg), parity_(true)
         {
         };
 
@@ -42,6 +43,8 @@ namespace wibot::device
         Spi& spi_;
         uint8_t cmd_[4];
         wibot::WaitHandler wh_;
+        uint16_t angle_;
+        CheckParityValidator parity_;
     };
 
 } // wibot.::device

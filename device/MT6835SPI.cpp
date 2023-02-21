@@ -22,12 +22,15 @@ namespace wibot
         }
         uint32_t MT6835SPI::get_angle()
         {
-            uint8_t data[6];
-            cmd_[0] = MT6835SPI_READ_CMD;
-            cmd_[1] = MT6835SPI_ANGLE_REG;
-            spi_.write_read(cmd_, data, 6, wh_);
+            buf_[0] = MT6835SPI_READ_CMD;
+            buf_[1] = MT6835SPI_ANGLE_REG;
+            spi_.write_read(buf_, buf_, 6, wh_);
             wh_.wait(TIMEOUT_FOREVER);
-            return (data[2] << 13) | (data[3] << 5) | (data[4] >> 3);
+            angle_ = (buf_[2] << 13) | (buf_[3] << 5) | (buf_[4] >> 3);
+            state_.over_speed = buf_[4] & 0x01;
+            state_.weak_magnet = buf_[4] & 0x02;
+            state_.over_voltage = buf_[4] & 0x04;
+            return angle_;
         }
         uint32_t MT6835SPI::get_data()
         {

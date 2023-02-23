@@ -8,6 +8,7 @@
 #include "base.hpp"
 #include "spi.hpp"
 #include "DataSource.hpp"
+#include "Crc8.hpp"
 
 namespace wibot
 {
@@ -34,7 +35,7 @@ namespace wibot
         {
          public:
             MT6835SPI(Spi& spi, EventGroup& eg)
-                : spi_(spi), wh_(eg)
+                : spi_(spi), wh_(eg), crc_(0x07, 0x00, 0x00, false, false)
             {
             };
 
@@ -61,6 +62,7 @@ namespace wibot
             uint32_t angle_;
             MT6835State state_;
             wibot::WaitHandler wh_;
+            Crc8 crc_;
         };
 
     } // wibot

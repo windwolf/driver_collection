@@ -4,8 +4,8 @@
 
 #include "MT6835SPI.hpp"
 
-#define MT6835SPI_READ_CMD 0xA0
-#define MT6835SPI_ANGLE_REG 0x03
+#define MT6835SPI_CONT_READ_CMD1 0xA0
+#define MT6835SPI_CONT_READ_CMD2 0x03
 
 namespace wibot
 {
@@ -22,14 +22,19 @@ namespace wibot
         }
         uint32_t MT6835SPI::get_angle()
         {
-            buf_[0] = MT6835SPI_READ_CMD;
-            buf_[1] = MT6835SPI_ANGLE_REG;
+            buf_[0] = MT6835SPI_CONT_READ_CMD1;
+            buf_[1] = MT6835SPI_CONT_READ_CMD2;
             spi_.write_read(buf_, buf_, 6, wh_);
             wh_.wait(TIMEOUT_FOREVER);
-            angle_ = (buf_[2] << 13) | (buf_[3] << 5) | (buf_[4] >> 3);
-            state_.over_speed = buf_[4] & 0x01;
-            state_.weak_magnet = buf_[4] & 0x02;
-            state_.over_voltage = buf_[4] & 0x04;
+            crc_.reset();
+            crc_.calculate(&buf_[2], 4);
+            if (crc_.validate(buf_[5]))
+            {
+                angle_ = (buf_[2] << 13) | (buf_[3] << 5) | (buf_[4] >> 3);
+                state_.over_speed = buf_[4] & 0x01;
+                state_.weak_magnet = buf_[4] & 0x02;
+                state_.over_voltage = buf_[4] & 0x04;
+            }
             return angle_;
         }
         uint32_t MT6835SPI::get_data()

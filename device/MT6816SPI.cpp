@@ -24,6 +24,8 @@ namespace wibot
         {
             INIT_BEGIN()
             MEMBER_INIT_ERROR_CHECK(spi_);
+            spi_.config.autoDisable = true;
+            spi_.apply_config();
             INIT_END()
         }
         void MT6816SPI::_deinit()
@@ -49,7 +51,7 @@ namespace wibot
             }
             return angle_;
         }
-        
+
         uint32_t MT6816SPI::get_data()
         {
             return get_angle();

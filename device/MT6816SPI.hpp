@@ -8,7 +8,7 @@
 #include "base.hpp"
 #include "spi.hpp"
 #include "DataSource.hpp"
-#include "CheckParityValidator.hpp"
+#include "ParityCalculator.hpp"
 
 #ifdef HAL_SPI_MODULE_ENABLED
 
@@ -44,7 +44,7 @@ namespace wibot::device
         uint8_t cmd_[4];
         wibot::WaitHandler wh_;
         uint16_t angle_;
-        CheckParityValidator parity_;
+        ParityCalculator parity_;
     };
 
 } // wibot.::device

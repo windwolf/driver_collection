@@ -8,6 +8,7 @@
 #include "base.hpp"
 #include "spi.hpp"
 #include "DataSource.hpp"
+#include "Crc8.hpp"
 
 namespace wibot
 {
@@ -21,6 +22,7 @@ namespace wibot
             bool over_speed: 1;
             bool weak_magnet: 1;
             bool over_voltage: 1;
+            bool crc_error: 1;
         };
 
         struct MT6835SpiConfig
@@ -34,7 +36,7 @@ namespace wibot
         {
          public:
             MT6835SPI(Spi& spi, EventGroup& eg)
-                : spi_(spi), wh_(eg)
+                : spi_(spi), wh_(eg), crc_(0x07)
             {
             };
 
@@ -61,6 +63,8 @@ namespace wibot
             uint32_t angle_;
             MT6835State state_;
             wibot::WaitHandler wh_;
+            Crc8 crc_;
+
         };
 
     } // wibot

@@ -22,6 +22,9 @@ namespace wibot::device
 
     };
 
+    /**
+     * @note 使用前，确保时钟极性为极性为1，上升沿采样，8位
+     */
     class MT6816SPI : public Initializable,
                       public Configurable<MT6816SpiConfig>,
                       public DataSource

@@ -35,6 +35,9 @@ namespace wibot
         bool invalid_data: 1;
     };
 
+    /**
+     * @note 使用前，确保时钟极性为极性为0，下降沿采样，16位，NSS脉冲模式
+     */
     class AS5047SPI : public Initializable,
                       public Configurable<AS5047SPIConfig>,
                       public DataSource
@@ -61,7 +64,7 @@ namespace wibot
         void read_cmd(uint16_t cmd);
 
         Spi& spi_;
-        uint16_t cmd_;
+        uint16_t cmd_[2];
 
         wibot::WaitHandler wh_;
         uint16_t angle_;

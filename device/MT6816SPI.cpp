@@ -30,23 +30,24 @@ namespace wibot
         }
         void MT6816SPI::_deinit()
         {
+            //q: why not call spi_.deinit()?
+
         }
         uint16_t MT6816SPI::get_angle()
         {
-            parity_.reset();
+
             uint16_t angle = 0;
             cmd_[0] = MT6816_SPI_READ_ANGLE1_REG;
-            spi_.write_read(cmd_, cmd_, 2, wh_);
+            cmd_[1] = 0;
+            cmd_[2] = 0;
+            spi_.write_read(cmd_, cmd_, 3, wh_);
+            parity_.reset();
             wh_.wait(TIMEOUT_FOREVER);
-            parity_.calculate(&cmd_[1], 1);
-            angle = cmd_[1] << 6;
-            cmd_[0] = MT6816_SPI_READ_ANGLE2_REG;
-            spi_.write_read(cmd_, cmd_, 2, wh_);
-            wh_.wait(TIMEOUT_FOREVER);
-            parity_.calculate(&cmd_[1], 1);
-            angle |= cmd_[1] >> 2;
+            parity_.calculate(&cmd_[1], 2);
             if (parity_.validate())
             {
+                angle = cmd_[1] << 6;
+                angle |= cmd_[2] >> 2;
                 angle_ = angle;
             }
             return angle_;

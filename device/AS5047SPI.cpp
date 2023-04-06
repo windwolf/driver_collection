@@ -14,7 +14,8 @@ Result AS5047SPI::_init() {
     INIT_END()
 }
 
-void AS5047SPI::_deinit() {}
+void AS5047SPI::_deinit() {
+}
 
 uint16_t AS5047SPI::get_angle() {
     cmd_[0] = AS5047_CMD_READ_ANGLECOM;
@@ -34,5 +35,7 @@ uint16_t AS5047SPI::get_angle() {
     }
     return angle_;
 }
-uint32_t AS5047SPI::get_data() { return get_angle(); }
+uint32_t AS5047SPI::get_data() {
+    return get_angle();
+}
 }  // namespace wibot

@@ -1,54 +1,53 @@
 #include "rx8010.hpp"
+
 #include "codex.hpp"
 
-#define LOG_MODULE "rx8010"
 #include "log.h"
-
-namespace wibot::device
-{
+LOGGER("rx8010")
+namespace wibot::device {
 
 #define RX8010_ADDRESS 0x64U
 
 /* rx8010 time register */
-#define REG_SEC 0x10U
-#define REG_MIN 0x11U
+#define REG_SEC  0x10U
+#define REG_MIN  0x11U
 #define REG_HOUR 0x12U
 #define REG_WEEK 0x13U
-#define REG_DAY 0x14U
-#define REG_MON 0x15U
+#define REG_DAY  0x14U
+#define REG_MON  0x15U
 #define REG_YEAR 0x16U
 
 #define REG_RES1 0x17U
 
 /* rx8010 alarm register */
-#define REG_ALM_MIN 0x18U
-#define REG_ALM_HOUR 0x19U
+#define REG_ALM_MIN      0x18U
+#define REG_ALM_HOUR     0x19U
 #define REG_ALM_WEEK_DAY 0x1AU
 
 /* rx8010 control register */
 #define REG_TIME_CNT0 0x1BU
 #define REG_TIME_CNT1 0x1CU
-#define RGE_EXT 0x1DU
-#define REG_FLAG 0x1EU
-#define REG_CTRL 0x1FU
+#define RGE_EXT       0x1DU
+#define REG_FLAG      0x1EU
+#define REG_CTRL      0x1FU
 
 #define REG_USER_RAM_BEGIN 0x20U
 
-#define REG_RES2 0x30U
-#define REG_RES3 0x31U
+#define REG_RES2     0x30U
+#define REG_RES3     0x31U
 #define REG_IRQ_CTRL 0x32U
 
 /* rx8010 flag register bit positions */
 #define VALUE_FLAG_VLF (1 << 1)
-#define VALUE_FLAG_AF (1 << 3)
-#define VALUE_FLAG_TF (1 << 4)
-#define VALUE_FLAG_UF (1 << 5)
+#define VALUE_FLAG_AF  (1 << 3)
+#define VALUE_FLAG_TF  (1 << 4)
+#define VALUE_FLAG_UF  (1 << 5)
 
 /* rx8010 ctrl register bit positions */
 #define VALUE_CTRL_TSTP (1 << 2)
-#define VALUE_CTRL_AIE (1 << 3)
-#define VALUE_CTRL_TIE (1 << 4)
-#define VALUE_CTRL_UIE (1 << 5)
+#define VALUE_CTRL_AIE  (1 << 3)
+#define VALUE_CTRL_TIE  (1 << 4)
+#define VALUE_CTRL_UIE  (1 << 5)
 #define VALUE_CTRL_STOP (1 << 6)
 #define VALUE_CTRL_TEST (1 << 7)
 
@@ -56,230 +55,192 @@ namespace wibot::device
 #define VALUE_EXT_TSEL0 (1 << 0)
 #define VALUE_EXT_TSEL1 (1 << 1)
 #define VALUE_EXT_TSEL2 (1 << 2)
-#define VALUE_EXT_WADA (1 << 3)
-#define VALUE_EXT_TE (1 << 4)
-#define VALUE_EXT_USEL (1 << 5)
+#define VALUE_EXT_WADA  (1 << 3)
+#define VALUE_EXT_TE    (1 << 4)
+#define VALUE_EXT_USEL  (1 << 5)
 #define VALUE_EXT_FSEL0 (1 << 6)
 #define VALUE_EXT_FSEL1 (1 << 7)
 
 /* rx8010 alarm select */
-#define ALM_ENABLE(value) ((~0x80) & value) /* active when bit7 is low */
+#define ALM_ENABLE(value)  ((~0x80) & value) /* active when bit7 is low */
 #define ALM_DISABLE(value) (0x80 | value)
 
 #define RX8010_DEVICE_EVENT_DONE 0x01
 
-	Result RX8010::_i2c_read(uint32_t address, void* data, uint32_t dataSize)
-	{
-		auto rst = _i2c.read(address, data, dataSize, _waitHandler);
-		if (rst != Result::OK)
-		{
-			return rst;
-		}
-		return _waitHandler.wait(TIMEOUT_FOREVER);
-	};
-	Result RX8010::_i2c_write(uint32_t address, void* data, uint32_t dataSize)
-	{
-		auto rst = _i2c.write(address, data, dataSize, _waitHandler);
-		if (rst != Result::OK)
-		{
-			return rst;
-		}
-		return _waitHandler.wait(TIMEOUT_FOREVER);
-	};
+Result RX8010::_i2c_read(uint32_t address, void* data, uint32_t dataSize) {
+    auto rst = _i2c.read(address, data, dataSize, _waitHandler);
+    if (rst != Result::OK) {
+        return rst;
+    }
+    return _waitHandler.wait(TIMEOUT_FOREVER);
+};
+Result RX8010::_i2c_write(uint32_t address, void* data, uint32_t dataSize) {
+    auto rst = _i2c.write(address, data, dataSize, _waitHandler);
+    if (rst != Result::OK) {
+        return rst;
+    }
+    return _waitHandler.wait(TIMEOUT_FOREVER);
+};
 
-	RX8010::RX8010(I2cMaster& i2c, EventGroup& eventGroup)
-		: _i2c(i2c), _waitHandler(eventGroup)
-	{
-	};
+RX8010::RX8010(I2cMaster& i2c, EventGroup& eventGroup) : _i2c(i2c), _waitHandler(eventGroup){};
 
-	Result RX8010::_init()
-	{
-		INIT_BEGIN()
-		MEMBER_INIT_ERROR_CHECK(_i2c)
-		_i2c.config.slaveAddress = RX8010_ADDRESS;
-		_i2c.config.dataWidth = DataWidth::Bit8;
-		_i2c.apply_config();
-		INIT_END()
-	};
-	void RX8010::_deinit()
-	{
-		MEMBER_DEINIT(_i2c)
-	};
+Result RX8010::_init() {
+    INIT_BEGIN()
+    MEMBER_INIT_ERROR_CHECK(_i2c)
+    _i2c.config.slaveAddress = RX8010_ADDRESS;
+    _i2c.config.dataWidth    = DataWidth::Bit8;
+    _i2c.apply_config();
+    INIT_END()
+};
+void RX8010::_deinit(){MEMBER_DEINIT(_i2c)};
 
-	Result RX8010::por_init()
-	{
+Result RX8010::por_init() {
+    uint8_t data;
+    Thread::sleep(50);
 
-		uint8_t data;
-		Thread::sleep(50);
+    auto rst = _i2c_read(REG_USER_RAM_BEGIN, (void*)&data, 1);
+    if (rst != Result::OK) {
+        return rst;
+    }
 
-		auto rst = _i2c_read(REG_USER_RAM_BEGIN, (void*)&data, 1);
-		if (rst != Result::OK)
-		{
-			return rst;
-		}
+    rst = _i2c_read(REG_FLAG, (void*)&data, 1);
+    if (rst != Result::OK) {
+        return rst;
+    }
 
-		rst = _i2c_read(REG_FLAG, (void*)&data, 1);
-		if (rst != Result::OK)
-		{
-			return rst;
-		}
+    if (data & VALUE_FLAG_VLF) {
+        {
+            LOG_E("rx8010 is not running");
+            data &= ~VALUE_FLAG_VLF;
+            rst = _i2c_write(REG_FLAG, (void*)&data, 1);
+            if (rst != Result::OK) {
+                return rst;
+            }
+            Thread::sleep(10);
+        }
+        while (data & VALUE_FLAG_VLF)
 
-		if (data & VALUE_FLAG_VLF)
-		{
-			{
-				LOG_E("rx8010 is not running");
-				data &= ~VALUE_FLAG_VLF;
-				rst = _i2c_write(REG_FLAG, (void*)&data, 1);
-				if (rst != Result::OK)
-				{
-					return rst;
-				}
-				Thread::sleep(10);
-			}
-			while (data & VALUE_FLAG_VLF)
+            // software reset?
+            data &= 0x7C;
+        rst = _i2c_write(REG_FLAG, &data, 1);
+        if (rst != Result::OK) {
+            return rst;
+        }
 
-				// software reset?
-				data &= 0x7C;
-			rst = _i2c_write(REG_FLAG, &data, 1);
-			if (rst != Result::OK)
-			{
-				return rst;
-			}
+        data = 0xD8;
+        rst  = _i2c_write(REG_RES1, &data, 1);
+        if (rst != Result::OK) {
+            return rst;
+        }
 
-			data = 0xD8;
-			rst = _i2c_write(REG_RES1, &data, 1);
-			if (rst != Result::OK)
-			{
-				return rst;
-			}
+        data = 0x00;
+        rst  = _i2c_write(REG_RES2, &data, 1);
+        if (rst != Result::OK) {
+            return rst;
+        }
 
-			data = 0x00;
-			rst = _i2c_write(REG_RES2, &data, 1);
-			if (rst != Result::OK)
-			{
-				return rst;
-			}
+        data = 0x08;
+        rst  = _i2c_write(REG_RES3, &data, 1);
+        if (rst != Result::OK) {
+            return rst;
+        }
 
-			data = 0x08;
-			rst = _i2c_write(REG_RES3, &data, 1);
-			if (rst != Result::OK)
-			{
-				return rst;
-			}
+        rst = _i2c_read(REG_IRQ_CTRL, &data, 1);
+        if (rst != Result::OK) {
+            return rst;
+        }
+        data &= 0xF8;
+        rst = _i2c_write(REG_IRQ_CTRL, &data, 1);
+        if (rst != Result::OK) {
+            return rst;
+        }
+        datetime_set(DateTime());
+    } else {
+        data &= 0x7C;
+        rst = _i2c_write(REG_FLAG, &data, 1);
+        if (rst != Result::OK) {
+            return rst;
+        }
 
-			rst = _i2c_read(REG_IRQ_CTRL, &data, 1);
-			if (rst != Result::OK)
-			{
-				return rst;
-			}
-			data &= 0xF8;
-			rst = _i2c_write(REG_IRQ_CTRL, &data, 1);
-			if (rst != Result::OK)
-			{
-				return rst;
-			}
-			datetime_set(DateTime());
-		}
-		else
-		{
-			data &= 0x7C;
-			rst = _i2c_write(REG_FLAG, &data, 1);
-			if (rst != Result::OK)
-			{
-				return rst;
-			}
+        data = 0xD8;
+        rst  = _i2c_write(REG_RES1, &data, 1);
+        if (rst != Result::OK) {
+            return rst;
+        }
 
-			data = 0xD8;
-			rst = _i2c_write(REG_RES1, &data, 1);
-			if (rst != Result::OK)
-			{
-				return rst;
-			}
+        data = 0x00;
+        rst  = _i2c_write(REG_RES2, &data, 1);
+        if (rst != Result::OK) {
+            return rst;
+        }
 
-			data = 0x00;
-			rst = _i2c_write(REG_RES2, &data, 1);
-			if (rst != Result::OK)
-			{
-				return rst;
-			}
+        data = 0x08;
+        rst  = _i2c_write(REG_RES3, &data, 1);
+        if (rst != Result::OK) {
+            return rst;
+        }
 
-			data = 0x08;
-			rst = _i2c_write(REG_RES3, &data, 1);
-			if (rst != Result::OK)
-			{
-				return rst;
-			}
+        rst = _i2c_read(REG_IRQ_CTRL, &data, 1);
+        if (rst != Result::OK) {
+            return rst;
+        }
+        data &= 0xF8;
+        rst = _i2c_write(REG_IRQ_CTRL, &data, 1);
+        if (rst != Result::OK) {
+            return rst;
+        }
+    }
 
-			rst = _i2c_read(REG_IRQ_CTRL, &data, 1);
-			if (rst != Result::OK)
-			{
-				return rst;
-			}
-			data &= 0xF8;
-			rst = _i2c_write(REG_IRQ_CTRL, &data, 1);
-			if (rst != Result::OK)
-			{
-				return rst;
-			}
-		}
+    return Result::OK;
+};
 
-		return Result::OK;
-	};
+Result RX8010::datetime_get(DateTime& datetime) {
+    uint8_t data[7];
+    auto    rst = _i2c_read(REG_SEC, data, 7);
+    if (rst != Result::OK) {
+        return rst;
+    }
+    datetime.second = Codex::bcd_to_byte(data[0]);
+    datetime.minute = Codex::bcd_to_byte(data[1]);
+    datetime.hour   = Codex::bcd_to_byte(data[2]);
+    datetime.day    = Codex::bcd_to_byte(data[4]);
+    datetime.month  = Codex::bcd_to_byte(data[5]);
+    datetime.year   = Codex::bcd_to_byte(data[6]);
+    return Result::OK;
+};
 
-	Result RX8010::datetime_get(DateTime& datetime)
-	{
-		uint8_t data[7];
-		auto rst = _i2c_read(REG_SEC, data, 7);
-		if (rst != Result::OK)
-		{
-			return rst;
-		}
-		datetime.second = Codex::bcd_to_byte(data[0]);
-		datetime.minute = Codex::bcd_to_byte(data[1]);
-		datetime.hour = Codex::bcd_to_byte(data[2]);
-		datetime.day = Codex::bcd_to_byte(data[4]);
-		datetime.month = Codex::bcd_to_byte(data[5]);
-		datetime.year = Codex::bcd_to_byte(data[6]);
-		return Result::OK;
-	};
+Result RX8010::datetime_set(const DateTime& datetime) {
+    uint8_t ctrl;
+    uint8_t data[3];
+    auto    rst = _i2c_read(REG_CTRL, &ctrl, 1);
+    if (rst != Result::OK) {
+        return rst;
+    }
+    ctrl |= VALUE_CTRL_STOP;
+    rst = _i2c_write(REG_CTRL, &ctrl, 1);
+    if (rst != Result::OK) {
+        return rst;
+    }
+    data[0] = Codex::byte_to_bcd(datetime.second);
+    data[1] = Codex::byte_to_bcd(datetime.minute);
+    data[2] = Codex::byte_to_bcd(datetime.hour);
+    rst     = _i2c_write(REG_SEC, data, 3);
+    if (rst != Result::OK) {
+        return rst;
+    }
+    data[0] = Codex::byte_to_bcd(datetime.day);
+    data[1] = Codex::byte_to_bcd(datetime.month);
+    data[2] = Codex::byte_to_bcd(datetime.year);
+    rst     = _i2c_write(REG_DAY, data, 3);
+    if (rst != Result::OK) {
+        return rst;
+    }
 
-	Result RX8010::datetime_set(const DateTime& datetime)
-	{
-		uint8_t ctrl;
-		uint8_t data[3];
-		auto rst = _i2c_read(REG_CTRL, &ctrl, 1);
-		if (rst != Result::OK)
-		{
-			return rst;
-		}
-		ctrl |= VALUE_CTRL_STOP;
-		rst = _i2c_write(REG_CTRL, &ctrl, 1);
-		if (rst != Result::OK)
-		{
-			return rst;
-		}
-		data[0] = Codex::byte_to_bcd(datetime.second);
-		data[1] = Codex::byte_to_bcd(datetime.minute);
-		data[2] = Codex::byte_to_bcd(datetime.hour);
-		rst = _i2c_write(REG_SEC, data, 3);
-		if (rst != Result::OK)
-		{
-			return rst;
-		}
-		data[0] = Codex::byte_to_bcd(datetime.day);
-		data[1] = Codex::byte_to_bcd(datetime.month);
-		data[2] = Codex::byte_to_bcd(datetime.year);
-		rst = _i2c_write(REG_DAY, data, 3);
-		if (rst != Result::OK)
-		{
-			return rst;
-		}
+    ctrl &= ~VALUE_CTRL_STOP;
+    rst = _i2c_write(REG_CTRL, &ctrl, 1);
 
-		ctrl &= ~VALUE_CTRL_STOP;
-		rst = _i2c_write(REG_CTRL, &ctrl, 1);
-
-		return rst;
-	};
+    return rst;
+};
 
 #if 0
 	static irqreturn_t rx8010_irq_1_handler(int irq, void *dev_id)
@@ -655,4 +616,4 @@ namespace wibot::device
 	}
 #endif
 
-} // namespace wibot::device
+}  // namespace wibot::device

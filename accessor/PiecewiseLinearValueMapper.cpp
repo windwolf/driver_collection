@@ -4,9 +4,6 @@
 
 #include "PiecewiseLinearValueMapper.hpp"
 
-namespace wibot
-{
-	namespace accessor
-	{
-	} // wibot
-} // accessor
+namespace wibot {
+namespace accessor {}  // namespace accessor
+}  // namespace wibot

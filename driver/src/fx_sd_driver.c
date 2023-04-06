@@ -17,7 +17,8 @@
 // static SdDevice *_fx_device;
 // AXI_BUFFER unsigned char test_read[512];
 
-// UINT _fx_partition_offset_calculate(void *partition_sector, UINT partition, ULONG *partition_start, ULONG *partition_size);
+// UINT _fx_partition_offset_calculate(void *partition_sector, UINT partition, ULONG
+// *partition_start, ULONG *partition_size);
 
 // static UINT sd_read_data(FX_MEDIA *media_ptr, ULONG sector, UINT num_sectors);
 // static UINT sd_write_data(FX_MEDIA *media_ptr, ULONG sector, UINT num_sectors);
@@ -73,9 +74,8 @@
 
 // void fx_sd_driver_device_set(SdDevice *fx_device)
 // {
-//     _sd_device_register(fx_device, NULL, &BSP_SD_WriteCpltCallback, &BSP_SD_ReadCpltCallback, &BSP_SD_ErrCallback);
-//     HAL_SD_InitCard(fx_device->base.instance);
-//     _fx_device = fx_device;
+//     _sd_device_register(fx_device, NULL, &BSP_SD_WriteCpltCallback, &BSP_SD_ReadCpltCallback,
+//     &BSP_SD_ErrCallback); HAL_SD_InitCard(fx_device->base.instance); _fx_device = fx_device;
 // }
 
 // /**
@@ -120,7 +120,8 @@
 //                 is_initialized = 1;
 // #endif
 //                 /* Create a counting semaphore to check the DMA transfer status */
-//                 if (tx_semaphore_create(&transfer_semaphore, "sdmmc dma transfer semaphore", 1) != TX_SUCCESS)
+//                 if (tx_semaphore_create(&transfer_semaphore, "sdmmc dma transfer semaphore", 1)
+//                 != TX_SUCCESS)
 //                 {
 //                     media_ptr->fx_media_driver_status = FX_IO_ERROR;
 //                 }
@@ -157,7 +158,8 @@
 //     {
 //         media_ptr->fx_media_driver_status = FX_IO_ERROR;
 
-//         if (sd_read_data(media_ptr, media_ptr->fx_media_driver_logical_sector + media_ptr->fx_media_hidden_sectors,
+//         if (sd_read_data(media_ptr, media_ptr->fx_media_driver_logical_sector +
+//         media_ptr->fx_media_hidden_sectors,
 //                          media_ptr->fx_media_driver_sectors) == FX_SUCCESS)
 //         {
 //             media_ptr->fx_media_driver_status = FX_SUCCESS;
@@ -170,7 +172,8 @@
 //     {
 //         media_ptr->fx_media_driver_status = FX_IO_ERROR;
 
-//         if (sd_write_data(media_ptr, media_ptr->fx_media_driver_logical_sector + media_ptr->fx_media_hidden_sectors,
+//         if (sd_write_data(media_ptr, media_ptr->fx_media_driver_logical_sector +
+//         media_ptr->fx_media_hidden_sectors,
 //                           media_ptr->fx_media_driver_sectors) == FX_SUCCESS)
 //         {
 //             media_ptr->fx_media_driver_status = FX_SUCCESS;
@@ -204,9 +207,10 @@
 //             break;
 //         }
 
-//         /* Check if the sector 0 is the actual boot sector, otherwise calculate the offset into it.
-//             Please note that this should belong to higher level of MW to do this check and it is here
-//             as a temporary work solution */
+//         /* Check if the sector 0 is the actual boot sector, otherwise calculate the offset into
+//         it.
+//             Please note that this should belong to higher level of MW to do this check and it is
+//             here as a temporary work solution */
 
 //         partition_start = 0;
 
@@ -284,7 +288,8 @@
 //         return FX_ACCESS_ERROR;
 //     }
 
-//     status = sd_device_read(_fx_device, (uint32_t *)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
+//     status = sd_device_read(_fx_device, (uint32_t *)media_ptr->fx_media_driver_buffer,
+//     start_sector, num_sectors);
 
 //     if (status != OP_RESULT_OK)
 //     {
@@ -328,7 +333,8 @@
 //         return FX_ACCESS_ERROR;
 //     }
 
-//     status = sd_device_write(_fx_device, (uint32_t *)media_ptr->fx_media_driver_buffer, start_sector, num_sectors);
+//     status = sd_device_write(_fx_device, (uint32_t *)media_ptr->fx_media_driver_buffer,
+//     start_sector, num_sectors);
 
 //     if (status != OP_RESULT_OK)
 //     {

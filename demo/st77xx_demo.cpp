@@ -1,11 +1,11 @@
 #include "st77xx_demo.hpp"
-#include "soc.hpp"
+
 #include "accessor/command.hpp"
 #include "device/st7735.hpp"
 #include "graph.hpp"
+#include "soc.hpp"
 
-namespace wibot::device::demo
-{
+namespace wibot::device::demo {
 using namespace wibot::accessor;
 using namespace wibot::device;
 using namespace wibot::os;
@@ -13,64 +13,59 @@ using namespace wibot::peripheral;
 using namespace wibot::graph;
 
 #define ST7735_BUFFER_SIZE 160 * 80 * 2
-#define LCD_DATA_SIZE 100
+#define LCD_DATA_SIZE      100
 
-struct ST77xxDemo
-{
+struct ST77xxDemo {
     ST77xxDemo(Pin dcPin, SpiWithPins spi4pDev)
         : dcPin(dcPin), spi4pDev(spi4pDev), eg(""), st7735_cmd(spi4pDev, 500),
           st7735(st7735_cmd, eg){};
-    Pin &dcPin;
+    Pin         &dcPin;
     SpiWithPins &spi4pDev;
-    EventGroup eg;
-    CommandSpi st7735_cmd;
-    ST7735 st7735;
-    uint16_t lcddata[LCD_DATA_SIZE];
+    EventGroup   eg;
+    CommandSpi   st7735_cmd;
+    ST7735       st7735;
+    uint16_t     lcddata[LCD_DATA_SIZE];
 };
 
-static void test05_init(ST77xxDemo &demo)
-{
+static void test05_init(ST77xxDemo &demo) {
     demo.dcPin.config.inverse = false;
-    auto &cfg = demo.st7735.config;
-    cfg.xOffset = 1;
-    cfg.yOffset = 26;
-    cfg.width = 160;
-    cfg.height = 80;
-    cfg.colorMode = ST7735_COLOR_MODE_16BIT;
-    cfg.orientation = ST7735_DISPLAY_DIRECTION_XY_EXCHANGE_Y_MIRROR |
+    auto &cfg                 = demo.st7735.config;
+    cfg.xOffset               = 1;
+    cfg.yOffset               = 26;
+    cfg.width                 = 160;
+    cfg.height                = 80;
+    cfg.colorMode             = ST7735_COLOR_MODE_16BIT;
+    cfg.orientation           = ST7735_DISPLAY_DIRECTION_XY_EXCHANGE_Y_MIRROR |
                       ST7735_DISPLAY_COLOR_DIRECTION_BGR | ST7735_DISPLAY_REFRESH_ORDER_T2B_L2R;
     demo.st7735.init();
     demo.st7735.reset();
     // st77xx_inversion(&st7735, 1);
-    for (size_t i = 0; i < LCD_DATA_SIZE; i++)
-    {
+    for (size_t i = 0; i < LCD_DATA_SIZE; i++) {
         demo.lcddata[i] = (0xF800);
     }
+    demo.eg.init();
 }
 
-static void test05(ST77xxDemo &demo)
-{
+static void test05(ST77xxDemo &demo) {
     Color565 color0 = {.value = 0x28A5};
     // Color565 color1 = {.value = 0x001F};
     Color565 color2 = {.value = 0xF800};
     Color565 color3 = {.value = 0x04F1};
     demo.st7735.rect_fill(0, 0, demo.st7735.config.width, demo.st7735.config.height,
-                          color0.value); // inv:1=red; inv:0=yellow
+                          color0.value);  // inv:1=red; inv:0=yellow
     // st7735.hline_draw(10, 10, 20,
     //                   &color1.value); // inv:1=red+green; inv:0=sky+pink
-    demo.st7735.rect_fill(20, 20, 30, 30, color2.value); // inv:1=blue; inv:0=sky
-    demo.st7735.rect_fill(40, 20, 50, 50, color3.value); // inv:1=red; inv:0=yellow
+    demo.st7735.rect_fill(20, 20, 30, 30, color2.value);  // inv:1=blue; inv:0=sky
+    demo.st7735.rect_fill(40, 20, 50, 50, color3.value);  // inv:1=red; inv:0=yellow
 }
 
-static void run()
-{
+static void run() {
     ST77xxDemo *demo;
-    float num = 0.1;
+    float       num = 0.1;
 
     test05_init(*demo);
     /* This thread simply sits in while-forever-sleep loop.  */
-    while (1)
-    {
+    while (1) {
         test05(*demo);
         num += 0.15;
 
@@ -88,10 +83,8 @@ static void run()
     }
 }
 
-void st77xx_demo()
-{
-
+void st77xx_demo() {
     /* Create the main thread.  */
     run();
 };
-} // namespace wibot::device::demo
+}  // namespace wibot::device::demo

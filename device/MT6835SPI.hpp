@@ -16,10 +16,10 @@ using namespace wibot;
 using namespace wibot::peripheral;
 
 struct MT6835State {
-    bool over_speed : 1;
-    bool weak_magnet : 1;
+    bool over_speed   : 1;
+    bool weak_magnet  : 1;
     bool over_voltage : 1;
-    bool crc_error : 1;
+    bool crc_error    : 1;
 };
 
 struct MT6835SpiConfig {};
@@ -32,20 +32,24 @@ class MT6835SPI : public Initializable, public Configurable<MT6835SpiConfig>, pu
 
     uint32_t get_data() override;
 
-    MT6835State get_state() const { return state_; }
+    MT6835State get_state() const {
+        return state_;
+    }
 
-    uint32_t get_resolution() const { return 1 << 21; }
+    uint32_t get_resolution() const {
+        return 1 << 21;
+    }
 
    protected:
     Result _init() override;
-    void _deinit() override;
+    void   _deinit() override;
 
-    Spi& spi_;
-    uint8_t buf_[6];
-    uint32_t angle_;
-    MT6835State state_;
+    Spi&               spi_;
+    uint8_t            buf_[6];
+    uint32_t           angle_;
+    MT6835State        state_;
     wibot::WaitHandler wh_;
-    Crc8Validator crc_;
+    Crc8Validator      crc_;
 };
 
 }  // namespace device

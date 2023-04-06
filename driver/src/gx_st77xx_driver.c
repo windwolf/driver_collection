@@ -12,7 +12,8 @@
 
 // UINT st7735_graphics_driver_rgb565_setup(GX_DISPLAY *display)
 // {
-//     _gx_display_driver_565rgb_setup(display, display->gx_display_driver_data, _st77xx_display_driver_buffer_toggle);
+//     _gx_display_driver_565rgb_setup(display, display->gx_display_driver_data,
+//     _st77xx_display_driver_buffer_toggle);
 // };
 
 // static void _st77xx_display_driver_buffer_toggle(struct GX_CANVAS_STRUCT *canvas,

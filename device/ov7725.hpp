@@ -4,8 +4,6 @@
 #include "os.hpp"
 #include "soc.hpp"
 
-namespace wibot::device {
-    
-} // namespace wibot::device
+namespace wibot::device {}  // namespace wibot::device
 
-#endif // __WWDEVICE_OV7725_HPP__
+#endif                      // __WWDEVICE_OV7725_HPP__

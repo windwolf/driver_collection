@@ -31,13 +31,13 @@ class MT6816SPI : public Initializable, public Configurable<MT6816SpiConfig>, pu
 
    protected:
     Result _init() override;
-    void _deinit() override;
+    void   _deinit() override;
 
-    Spi& spi_;
-    uint8_t cmd_[4];
+    Spi&               spi_;
+    uint8_t            cmd_[4];
     wibot::WaitHandler wh_;
-    uint16_t angle_;
-    ParityValidator parity_;
+    uint16_t           angle_;
+    ParityValidator    parity_;
 };
 
 }  // namespace wibot::device

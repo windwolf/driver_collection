@@ -2,8 +2,7 @@
 #define __BSP_IIC_MEM_H__
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #include "../../../common/inc/common/device.h"
@@ -12,12 +11,12 @@ extern "C"
 
 #ifdef HAL_I2C_MODULE_ENABLED
 
-    OP_RESULT i2c_device_create(I2CDevice *device, I2C_HandleTypeDef *instance, uint16_t dmaThershold);
+OP_RESULT i2c_device_create(I2CDevice *device, I2C_HandleTypeDef *instance, uint16_t dmaThershold);
 
-#endif // HAL_I2C_MODULE_ENABLED
+#endif  // HAL_I2C_MODULE_ENABLED
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // __BSP_IIC_MEM_H__
+#endif  // __BSP_IIC_MEM_H__

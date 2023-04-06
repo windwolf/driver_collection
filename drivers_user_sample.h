@@ -2,8 +2,7 @@
 #define __drivers_user_h__
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #define DRIVERS_ENABLE_I2C
@@ -18,4 +17,4 @@ extern "C"
 }
 #endif
 
-#endif // __drivers_user_h__
+#endif  // __drivers_user_h__

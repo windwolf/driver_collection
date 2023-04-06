@@ -122,8 +122,10 @@
 //         /* USER CODE BEGIN DRIVER_READ */
 //         w25qxx_read(fxDrvFlash,
 //                         media_ptr->fx_media_driver_buffer,
-//                         (media_ptr->fx_media_driver_logical_sector + media_ptr->fx_media_hidden_sectors) * media_ptr->fx_media_bytes_per_sector,
-//                         media_ptr->fx_media_driver_sectors * media_ptr->fx_media_bytes_per_sector);
+//                         (media_ptr->fx_media_driver_logical_sector +
+//                         media_ptr->fx_media_hidden_sectors) *
+//                         media_ptr->fx_media_bytes_per_sector, media_ptr->fx_media_driver_sectors
+//                         * media_ptr->fx_media_bytes_per_sector);
 
 //         /* USER CODE END DRIVER_READ */
 
@@ -207,4 +209,3 @@
 // /* USER CODE BEGIN USER_CODE_SECTION_2 */
 
 // /* USER CODE END USER_CODE_SECTION_2 */
-

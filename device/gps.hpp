@@ -5,32 +5,32 @@
 namespace wibot::device {
 
 struct GeoLocation2D {
-    float longitude; // degrees
-    float latitude;  // degrees
+    float longitude;  // degrees
+    float latitude;   // degrees
 };
 
 struct GeoLocation3D {
-    float longitude; // degrees
-    float latitude;  // degrees
-    float altitude;  // m
+    float longitude;  // degrees
+    float latitude;   // degrees
+    float altitude;   // m
 };
 
 struct Speed2D {
-    float heading; // degrees
-    float speed;   // m/s
+    float heading;  // degrees
+    float speed;    // m/s
 };
 
 struct Speed3D {
-    float x; // m/s
-    float y; // m/s
-    float z; // m/s
+    float x;  // m/s
+    float y;  // m/s
+    float z;  // m/s
 };
 
 struct Time {
     uint8_t hour;
     uint8_t minite;
     uint8_t second;
-    float millisescond;
+    float   millisescond;
 };
 
 struct DateTime {
@@ -40,7 +40,7 @@ struct DateTime {
     uint8_t hour;
     uint8_t minite;
     uint8_t second;
-    float millisescond;
+    float   millisescond;
 };
-} // namespace wibot::device
-#endif // ___WWDEVICE_GPS_HPP__
+}  // namespace wibot::device
+#endif  // ___WWDEVICE_GPS_HPP__

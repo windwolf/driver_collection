@@ -1,36 +1,28 @@
 #include "command.hpp"
 
-namespace wibot::accessor
-{
+namespace wibot::accessor {
 
 Command::Command(uint32_t timeout) : _timeout(timeout){};
 
-Result Command::send(CommandFrame &frame, WaitHandler &waitHandler)
-{
+Result Command::send(CommandFrame &frame, WaitHandler &waitHandler) {
     Result rst;
 
     auto wh = waitHandler.folk();
-    do
-    {
-
+    do {
         rst = media_session_start(wh);
-        if (rst != Result::OK)
-        {
+        if (rst != Result::OK) {
             break;
         }
         rst = wh.wait(_timeout);
-        if (rst != Result::OK)
-        {
+        if (rst != Result::OK) {
             break;
         }
         rst = media_command_send(frame, wh);
-        if (rst != Result::OK)
-        {
+        if (rst != Result::OK) {
             break;
         }
         rst = wh.wait(_timeout);
-        if (rst != Result::OK)
-        {
+        if (rst != Result::OK) {
             break;
         }
 
@@ -44,4 +36,4 @@ Result Command::send(CommandFrame &frame, WaitHandler &waitHandler)
     return rst;
 }
 
-} // namespace wibot::accessor
+}  // namespace wibot::accessor

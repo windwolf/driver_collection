@@ -10,11 +10,9 @@
 namespace wibot {
 namespace device {
 Result MT6835SPI::_init() {
-    INIT_BEGIN()
-    MEMBER_INIT_ERROR_CHECK(spi_);
+    spi_.init();
     spi_.config.autoDisable = true;
-    spi_.apply_config();
-    INIT_END()
+    return spi_.apply_config();
 }
 void MT6835SPI::_deinit() {
 }

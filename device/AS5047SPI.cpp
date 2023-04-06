@@ -7,11 +7,9 @@
 namespace wibot {
 
 Result AS5047SPI::_init() {
-    INIT_BEGIN()
-    MEMBER_INIT_ERROR_CHECK(spi_);
+    spi_.init();
     spi_.config.autoDisable = false;
-    spi_.apply_config();
-    INIT_END()
+    return spi_.apply_config();
 }
 
 void AS5047SPI::_deinit() {

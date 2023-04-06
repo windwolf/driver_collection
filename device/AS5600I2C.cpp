@@ -29,10 +29,8 @@ void wibot::device::AS5600I2C::zero_set() {
 }
 
 Result wibot::device::AS5600I2C::_init() {
-    INIT_BEGIN()
-    MEMBER_INIT_ERROR_CHECK(_i2c)
-    apply_config();
-    INIT_END()
+    _i2c.init();
+    return apply_config();
 }
 
 uint32_t wibot::device::AS5600I2C::angle_get() {
@@ -47,8 +45,10 @@ Result wibot::device::AS5600I2C::apply_config() {
     _i2c.config.dataWidth    = DataWidth::Bit8;
     return _i2c.apply_config();
 }
-void wibot::device::AS5600I2C::_deinit(){
-    MEMBER_DEINIT(_i2c)} uint32_t wibot::device::AS5600I2C::get_data() {
+void wibot::device::AS5600I2C::_deinit() {
+    _i2c.deinit();
+}
+uint32_t wibot::device::AS5600I2C::get_data() {
     return angle_get();
 }
 uint16_t wibot::device::AS5600I2C::get_config() {

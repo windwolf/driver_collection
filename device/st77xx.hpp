@@ -22,10 +22,10 @@ struct ST77xxConfig {
 class ST77xx : public Initializable, public Configurable<ST77xxConfig> {
    public:
     ST77xx(CommandSpi &cmdSpi, EventGroup &eventGroup);
-    Result _init() override;
-    void   _deinit() override;
 
    protected:
+    Result  _init() override;
+    void    _deinit() override;
     uint8_t _cmdData[16];
     uint8_t _pvGamma[16];
     uint8_t _nvGamma[16];

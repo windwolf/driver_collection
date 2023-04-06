@@ -125,17 +125,14 @@ namespace wibot::device {
 using namespace wibot::os;
 
 W25QXX::W25QXX(SpiWithPins &spi, EventGroup &eg, uint32_t timeout)
-    : _cmdSpi(spi, timeout), _timeout(timeout), waitHandler_(eg){
-
-                                                };
+    : _cmdSpi(spi, timeout), _timeout(timeout), waitHandler_(eg){};
 
 Result W25QXX::_init() {
-    INIT_BEGIN()
-    MEMBER_INIT_ERROR_CHECK(_cmdSpi);
-    INIT_END()
+    _cmdSpi.init();
+    return Result::OK;
 };
 void W25QXX::_deinit() {
-    MEMBER_DEINIT(_cmdSpi);
+    _cmdSpi.deinit();
 };
 
 Result W25QXX::_spi_cmd_send(CommandFrame &frame) {
@@ -587,9 +584,8 @@ BlockableW25QXX::BlockableW25QXX(W25QXX &w25qxx, Buffer8 buffer)
 
                      };
 Result BlockableW25QXX::_init() {
-    INIT_BEGIN()
-    MEMBER_INIT_ERROR_CHECK(_w25qxx)
-    rst = config_set(BlockConfig{
+    _w25qxx.init();
+    return config_set(BlockConfig{
         .readBlockSize        = 0,
         .writeBlockSize       = W25QXX_PAGE_SIZE,
         .eraseBlockSize       = W25QXX_BLOCK_SIZE,
@@ -598,9 +594,10 @@ Result BlockableW25QXX::_init() {
         .eraseMode            = BlockMode::RandomBlock,
         .needEraseBeforeWrite = true,
     });
-    INIT_END()
 };
-void BlockableW25QXX::_deinit(){MEMBER_DEINIT(_w25qxx)};
+void BlockableW25QXX::_deinit() {
+    _w25qxx.deinit();
+};
 
 Result BlockableW25QXX::media_read(void *data, uint32_t num, uint32_t size) {
     return _w25qxx.media_read(data, num, size);

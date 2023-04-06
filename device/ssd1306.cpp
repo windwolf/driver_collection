@@ -11,20 +11,17 @@ namespace wibot::device {
 using namespace wibot::peripheral;
 using namespace wibot::os;
 
-SSD1306::SSD1306(I2cMaster& i2c, EventGroup& eventGroup)
-    : _i2c(i2c), _waitHandler(eventGroup){
-
-                 };
+SSD1306::SSD1306(I2cMaster& i2c, EventGroup& eventGroup) : _i2c(i2c), _waitHandler(eventGroup){};
 
 Result SSD1306::_init() {
-    INIT_BEGIN()
-    MEMBER_INIT_ERROR_CHECK(_i2c)
+    _i2c.init();
     _i2c.config.slaveAddress = 0x78;
     _i2c.config.dataWidth    = DataWidth::Bit8;
-    _i2c.apply_config();
-    INIT_END()
+    return _i2c.apply_config();
 };
-void SSD1306::_deinit(){MEMBER_DEINIT(_i2c)};
+void SSD1306::_deinit() {
+    _i2c.deinit();
+};
 
 void SSD1306::on_op_cplt(){
 

@@ -17,14 +17,11 @@
 namespace wibot {
 namespace device {
 Result MT6816SPI::_init() {
-    INIT_BEGIN()
-    MEMBER_INIT_ERROR_CHECK(spi_);
+    spi_.init();
     spi_.config.autoDisable = true;
-    spi_.apply_config();
-    INIT_END()
+    return spi_.apply_config();
 }
 void MT6816SPI::_deinit() {
-    // q: why not call spi_.deinit()?
 }
 uint16_t MT6816SPI::get_angle() {
     uint16_t angle = 0;

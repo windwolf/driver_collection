@@ -74,8 +74,7 @@ union W25QXX_Status3Register {
 class W25QXX : public Initializable {
    public:
     W25QXX(SpiWithPins &spi, EventGroup &eg, uint32_t timeout);
-    Result _init() override;
-    void   _deinit() override;
+
     Result reset();
 
     Result mode_switch(W25QXX_CommandMode cmdMode);
@@ -87,6 +86,10 @@ class W25QXX : public Initializable {
     Result media_read(void *data, uint32_t num, uint32_t size);
     Result media_write(void *data, uint32_t num, uint32_t size);
     Result media_erase(uint32_t num, uint32_t size);
+
+   protected:
+    Result _init() override;
+    void   _deinit() override;
 
    private:
     Result _status_get(uint8_t reg_num, uint8_t &status);

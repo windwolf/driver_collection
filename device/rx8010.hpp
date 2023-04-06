@@ -13,11 +13,14 @@ using namespace wibot::temporal;
 class RX8010 : public Initializable {
    public:
     RX8010(I2cMaster &i2c, EventGroup &eventGroup);
-    Result _init() override;
-    void   _deinit() override;
+
     Result por_init();
     Result datetime_get(DateTime &datetime);
     Result datetime_set(const DateTime &datetime);
+
+   protected:
+    Result _init() override;
+    void   _deinit() override;
 
    private:
     I2cMaster  &_i2c;

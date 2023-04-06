@@ -6,7 +6,8 @@ LED::LED(Pwm& pwm, PwmChannel rChannel, PwmChannel gChannel, PwmChannel bChannel
     : _pwm(pwm), _rChannel(rChannel), _gChannel(gChannel), _bChannel(bChannel){};
 
 Result LED::_init() {
-    return _pwm.init();
+    _pwm.init();
+    return Result::OK;
 };
 void LED::_deinit() {
     _pwm.deinit();

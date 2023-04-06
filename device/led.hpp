@@ -13,11 +13,14 @@ using namespace wibot::peripheral;
 class LED : public Initializable {
    public:
     LED(Pwm &pwm, PwmChannel rChannel, PwmChannel gChannel, PwmChannel bChannel);
-    Result _init() override;
-    void   _deinit() override;
+
     Result start();
     Result stop();
     Result color_set(Color color);
+
+   protected:
+    Result _init() override;
+    void   _deinit() override;
 
    private:
     Pwm       &_pwm;

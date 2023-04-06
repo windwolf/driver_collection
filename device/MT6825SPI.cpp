@@ -16,12 +16,10 @@
 #define MT6825_SPI_PC_BIT_MASK         0x01
 #define MT6825_SPI_OVER_SPEED_BIT_MASK 0x18
 
-namespace wibot {
-namespace device {
+namespace wibot::device {
 Result MT6825SPI::_init() {
-    INIT_BEGIN()
-    MEMBER_INIT_ERROR_CHECK(spi_);
-    INIT_END()
+    spi_.init();
+    return Result::OK;
 }
 void MT6825SPI::_deinit() {
 }
@@ -34,7 +32,6 @@ uint32_t MT6825SPI::get_angle() {
 uint32_t MT6825SPI::get_data() {
     return get_angle();
 }
-}  // namespace device
-}  // namespace wibot
+}  // namespace wibot::device
 
 #endif

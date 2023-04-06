@@ -9,13 +9,13 @@ using namespace wibot::peripheral;
 class CommandSpi : public Initializable, public Command {
    public:
     CommandSpi(SpiWithPins &spi, uint32_t timeout);
-    Result _init() override;
-    void   _deinit() override;
 
    protected:
     Result media_command_send(CommandFrame &frame, WaitHandler &waitHandler) override;
     Result media_session_start(WaitHandler &waitHandler) override;
     Result media_session_finish(WaitHandler &waitHandler) override;
+    Result _init() override;
+    void   _deinit() override;
 
    private:
     SpiWithPins &_spi;

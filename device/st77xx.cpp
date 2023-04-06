@@ -6,8 +6,13 @@ using namespace wibot::peripheral;
 
 ST77xx::ST77xx(CommandSpi &cmdSpi, EventGroup &eventGroup)
     : _cmdSpi(cmdSpi), _waitHandler(eventGroup){};
-Result ST77xx::_init(){INIT_BEGIN() MEMBER_INIT_ERROR_CHECK(_cmdSpi) INIT_END()};
-void   ST77xx::_deinit(){MEMBER_DEINIT(_cmdSpi)};
+Result ST77xx::_init() {
+    _cmdSpi.init();
+    return Result::OK;
+};
+void ST77xx::_deinit() {
+    _cmdSpi.deinit();
+};
 
 void ST77xx::_setup_command(CommandFrame &cmd) {
     cmd.commandMode = CommandFrameMode::Line1;

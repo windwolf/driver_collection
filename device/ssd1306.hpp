@@ -98,14 +98,16 @@ class SSD1306 : public Initializable, public Configurable<SSD1306Config> {
 
     SSD1306(I2cMaster &i2c, EventGroup &eventGroup);
 
+    void lcd_init();
+    void pos_set(uint8_t page, uint8_t column);
+    void contrast_set(uint8_t contrast);
+    void display(bool on);
+    void clear();
+    void draw();
+
+   protected:
     Result _init() override;
     void   _deinit() override;
-    void   lcd_init();
-    void   pos_set(uint8_t page, uint8_t column);
-    void   contrast_set(uint8_t contrast);
-    void   display(bool on);
-    void   clear();
-    void   draw();
 
    private:
     uint8_t     _cmdBuffer[SSD1306_CMD_BUFFER_SIZE];

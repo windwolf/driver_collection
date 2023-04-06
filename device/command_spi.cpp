@@ -11,13 +11,13 @@ using namespace wibot::peripheral;
 CommandSpi::CommandSpi(SpiWithPins& spi, uint32_t timeout) : Command(timeout), _spi(spi){};
 
 Result CommandSpi::_init() {
-    INIT_BEGIN()
-    MEMBER_INIT_ERROR_CHECK(_spi)
-
+    _spi.init();
     _spi.pinconfig_get().autoCs = false;
-    INIT_END();
+    return _spi.apply_config();
 };
-void CommandSpi::_deinit(){MEMBER_DEINIT(_spi)};
+void CommandSpi::_deinit() {
+    _spi.deinit();
+}
 
 Result CommandSpi::media_command_send(CommandFrame& frame, WaitHandler& waitHandler) {
     Result rst;

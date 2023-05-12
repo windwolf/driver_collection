@@ -124,7 +124,7 @@ void SSD1306::clear() {
 // 初始化SSD1306
 void SSD1306::lcd_init() {
     bufferSize = config.width * config.height / 8;
-    Thread::sleep(100);
+    Utils::delay(100);
 
     display(false);
 
@@ -183,11 +183,11 @@ void SSD1306::lcd_init() {
 
     clear();
 
-    Thread::sleep(100);
+    Utils::delay(100);
 
     display(true);
 
-    Thread::sleep(100);
+    Utils::delay(100);
 };
 
 void SSD1306::draw() {

@@ -414,7 +414,7 @@ Result W25QXX::_busy_wait() {
         if (status1.BUSY) {
             return Result::OK;
         } else {
-            Thread::sleep(1);
+            os::Utils::delay(1);
         }
     } while (1);
 };

@@ -43,10 +43,10 @@ Result ST7735::init() {
 };
 Result ST7735::reset() {
     ST77xx::_command(ST7735_CMD_SOFTWARE_RESET);
-    Thread::sleep(120);
+    Utils::delay(120);
 
     _command(ST7735_CMD_SOFTWARE_RESET);
-    Thread::sleep(120);
+    Utils::delay(120);
 
     _command(ST7735_CMD_SLEEP_OUT);
 

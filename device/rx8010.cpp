@@ -96,7 +96,7 @@ void RX8010::_deinit() {
 
 Result RX8010::por_init() {
     uint8_t data;
-    Thread::sleep(50);
+    Utils::delay(50);
 
     auto rst = _i2c_read(REG_USER_RAM_BEGIN, (void*)&data, 1);
     if (rst != Result::OK) {
@@ -116,7 +116,7 @@ Result RX8010::por_init() {
             if (rst != Result::OK) {
                 return rst;
             }
-            Thread::sleep(10);
+            Utils::delay(10);
         }
         while (data & VALUE_FLAG_VLF)
 

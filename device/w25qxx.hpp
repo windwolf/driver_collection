@@ -71,9 +71,9 @@ union W25QXX_Status3Register {
     };
 };
 
-class W25QXX : public Initializable {
+class W25QXX_SPICMD : public Initializable {
    public:
-    W25QXX(SpiWithPins &spi, EventGroup &eg, uint32_t timeout);
+    W25QXX_SPICMD(SpiWithPins &spi, EventGroup &eg, uint32_t timeout);
 
     Result reset();
 
@@ -117,17 +117,73 @@ class W25QXX : public Initializable {
     WaitHandler        waitHandler_;
 };
 
-class BlockableW25QXX : public Initializable, public Block {
+class W25QXX_SPI : public Initializable {
    public:
-    BlockableW25QXX(W25QXX &w25qxx, Buffer8 buffer);
+    W25QXX_SPI(SpiWithPins &spi, EventGroup &eg, uint32_t timeout);
+
+    Result reset();
+
+    Result mode_switch(W25QXX_CommandMode cmdMode);
+
+    Result block_erase(uint32_t address);
+    Result chip_erase();
+    Result id_read(uint32_t &mdId, uint32_t &jedecId);
+
+    Result media_read(void *data, uint32_t num, uint32_t size);
+    Result media_write(void *data, uint32_t num, uint32_t size);
+    Result media_erase(uint32_t num, uint32_t size);
+
+   protected:
+    Result _init() override;
+    void   _deinit() override;
+
+   private:
+    Result _status_get(uint8_t reg_num, uint8_t &status);
+    Result _status_set(uint8_t reg_num, uint8_t status);
+
+    Result _busy_wait();
+    Result _write_enable_cmd();
+    Result _write_cmd(uint8_t *pData, uint32_t writeAddr, uint32_t dataSize);
+    Result _read_cmd(uint8_t *pData, uint32_t readAddr, uint32_t size);
+
+    Result _erase_cmd(W25QXX_EraseMode mode, uint32_t address);
+    Result _chip_erase_cmd();
+    Result _reset_cmd();
+    Result _spi_write_read(uint8_t *writeData, uint32_t writeLength, uint8_t *readData,
+                           uint32_t readLength);
+    Result _spi_write_write(uint8_t *writeData, uint32_t writeLength, uint8_t *data,
+                            uint32_t length);
+
+   private:
+    SpiWithPins _spi;
+    uint32_t    _timeout;
+    WaitHandler waitHandler_;
+};
+
+class BlockableW25QXX_SPICMD : public Initializable, public Block {
+   public:
+    BlockableW25QXX_SPICMD(W25QXX_SPICMD &w25qxx, Buffer8 buffer);
     Result _init() override;
     void   _deinit() override;
 
    protected:
-    W25QXX &_w25qxx;
-    Result  media_read(void *data, uint32_t num, uint32_t size) override;
-    Result  media_write(void *data, uint32_t num, uint32_t size) override;
-    Result  media_erase(uint32_t num, uint32_t size) override;
+    W25QXX_SPICMD &_w25qxx;
+    Result         media_read(void *data, uint32_t num, uint32_t size) override;
+    Result         media_write(void *data, uint32_t num, uint32_t size) override;
+    Result         media_erase(uint32_t num, uint32_t size) override;
+};
+
+class BlockableW25QXX_SPI : public Initializable, public Block {
+   public:
+    BlockableW25QXX_SPI(W25QXX_SPI &w25qxx, Buffer8 buffer);
+    Result _init() override;
+    void   _deinit() override;
+
+   protected:
+    W25QXX_SPI &_w25qxx;
+    Result      media_read(void *data, uint32_t num, uint32_t size) override;
+    Result      media_write(void *data, uint32_t num, uint32_t size) override;
+    Result      media_erase(uint32_t num, uint32_t size) override;
 };
 
 }  // namespace wibot::device

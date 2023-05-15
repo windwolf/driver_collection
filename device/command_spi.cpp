@@ -72,7 +72,7 @@ Result CommandSpi::media_command_send(CommandFrame& frame, WaitHandler& waitHand
         }
 
         if (frame.dataSize > 0 && frame.dataMode != CommandFrameMode::Skip) {
-            rst = _do_step_send(CommandFramePhase::AltData, frame.data, frame.dataSize,
+            rst = _do_step_send(CommandFramePhase::Data, frame.data, frame.dataSize,
                                 frame.dataBits, frame.isWrite, wh);
             if (rst != Result::OK) {
                 break;

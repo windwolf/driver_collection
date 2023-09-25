@@ -59,6 +59,7 @@ Result ROLA_E22_UART::_init() {
     config.wor_cycle = ROLA_E22_WOR_CYCLE::C500;
     config.key = 0x00;
     uart_.init();
+    wait_aux();
     return Result::OK;
 }
 void ROLA_E22_UART::_deinit() {

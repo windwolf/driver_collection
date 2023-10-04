@@ -12,7 +12,7 @@ void ROLA_E22_UART::wait_aux() {
 
     // check and ensure AUX is low.
     aux_.read(auxStatus);
-    while (auxStatus != PinStatus::Reset) {
+    while (auxStatus != PinStatus::Set) {
         // Utils::delay(1);
         aux_.read(auxStatus);
     }
